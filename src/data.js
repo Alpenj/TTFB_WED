@@ -1,0 +1,367 @@
+
+// CSV URLs provided by the user
+const PLAYERS_CSV_URL = 'https://docs.google.com/spreadsheets/d/e/2PACX-1vRGGWFn467-3HymL_GgM6kifS1veoPDSgCG47Za6sO94ZJr8n9PzmL-h_aVCo7e59gbPhVbkfHJtEA9/pub?gid=0&single=true&output=csv';
+const SCHEDULE_CSV_URL = 'https://docs.google.com/spreadsheets/d/e/2PACX-1vRGGWFn467-3HymL_GgM6kifS1veoPDSgCG47Za6sO94ZJr8n9PzmL-h_aVCo7e59gbPhVbkfHJtEA9/pub?gid=2105782746&single=true&output=csv';
+const RECORDS_CSV_URL = 'https://docs.google.com/spreadsheets/d/e/2PACX-1vRGGWFn467-3HymL_GgM6kifS1veoPDSgCG47Za6sO94ZJr8n9PzmL-h_aVCo7e59gbPhVbkfHJtEA9/pub?gid=426357573&single=true&output=csv';
+const STADIUM_CSV_URL = 'https://docs.google.com/spreadsheets/d/e/2PACX-1vRGGWFn467-3HymL_GgM6kifS1veoPDSgCG47Za6sO94ZJr8n9PzmL-h_aVCo7e59gbPhVbkfHJtEA9/pub?gid=1733505023&single=true&output=csv';
+
+let playersData = [];
+let scheduleData = [];
+let recordsData = [];
+let stadiumData = [];
+
+export async function fetchData() {
+    try {
+        const responses = await Promise.all([
+            fetch(PLAYERS_CSV_URL),
+            fetch(SCHEDULE_CSV_URL),
+            fetch(RECORDS_CSV_URL),
+            fetch(STADIUM_CSV_URL)
+        ]);
+
+        // Check for HTTP errors
+        responses.forEach(res => {
+            if (!res.ok) throw new Error(`HTTP error! status: ${res.status}`);
+        });
+
+        const [playersText, scheduleText, recordsText, stadiumText] = await Promise.all(responses.map(r => r.text()));
+
+        playersData = parsePlayersCSV(playersText);
+        scheduleData = parseScheduleCSV(scheduleText);
+        recordsData = parseRecordsCSV(recordsText);
+        stadiumData = parseStadiumCSV(stadiumText);
+
+        console.log("Data loaded successfully:", { players: playersData.length, schedule: scheduleData.length, records: recordsData.length, stadiums: stadiumData.length });
+    } catch (e) {
+        console.error("Error fetching data:", e);
+        throw e;
+    }
+}
+
+function parseCSV(text) {
+    if (!text) return [];
+    return text.trim().split('\n').map(line => line.split(','));
+}
+
+// Header: 2024시즌, 2025시즌, ..., 포지션, 이름
+// We need to dynamically identify season columns.
+// Header: 2024시즌, 2025시즌, ..., 포지션, 이름
+// We need to dynamically identify season columns.
+function parsePlayersCSV(csvText) {
+    const rows = parseCSV(csvText);
+    if (rows.length < 2) return [];
+
+    const headers = rows[0].map(h => h.trim());
+    const positionIdx = headers.indexOf('포지션');
+    const nameIdx = headers.indexOf('이름');
+
+    // Identify season columns
+    // Strategy: Look for columns that end with '시즌' OR differ from '포지션'/'이름' and look like a year
+    const seasonColumns = headers.map((h, i) => {
+        // 1. Explicit '시즌' suffix
+        if (h.endsWith('시즌')) {
+            return { index: i, year: h.replace('시즌', '').trim() };
+        }
+        // 2. Just a year (e.g. '2024') - Simple regex check for 4 digits
+        if (/^\d{4}$/.test(h)) {
+            return { index: i, year: h };
+        }
+        return null;
+    }).filter(c => c !== null);
+
+    return rows.slice(1).map(row => {
+        if (row.length <= Math.max(positionIdx, nameIdx)) return null;
+
+        const name = row[nameIdx]?.trim();
+        const position = row[positionIdx]?.trim();
+
+        if (!name) return null;
+
+        // Determine active seasons for this player
+        const activeSeasons = seasonColumns.filter(col => {
+            const val = row[col.index];
+            // Check if cell has a valid participation marker
+            const cleanVal = val ? val.trim().toUpperCase() : '';
+            return ['O', '1', 'TRUE', 'Y', 'YES'].includes(cleanVal);
+        }).map(col => col.year);
+
+        return {
+            name,
+            position,
+            seasons: activeSeasons
+        };
+    }).filter(p => p && p.name);
+}
+
+function parseScheduleCSV(csvText) {
+    const rows = parseCSV(csvText);
+    // Header: 시즌(0), ID(1), 구분(2), 날짜(3), 시간(4), 구장(5), 상대(6), 결과(7)
+    return rows.slice(1).map(row => {
+        if (row.length < 3) return null;
+        return {
+            season: row[0].trim().replace('시즌', ''),
+            matchId: row[1].trim(),
+            round: row[2].trim(),
+            date: row[3].trim(),
+            time: row[4].trim(),
+            stadium: row[5].trim(),
+            opponent: row[6].trim(),
+            result: row[7] ? row[7].trim() : ''
+        };
+    }).filter(m => m && m.round);
+}
+
+function parseRecordsCSV(csvText) {
+    const rows = parseCSV(csvText);
+    // Header: 시즌(0), ID(1), 포지션(2), 선수명(3), 출전/선발(4), 득점(5), 도움(6), 경고(7), 퇴장(8)
+    return rows.slice(1).map(row => {
+        if (row.length < 4) return null;
+        return {
+            season: row[0].trim().replace('시즌', ''),
+            matchId: row[1].trim(),
+            position: row[2].trim(),
+            name: row[3].trim(),
+            appearanceType: row[4] ? row[4].trim() : '', // '선발', '교체', 'Start', 'Sub'
+            goals: parseInt(row[5] ? row[5].trim() : 0) || 0,
+            assists: parseInt(row[6] ? row[6].trim() : 0) || 0,
+            yellowCards: parseInt(row[7] ? row[7].trim() : 0) || 0,
+            redCards: parseInt(row[8] ? row[8].trim() : 0) || 0
+        };
+    }).filter(r => r && r.matchId && r.name);
+}
+
+function parseStadiumCSV(csvText) {
+    const rows = parseCSV(csvText);
+    // Header: ID,이름
+    return rows.slice(1).map(row => {
+        if (row.length < 2) return null;
+        return {
+            id: row[0].trim(),
+            name: row[1].trim()
+        };
+    }).filter(s => s && s.id);
+}
+
+export function getAvailableSeasons() {
+    // Extract unique seasons from records, schedule AND players registry
+    const seasons = new Set();
+    scheduleData.forEach(m => {
+        if (m.season) seasons.add(m.season);
+    });
+    recordsData.forEach(r => {
+        if (r.season) seasons.add(r.season);
+    });
+    // Add seasons found in player registry (e.g. a future season with only roster but no matches)
+    playersData.forEach(p => {
+        if (p.seasons) {
+            p.seasons.forEach(s => seasons.add(s));
+        }
+    });
+
+    return Array.from(seasons).sort().reverse();
+}
+
+export function getStadium(shortName) {
+    if (!shortName) return '';
+    const found = stadiumData.find(s => s.id === shortName);
+    return found ? found.name : shortName;
+}
+
+export function getSchedule(seasonFilter) {
+    if (!seasonFilter || seasonFilter === 'all') {
+        return scheduleData;
+    }
+    return scheduleData.filter(m => m.season === seasonFilter);
+}
+
+export function getStats(seasonFilter) {
+    // Initialize Player Stats Map
+
+
+    const filter = String(seasonFilter);
+
+    const targetRecords = (!seasonFilter || seasonFilter === 'all')
+        ? recordsData
+        : recordsData.filter(r => String(r.season) === filter);
+
+    const targetSchedule = (!seasonFilter || seasonFilter === 'all')
+        ? scheduleData
+        : scheduleData.filter(m => String(m.season) === filter);
+
+    const statsMap = {};
+
+    // 1. Initialize with players valid for the filters
+    playersData.forEach(player => {
+        // If seasonFilter is specific (e.g. '2024'), check if player has that season in their list
+        // If 'all', include everyone (or maybe everyone who has at least one season?)
+        // Let's include everyone for 'all'.
+        // Strict Type Check: Ensure both are strings for comparison
+        const pSeasons = player.seasons.map(s => String(s));
+        const filter = String(seasonFilter);
+
+        const shouldInclude = filter === 'all' || pSeasons.includes(filter);
+
+        if (shouldInclude) {
+            statsMap[player.name] = {
+                name: player.name,
+                position: player.position,
+                appearances: 0,
+                starts: 0,
+                substitutes: 0,
+                goals: 0,
+                assists: 0,
+                yellowCards: 0,
+                redCards: 0,
+                cleanSheets: 0
+            };
+        }
+    });
+
+    // 2. Update with records
+    targetRecords.forEach(record => {
+        if (!statsMap[record.name]) {
+            // Handle case where player is in records but not in player list (e.g. guest, new player)
+            // Or if strict roster check filtered them out but they have a record (shouldn't happen ideally)
+            statsMap[record.name] = {
+                name: record.name,
+                position: record.position,
+                appearances: 0,
+                starts: 0,
+                substitutes: 0,
+                goals: 0,
+                assists: 0,
+                yellowCards: 0,
+                redCards: 0,
+                cleanSheets: 0
+            };
+        }
+
+        const player = statsMap[record.name];
+        player.appearances += 1;
+
+        // Count Starts vs Subs
+        const type = record.appearanceType;
+        if (['선발', 'Start', 'start'].includes(type) || !type) {
+            // Default to start if empty? Or strict?
+            // "Play Time" column repurposed. If empty, assume played? 
+            // Let's assume '선발' if specific text matches, otherwise just appearance?
+            // User requested: "check for starter vs sub replacement".
+            // Let's count them if explicitly marked.
+        }
+
+        if (['선발', 'Start', 'start', 'O', 'o'].includes(type)) {
+            player.starts++;
+        } else if (['교체', 'Sub', 'sub'].includes(type)) {
+            player.substitutes++;
+        }
+
+        player.goals += record.goals;
+        player.assists += record.assists;
+        player.yellowCards += record.yellowCards;
+        player.redCards += record.redCards;
+    });
+
+    // Calculate Clean Sheets
+    // Conditions: 
+    // 1. Match Result Against is 0
+    // 2. Player is GK or DF
+    // 3. Player played in that match (exists in records for that matchId)
+
+    const cleanSheetMatches = new Set();
+    targetSchedule.forEach(match => {
+        if (!match.result) return;
+        // Assume result format "F:A" (e.g., "3:0") or just text.
+        // If it contains ':', split.
+        if (match.result.includes(':')) {
+            const parts = match.result.split(':');
+            const against = parseInt(parts[1]);
+            if (!isNaN(against) && against === 0) {
+                // We need to store Round+Season combination to be unique if seasonFilter is 'all'
+                // But simplified: since we iterate filtered records, we just need matchId uniqueness within context?
+                // Wait, if seasonFilter is 'all', '1R' exists in 2024 and 2025. 
+                // We need a unique key. 
+                const uniqueId = `${match.season}-${match.round}`;
+                cleanSheetMatches.add(uniqueId);
+            }
+        }
+        // If result is just text like "승", "무", we can't determine score, so ignore.
+    });
+
+    targetRecords.forEach(record => {
+        const uniqueId = `${record.season}-${record.matchId}`;
+        if (cleanSheetMatches.has(uniqueId)) {
+            const player = statsMap[record.name];
+            if (player) {
+                const pos = player.position ? player.position.toUpperCase() : '';
+                if (pos === 'GK' || pos === 'DF') {
+                    player.cleanSheets += 1;
+                }
+            }
+        }
+    });
+
+    // Calculate Efficiency
+    const playersArray = Object.values(statsMap);
+
+    // Sort players by Goals (Desc) -> Assists (Desc) -> Appearances (Desc) -> Name (Asc)
+    playersArray.sort((a, b) => {
+        if (b.goals !== a.goals) return b.goals - a.goals;
+        if (b.assists !== a.assists) return b.assists - a.assists;
+        if (b.appearances !== a.appearances) return b.appearances - a.appearances;
+        return a.name.localeCompare(b.name, 'ko');
+    });
+
+    const efficiency = playersArray
+        .filter(p => p.appearances > 0)
+        .map(p => ({
+            ...p,
+            goalsPerGame: (p.goals / p.appearances).toFixed(2),
+            assistsPerGame: (p.assists / p.appearances).toFixed(2),
+            pointsPerGame: ((p.goals + p.assists) / p.appearances).toFixed(2)
+        }));
+
+    return {
+        players: playersArray,
+        topScorers: [...playersArray].sort((a, b) => b.goals - a.goals || b.appearances - a.appearances).slice(0, 5),
+        topAssists: [...playersArray].sort((a, b) => b.assists - a.assists || b.appearances - a.appearances).slice(0, 5),
+        topEfficiency: efficiency.sort((a, b) => b.pointsPerGame - a.pointsPerGame).slice(0, 5),
+        topCleanSheets: [...playersArray]
+            .filter(p => p.position === 'GK' || p.position === 'DF')
+            .sort((a, b) => b.cleanSheets - a.cleanSheets || b.appearances - a.appearances)
+            .slice(0, 5),
+        topYellowCards: [...playersArray].sort((a, b) => b.yellowCards - a.yellowCards).slice(0, 5),
+        topRedCards: [...playersArray].sort((a, b) => b.redCards - a.redCards).slice(0, 5)
+    };
+}
+
+export function getTeamStats(seasonFilter) {
+    let wins = 0;
+    let draws = 0;
+    let losses = 0;
+
+    const targetSchedule = (!seasonFilter || seasonFilter === 'all')
+        ? scheduleData
+        : scheduleData.filter(m => m.season === seasonFilter);
+
+    targetSchedule.forEach(match => {
+        if (!match.result) return;
+        const res = match.result;
+
+        if (res.includes('승')) wins++;
+        else if (res.includes('무')) draws++;
+        else if (res.includes('패')) losses++;
+        else if (res.includes(':')) {
+            const [home, away] = res.split(':').map(Number);
+            if (!isNaN(home) && !isNaN(away)) {
+                if (home > away) wins++;
+                else if (home < away) losses++;
+                else draws++;
+            }
+        }
+    });
+
+    const total = wins + draws + losses;
+    const winRate = total > 0 ? Math.round((wins / total) * 100) : 0;
+
+    return { wins, draws, losses, winRate };
+}
