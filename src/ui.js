@@ -886,6 +886,7 @@ function showMapModal(shortName) {
 // strictly speaking regular event listeners are better, but I used innerHTML string injection before.
 // I will instead attach event listeners via delegation or direct attachment after render.
 window.showMapModal = showMapModal;
+window.getPlayerEvents = getPlayerEvents; // Expose for inline onclick handlers
 
 // Stat Details Modal
 function showHistoryModal(playerName, eventType, events) {
@@ -925,7 +926,7 @@ function showHistoryModal(playerName, eventType, events) {
                     ${events.map(e => `
                         <div class="flex items-center justify-between p-3 rounded-xl bg-gray-700/50 hover:bg-gray-700 transition-colors">
                             <div class="flex items-center space-x-3">
-                                <span class="text-xs font-mono text-neonGreen w-8 text-center bg-neonGreen/10 rounded py-1">${e.round}</span>
+                                <span class="text-xs font-mono text-neonGreen w-auto px-2 min-w-[2rem] text-center bg-neonGreen/10 rounded py-1 whitespace-nowrap">${e.round}</span>
                                 <div class="flex flex-col">
                                     <span class="text-sm text-white font-bold">vs ${e.opponent}</span>
                                     <span class="text-[10px] text-gray-400">${e.date}</span>
