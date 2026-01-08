@@ -295,23 +295,85 @@ function renderHome(container, currentSeason, currentMatchType) {
 
         ${recentResultMarkup}
         
-        <!-- Top Scorers Preview -->
-         <div class="bg-gray-800 rounded-3xl p-6 border border-gray-700 cursor-pointer hover:bg-gray-750 transition-colors" id="btn-stats-detail">
-            <h2 class="text-lg font-bold text-white mb-4 flex items-center">
-                <span class="mr-2">⚽</span> 득점 랭킹 Top 3
-            </h2>
-            <ul class="space-y-3">
-                ${stats.topScorers.slice(0, 3).map((player, index) => `
-                <li class="flex items-center justify-between p-2 rounded-xl bg-gray-700/50">
-                    <div class="flex items-center">
-                        <span class="text-neonGreen font-bold w-6 text-center">${index + 1}</span>
-                         <span class="text-gray-200 text-sm">${player.name}</span>
-                    </div>
-                    <span class="text-white font-bold text-sm bg-gray-600 px-2 py-0.5 rounded-full">${player.goals}골</span>
-                </li>
-                `).join('')}
-                 ${stats.topScorers.length === 0 ? '<li class="text-gray-500 text-xs text-center p-2">기록 없음</li>' : ''}
-            </ul>
+        <!-- Top Stats Grid -->
+        <div class="grid grid-cols-1 md:grid-cols-3 gap-4 mb-24">
+            <!-- Top Scorers -->
+            <div class="bg-gray-800 rounded-3xl p-6 border border-gray-700 cursor-pointer hover:bg-gray-750 transition-colors" onclick="document.querySelector('button[data-target=\'stats\']').click()">
+                <div class="flex items-center justify-between mb-4">
+                     <h2 class="text-lg font-bold text-white flex items-center">
+                        <span class="mr-2">⚽</span> 득점
+                    </h2>
+                     <span class="text-xs text-neonGreen font-mono">Top 5</span>
+                </div>
+               
+                <div class="space-y-3">
+                    ${(function () {
+            const sorted = [...stats.topScorers].sort((a, b) => b.goals - a.goals).slice(0, 5);
+            if (sorted.length === 0) return '<div class="text-center text-gray-500 py-4 text-xs">기록 없음</div>';
+            return sorted.map((p, index) => `
+                            <div class="flex items-center justify-between group h-6 hover:bg-gray-700/50 rounded px-1 -mx-1 transition-colors cursor-pointer" onclick="event.stopPropagation(); window.showHistoryModal('${p.name}', 'goals', window.getPlayerEvents('${currentSeason}', '${currentMatchType || 'all'}', '${p.name}', 'goals'))">
+                                <div class="flex items-center space-x-3 overflow-hidden">
+                                    <span class="text-xs font-mono w-4 shrink-0 ${index < 3 ? 'text-neonGreen' : 'text-gray-500'}">${index + 1}</span>
+                                    <span class="text-xs text-gray-300 group-hover:text-white transition-colors truncate">${p.name}</span>
+                                </div>
+                                <span class="text-xs font-bold text-white font-mono shrink-0">${p.goals}</span>
+                            </div>
+                        `).join('');
+        })()}
+                </div>
+            </div>
+
+            <!-- Top Assisters -->
+            <div class="bg-gray-800 rounded-3xl p-6 border border-gray-700 cursor-pointer hover:bg-gray-750 transition-colors" onclick="document.querySelector('button[data-target=\'stats\']').click()">
+                 <div class="flex items-center justify-between mb-4">
+                     <h2 class="text-lg font-bold text-white flex items-center">
+                        <span class="mr-2">👟</span> 도움
+                    </h2>
+                     <span class="text-xs text-blue-400 font-mono">Top 5</span>
+                </div>
+
+                <div class="space-y-3">
+                    ${(function () {
+            const sorted = [...stats.topAssists].sort((a, b) => b.assists - a.assists).slice(0, 5);
+            if (sorted.length === 0) return '<div class="text-center text-gray-500 py-4 text-xs">기록 없음</div>';
+            return sorted.map((p, index) => `
+                            <div class="flex items-center justify-between group h-6 hover:bg-gray-700/50 rounded px-1 -mx-1 transition-colors cursor-pointer" onclick="event.stopPropagation(); window.showHistoryModal('${p.name}', 'assists', window.getPlayerEvents('${currentSeason}', '${currentMatchType || 'all'}', '${p.name}', 'assists'))">
+                                <div class="flex items-center space-x-3 overflow-hidden">
+                                    <span class="text-xs font-mono w-4 shrink-0 ${index < 3 ? 'text-blue-400' : 'text-gray-500'}">${index + 1}</span>
+                                    <span class="text-xs text-gray-300 group-hover:text-white transition-colors truncate">${p.name}</span>
+                                </div>
+                                <span class="text-xs font-bold text-white font-mono shrink-0">${p.assists}</span>
+                            </div>
+                        `).join('');
+        })()}
+                </div>
+            </div>
+
+            <!-- Most Appearances -->
+             <div class="bg-gray-800 rounded-3xl p-6 border border-gray-700 cursor-pointer hover:bg-gray-750 transition-colors" onclick="document.querySelector('button[data-target=\'stats\']').click()">
+                 <div class="flex items-center justify-between mb-4">
+                     <h2 class="text-lg font-bold text-white flex items-center">
+                        <span class="mr-2">🏃</span> 출전
+                    </h2>
+                     <span class="text-xs text-purple-400 font-mono">Top 5</span>
+                </div>
+
+                <div class="space-y-3">
+                    ${(function () {
+            const sorted = [...stats.topAppearances].sort((a, b) => b.appearances - a.appearances).slice(0, 5);
+            if (sorted.length === 0) return '<div class="text-center text-gray-500 py-4 text-xs">기록 없음</div>';
+            return sorted.map((p, index) => `
+                            <div class="flex items-center justify-between group h-6 hover:bg-gray-700/50 rounded px-1 -mx-1 transition-colors cursor-pointer" onclick="event.stopPropagation(); window.showHistoryModal('${p.name}', 'appearances', window.getPlayerEvents('${currentSeason}', '${currentMatchType || 'all'}', '${p.name}', 'appearances'))">
+                                <div class="flex items-center space-x-3 overflow-hidden">
+                                    <span class="text-xs font-mono w-4 shrink-0 ${index < 3 ? 'text-purple-400' : 'text-gray-500'}">${index + 1}</span>
+                                    <span class="text-xs text-gray-300 group-hover:text-white transition-colors truncate">${p.name}</span>
+                                </div>
+                                <span class="text-xs font-bold text-white font-mono shrink-0">${p.appearances}</span>
+                            </div>
+                        `).join('');
+        })()}
+                </div>
+            </div>
         </div>
     `;
 
@@ -583,106 +645,146 @@ function renderStats(container, currentSeason, currentMatchType) {
     // 6. Stats Table
 
 
-    // 1. Goals Chart
+    // 1. Goals Chart -> List
     const goalsChartContainer = document.createElement('div');
-    goalsChartContainer.className = 'bg-gray-800 p-4 rounded-2xl border border-gray-700';
-
-    const validScorers = stats.topScorers.filter(p => p.goals > 0).slice(0, 5);
-    if (validScorers.length > 0) {
-        goalsChartContainer.innerHTML = `<h3 class="text-sm text-gray-400 mb-4">득점 순위</h3><canvas id="goalsChart"></canvas>`;
-    } else {
-        goalsChartContainer.innerHTML = `<h3 class="text-sm text-gray-400 mb-4">득점 순위</h3><div class="text-center text-gray-500 text-xs py-10">기록 없음</div>`;
-    }
+    goalsChartContainer.className = 'bg-gray-800 rounded-3xl p-6 border border-gray-700 hover:bg-gray-750 transition-colors';
+    goalsChartContainer.innerHTML = `
+        <div class="flex items-center justify-between mb-4">
+             <h2 class="text-lg font-bold text-white flex items-center">
+                <span class="mr-2">⚽</span> 득점
+            </h2>
+             <span class="text-xs text-neonGreen font-mono">Top 5</span>
+        </div>
+        <div class="space-y-3">
+            ${stats.topScorers.slice(0, 5).map((p, index) => `
+                <div class="flex items-center justify-between group h-6 cursor-pointer" onclick="window.showHistoryModal('${p.name}', 'goals', window.getPlayerEvents('${currentSeason}', '${currentMatchType || 'all'}', '${p.name}', 'goals'))">
+                    <div class="flex items-center space-x-3 overflow-hidden">
+                        <span class="text-xs font-mono w-4 shrink-0 ${index < 3 ? 'text-neonGreen' : 'text-gray-500'}">${index + 1}</span>
+                        <span class="text-xs text-gray-300 group-hover:text-white transition-colors truncate">${p.name}</span>
+                    </div>
+                    <span class="text-xs font-bold text-white font-mono shrink-0">${p.goals}</span>
+                </div>
+            `).join('') || '<div class="text-center text-gray-500 text-xs py-4">기록 없음</div>'}
+        </div>
+    `;
     chartsContainer.appendChild(goalsChartContainer);
 
-    // 2. Assists Chart
+    // 2. Assists Chart -> List
     const assistsChartContainer = document.createElement('div');
-    assistsChartContainer.className = 'bg-gray-800 p-4 rounded-2xl border border-gray-700';
-
-    const validAssisters = stats.topAssists.filter(p => p.assists > 0).slice(0, 5);
-    if (validAssisters.length > 0) {
-        assistsChartContainer.innerHTML = `<h3 class="text-sm text-gray-400 mb-4">도움 순위</h3><canvas id="assistsChart"></canvas>`;
-    } else {
-        assistsChartContainer.innerHTML = `<h3 class="text-sm text-gray-400 mb-4">도움 순위</h3><div class="text-center text-gray-500 text-xs py-10">기록 없음</div>`;
-    }
+    assistsChartContainer.className = 'bg-gray-800 rounded-3xl p-6 border border-gray-700 hover:bg-gray-750 transition-colors';
+    assistsChartContainer.innerHTML = `
+        <div class="flex items-center justify-between mb-4">
+             <h2 class="text-lg font-bold text-white flex items-center">
+                <span class="mr-2">👟</span> 도움
+            </h2>
+             <span class="text-xs text-blue-400 font-mono">Top 5</span>
+        </div>
+        <div class="space-y-3">
+             ${stats.topAssists.slice(0, 5).map((p, index) => `
+                <div class="flex items-center justify-between group h-6 cursor-pointer" onclick="window.showHistoryModal('${p.name}', 'assists', window.getPlayerEvents('${currentSeason}', '${currentMatchType || 'all'}', '${p.name}', 'assists'))">
+                    <div class="flex items-center space-x-3 overflow-hidden">
+                        <span class="text-xs font-mono w-4 shrink-0 ${index < 3 ? 'text-blue-400' : 'text-gray-500'}">${index + 1}</span>
+                        <span class="text-xs text-gray-300 group-hover:text-white transition-colors truncate">${p.name}</span>
+                    </div>
+                    <span class="text-xs font-bold text-white font-mono shrink-0">${p.assists}</span>
+                </div>
+            `).join('') || '<div class="text-center text-gray-500 text-xs py-4">기록 없음</div>'}
+        </div>
+    `;
     chartsContainer.appendChild(assistsChartContainer);
 
-    // 3. Appearances List (Start/Sub)
+    // 3. Appearances List
     const appearanceContainer = document.createElement('div');
-    appearanceContainer.className = 'bg-gray-800 p-4 rounded-2xl border border-gray-700';
+    appearanceContainer.className = 'bg-gray-800 rounded-3xl p-6 border border-gray-700 hover:bg-gray-750 transition-colors';
     appearanceContainer.innerHTML = `
-        <h3 class="text-sm text-gray-400 mb-3 leading-snug">출전 횟수<br><span class="text-xs text-gray-500 font-normal">(선발/교체)</span></h3>
-        <div class="space-y-2">
-            ${stats.topAppearances.filter(p => p.appearances > 0).slice(0, 5).map((p, i) => `
-                <div class="flex items-center justify-between border-b border-gray-700 pb-2 last:border-0 last:pb-0 hover:bg-gray-700/50 cursor-pointer p-1 rounded transition-colors" onclick="window.showHistoryModal('${p.name}', 'appearances', getPlayerEvents('${currentSeason}', '${currentMatchType || 'all'}', '${p.name}', 'appearances'))">
-                    <div class="flex items-center space-x-2 overflow-hidden">
-                        <span class="text-xs font-mono text-gray-500 w-3 flex-shrink-0">${i + 1}</span>
-                        <span class="text-sm text-white font-bold truncate">${p.name}</span>
-                        <span class="text-[10px] text-gray-500 flex-shrink-0">(${p.position})</span>
+        <div class="flex items-center justify-between mb-4">
+             <h2 class="text-lg font-bold text-white flex items-center">
+                <span class="mr-2">🏃</span> 출전
+            </h2>
+             <span class="text-xs text-purple-400 font-mono">Top 5</span>
+        </div>
+        <div class="space-y-3">
+             ${stats.topAppearances.slice(0, 5).map((p, index) => `
+                <div class="flex items-center justify-between group h-6 cursor-pointer" onclick="window.showHistoryModal('${p.name}', 'appearances', window.getPlayerEvents('${currentSeason}', '${currentMatchType || 'all'}', '${p.name}', 'appearances'))">
+                    <div class="flex items-center space-x-3 overflow-hidden">
+                        <span class="text-xs font-mono w-4 shrink-0 ${index < 3 ? 'text-purple-400' : 'text-gray-500'}">${index + 1}</span>
+                        <span class="text-xs text-gray-300 group-hover:text-white transition-colors truncate">${p.name}</span>
                     </div>
-                    <div class="flex items-center space-x-1 text-xs font-mono">
-                        <span class="text-neonGreen font-bold">${p.starts}</span>
-                        <span class="text-gray-500">/</span>
-                        <span class="text-white">${p.substitutes}</span>
+                     <div class="flex items-center space-x-1 text-xs font-mono shrink-0">
+                        <span class="text-white font-bold">${p.appearances}</span>
                     </div>
                 </div>
             `).join('') || '<div class="text-center text-gray-500 text-xs py-4">기록 없음</div>'}
         </div>
-`;
+    `;
     chartsContainer.appendChild(appearanceContainer);
 
     // 4. Yellow Cards List
     const yellowCardContainer = document.createElement('div');
-    yellowCardContainer.className = 'bg-gray-800 p-4 rounded-2xl border border-gray-700';
+    yellowCardContainer.className = 'bg-gray-800 rounded-3xl p-6 border border-gray-700 hover:bg-gray-750 transition-colors';
     yellowCardContainer.innerHTML = `
-            <h3 class="text-sm text-gray-400 mb-3">경고</h3>
-        <div class="space-y-2">
-            ${stats.topYellowCards.filter(p => p.yellowCards > 0).slice(0, 5).map((p, i) => `
-                <div class="flex items-center justify-between border-b border-gray-700 pb-2 last:border-0 last:pb-0 hover:bg-gray-700/50 cursor-pointer p-1 rounded transition-colors" onclick="window.showHistoryModal('${p.name}', 'yellowCards', window.getPlayerEvents('${currentSeason}', '${currentMatchType || 'all'}', '${p.name}', 'yellowCards'))">
-                    <div class="flex items-center space-x-2 overflow-hidden">
-                        <span class="text-xs font-mono text-gray-500 w-3 flex-shrink-0">${i + 1}</span>
-                        <span class="text-sm text-white font-bold truncate">${p.name}</span>
+        <div class="flex items-center justify-between mb-4">
+             <h2 class="text-lg font-bold text-white flex items-center">
+                <span class="mr-2">🟨</span> 경고
+            </h2>
+             <span class="text-xs text-yellow-400 font-mono">Top 5</span>
+        </div>
+        <div class="space-y-3">
+             ${stats.topYellowCards.slice(0, 5).map((p, index) => `
+                 <div class="flex items-center justify-between group h-6 cursor-pointer" onclick="window.showHistoryModal('${p.name}', 'yellowCards', window.getPlayerEvents('${currentSeason}', '${currentMatchType || 'all'}', '${p.name}', 'yellowCards'))">
+                    <div class="flex items-center space-x-3 overflow-hidden">
+                        <span class="text-xs font-mono w-4 shrink-0 ${index < 3 ? 'text-yellow-400' : 'text-gray-500'}">${index + 1}</span>
+                        <span class="text-xs text-gray-300 group-hover:text-white transition-colors truncate">${p.name}</span>
                     </div>
-                    <span class="text-sm text-yellow-400 font-mono font-bold flex-shrink-0">${p.yellowCards}</span>
+                    <span class="text-xs font-bold text-yellow-500 font-mono shrink-0">${p.yellowCards}</span>
                 </div>
             `).join('') || '<div class="text-center text-gray-500 text-xs py-4">기록 없음</div>'}
         </div>
-`;
+    `;
     chartsContainer.appendChild(yellowCardContainer);
 
-    // 5. Red Cards List (Moved up)
+    // 5. Red Cards List
     const redCardContainer = document.createElement('div');
-    redCardContainer.className = 'bg-gray-800 p-4 rounded-2xl border border-gray-700';
+    redCardContainer.className = 'bg-gray-800 rounded-3xl p-6 border border-gray-700 hover:bg-gray-750 transition-colors';
     redCardContainer.innerHTML = `
-            <h3 class="text-sm text-gray-400 mb-3">퇴장</h3>
-        <div class="space-y-2">
-            ${stats.topRedCards.filter(p => p.redCards > 0).slice(0, 5).map((p, i) => `
-                <div class="flex items-center justify-between border-b border-gray-700 pb-2 last:border-0 last:pb-0 hover:bg-gray-700/50 cursor-pointer p-1 rounded transition-colors" onclick="window.showHistoryModal('${p.name}', 'redCards', window.getPlayerEvents('${currentSeason}', '${currentMatchType || 'all'}', '${p.name}', 'redCards'))">
-                    <div class="flex items-center space-x-2 overflow-hidden">
-                        <span class="text-xs font-mono text-gray-500 w-3 flex-shrink-0">${i + 1}</span>
-                        <span class="text-sm text-white font-bold truncate">${p.name}</span>
+        <div class="flex items-center justify-between mb-4">
+             <h2 class="text-lg font-bold text-white flex items-center">
+                <span class="mr-2">🟥</span> 퇴장
+            </h2>
+             <span class="text-xs text-red-500 font-mono">Top 5</span>
+        </div>
+        <div class="space-y-3">
+             ${stats.topRedCards.slice(0, 5).map((p, index) => `
+                 <div class="flex items-center justify-between group h-6 cursor-pointer" onclick="window.showHistoryModal('${p.name}', 'redCards', window.getPlayerEvents('${currentSeason}', '${currentMatchType || 'all'}', '${p.name}', 'redCards'))">
+                    <div class="flex items-center space-x-3 overflow-hidden">
+                        <span class="text-xs font-mono w-4 shrink-0 ${index < 3 ? 'text-red-500' : 'text-gray-500'}">${index + 1}</span>
+                        <span class="text-xs text-gray-300 group-hover:text-white transition-colors truncate">${p.name}</span>
                     </div>
-                    <span class="text-sm text-red-500 font-mono font-bold flex-shrink-0">${p.redCards}</span>
+                    <span class="text-xs font-bold text-red-500 font-mono shrink-0">${p.redCards}</span>
                 </div>
             `).join('') || '<div class="text-center text-gray-500 text-xs py-4">기록 없음</div>'}
         </div>
-`;
+    `;
     chartsContainer.appendChild(redCardContainer);
 
-    // 6. Own Goals List (Moved to bottom right slot, Always visible)
+    // 6. Own Goals List
     const ogContainer = document.createElement('div');
-    ogContainer.className = 'bg-gray-800 p-4 rounded-2xl border border-gray-700';
+    ogContainer.className = 'bg-gray-800 rounded-3xl p-6 border border-gray-700 hover:bg-gray-750 transition-colors';
     ogContainer.innerHTML = `
-        <h3 class="text-sm text-gray-400 mb-3 leading-snug">자살골<br><span class="text-xs text-gray-500 font-normal">(Own Goals)</span></h3>
-        <div class="space-y-2">
-            ${(stats.topOwnGoals || []).filter(p => p.ownGoals > 0).slice(0, 5).map((p, i) => `
-                <div class="flex items-center justify-between border-b border-gray-700 pb-2 last:border-0 last:pb-0 hover:bg-gray-700/50 cursor-pointer p-1 rounded transition-colors" onclick="window.showHistoryModal('${p.name}', 'ownGoals', window.getPlayerEvents('${currentSeason}', '${currentMatchType || 'all'}', '${p.name}', 'ownGoals'))">
-                    <div class="flex items-center space-x-2 overflow-hidden">
-                        <span class="text-xs font-mono text-gray-500 w-3 flex-shrink-0">${i + 1}</span>
-                        <span class="text-sm text-white font-bold truncate">${p.name}</span>
-                        <span class="text-[10px] text-gray-500 flex-shrink-0">(${p.position})</span>
+        <div class="flex items-center justify-between mb-4">
+             <h2 class="text-lg font-bold text-white flex items-center">
+                <span class="mr-2">🥅</span> 자살골
+            </h2>
+             <span class="text-xs text-gray-400 font-mono">Owngoals</span>
+        </div>
+        <div class="space-y-3">
+            ${(stats.topOwnGoals || []).filter(p => p.ownGoals > 0).slice(0, 5).map((p, index) => `
+                 <div class="flex items-center justify-between group h-6 cursor-pointer" onclick="window.showHistoryModal('${p.name}', 'ownGoals', window.getPlayerEvents('${currentSeason}', '${currentMatchType || 'all'}', '${p.name}', 'ownGoals'))">
+                    <div class="flex items-center space-x-3 overflow-hidden">
+                        <span class="text-xs font-mono w-4 shrink-0 ${index < 3 ? 'text-gray-400' : 'text-gray-500'}">${index + 1}</span>
+                        <span class="text-xs text-gray-300 group-hover:text-white transition-colors truncate">${p.name}</span>
                     </div>
-                    <span class="text-sm text-red-400 font-mono font-bold flex-shrink-0">${p.ownGoals}</span>
+                    <span class="text-xs font-bold text-red-400 font-mono shrink-0">${p.ownGoals}</span>
                 </div>
             `).join('') || '<div class="text-center text-gray-500 text-xs py-4">기록 없음</div>'}
         </div>
