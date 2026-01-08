@@ -425,7 +425,10 @@ function renderMatches(container, currentSeason, currentMatchType) {
             el.className = `flex items-center bg-gray-800 p-4 rounded-xl border-l-4 ${statusColor} shadow-sm animate-fade-in`;
             el.innerHTML = `
                 <div class="flex flex-col mr-4 w-16">
-                    <span class="text-xs text-gray-500 font-mono">${match.round}</span>
+                    <span class="text-xs text-gray-500 font-mono text-center">
+                        ${window.currentSeason === 'all' && match.season ? `<span class="block text-[10px] text-gray-600">'${match.season.slice(-2)}</span>` : ''}
+                        ${match.round}
+                    </span>
                     <span class="text-xs text-gray-400 font-mono text-center mt-1 bg-gray-900 rounded px-1">${match.date ? match.date.substring(5) : '-'}</span>
                 </div>
                 <div class="flex-1">
@@ -683,7 +686,7 @@ function renderStats(container, currentSeason, currentMatchType) {
         const rowsHtml = pageData.map(p => `
             <tr class="border-b border-gray-700 last:border-0 hover:bg-gray-750">
                 <td class="p-3 text-sm text-gray-300 w-16">${p.position}</td>
-                <td class="p-3 text-sm font-bold text-white cursor-pointer hover:text-neonGreen hover:underline transition-colors" data-player-name="${p.name}" onclick="window.showPlayerProfileModal(this.dataset.playerName)">${p.name}</td>
+                <td class="p-3 text-sm font-bold text-white cursor-pointer hover:text-neonGreen hover:underline transition-colors player-name-cell" data-player-name="${p.name}">${p.name}</td>
                 <td class="p-3 text-center text-xs text-gray-400 font-mono w-24">
                     <span class="text-neonGreen">${p.starts}</span> / <span class="text-white">${p.substitutes}</span>
                 </td>
@@ -693,8 +696,16 @@ function renderStats(container, currentSeason, currentMatchType) {
             </tr>
         `).join('');
 
-        const tableBody = tableContainer.querySelector('tbody');
-        if (tableBody) tableBody.innerHTML = rowsHtml;
+        if (tableBody) {
+            tableBody.innerHTML = rowsHtml;
+            // Attach Event Listeners safely
+            tableBody.querySelectorAll('.player-name-cell').forEach(cell => {
+                cell.addEventListener('click', (e) => {
+                    const name = e.target.dataset.playerName;
+                    if (name) window.showPlayerProfileModal(name);
+                });
+            });
+        }
 
         // Update Pagination Controls
         const paginationEl = tableContainer.querySelector('.pagination-controls');
