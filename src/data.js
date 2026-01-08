@@ -104,6 +104,46 @@ export function getPlayerEvents(currentSeason, currentMatchType, playerName, eve
     return events;
 }
 
+export function getOpponentStats(currentSeason, currentMatchType) {
+    const filter = String(currentSeason);
+    const typeFilter = currentMatchType === 'all' ? null : currentMatchType;
+
+    const stats = {};
+
+    scheduleData.forEach(match => {
+        // 1. Filter by Season
+        if (filter !== 'all' && String(match.season) !== filter) return;
+
+        // 2. Filter by Match Type
+        if (typeFilter && match.matchType !== typeFilter) return;
+
+        const opponent = match.opponent;
+        if (!stats[opponent]) {
+            stats[opponent] = { name: opponent, wins: 0, draws: 0, losses: 0, total: 0, gf: 0, ga: 0 };
+        }
+
+        const s = stats[opponent];
+        s.total++;
+
+        // Calculate Result
+        // Logic: Check records for this match. 
+        // We need to calculate team score for this match.
+        // But scheduleData usually has "result" column? Let's check parseScheduleCSV.
+        // It has 'result' column (index 7).
+
+        const result = match.result; // '승', '무', '패' or similar
+
+        if (['승', 'Win', 'W'].includes(result)) s.wins++;
+        else if (['무', 'Draw', 'D'].includes(result)) s.draws++;
+        else if (['패', 'Loss', 'L'].includes(result)) s.losses++;
+
+        // Goals For / Against calculation could be complex without explicit score in schedule.
+        // We can aggregate from records if needed, but for now W/D/L is primary request.
+    });
+
+    return Object.values(stats).sort((a, b) => b.wins - a.wins || b.total - a.total);
+}
+
 function parsePlayersCSV(csvText) {
     const rows = parseCSV(csvText);
     if (rows.length < 2) return [];

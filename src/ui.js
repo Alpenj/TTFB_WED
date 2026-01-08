@@ -1,5 +1,5 @@
 import Chart from 'chart.js/auto';
-import { getSchedule, getStats, getTeamStats, getStadium, getAvailableSeasons, getAvailableMatchTypes, getMatchRecords, getPlayerEvents } from './data.js';
+import { getSchedule, getStats, getTeamStats, getStadium, getAvailableSeasons, getAvailableMatchTypes, getMatchRecords, getPlayerEvents, getOpponentStats } from './data.js';
 
 export function SetupDashboard() {
     const app = document.querySelector('#app');
@@ -607,7 +607,43 @@ function renderStats(container, currentSeason, currentMatchType) {
 `;
     chartsContainer.appendChild(redCardContainer);
 
-    // 6. Stats Table Container
+    // 6. Opponent Stats (Head-to-Head)
+    const opponentStats = getOpponentStats(currentSeason, currentMatchType || 'all');
+    if (opponentStats.length > 0) {
+        const oppContainer = document.createElement('div');
+        oppContainer.className = 'bg-gray-800 p-4 rounded-2xl border border-gray-700 col-span-1 md:col-span-2 lg:col-span-1';
+        oppContainer.innerHTML = `
+            <h3 class="text-sm text-gray-400 mb-3">상대 전적 <span class="text-xs text-gray-500 font-normal">(승/무/패)</span></h3>
+            <div class="space-y-2 max-h-60 overflow-y-auto custom-scrollbar pr-1">
+                ${opponentStats.map((o, i) => `
+                    <div class="flex items-center justify-between border-b border-gray-700 pb-2 last:border-0 last:pb-0">
+                         <div class="flex items-center space-x-2 w-1/3">
+                            <span class="text-xs font-mono text-gray-500 w-3 flex-shrink-0">${i + 1}</span>
+                            <span class="text-sm text-white font-bold truncate">${o.name}</span>
+                        </div>
+                        <div class="flex items-center space-x-2 text-xs font-mono user-select-none">
+                            <div class="flex items-center space-x-1" title="승">
+                                <span class="w-1.5 h-1.5 rounded-full bg-neonGreen"></span>
+                                <span class="text-white">${o.wins}</span>
+                            </div>
+                            <div class="flex items-center space-x-1" title="무">
+                                <span class="w-1.5 h-1.5 rounded-full bg-gray-400"></span>
+                                <span class="text-gray-300">${o.draws}</span>
+                            </div>
+                            <div class="flex items-center space-x-1" title="패">
+                                <span class="w-1.5 h-1.5 rounded-full bg-red-500"></span>
+                                <span class="text-gray-400">${o.losses}</span>
+                            </div>
+                        </div>
+                        <div class="text-[10px] text-gray-500 font-mono w-8 text-right">
+                             ${Math.round((o.wins / o.total) * 100)}%
+                        </div>
+                    </div>
+                `).join('')}
+            </div>
+        `;
+        chartsContainer.appendChild(oppContainer);
+    }
     const tableContainer = document.createElement('div');
     tableContainer.className = 'bg-gray-800 rounded-2xl border border-gray-700 overflow-hidden flex flex-col';
 
