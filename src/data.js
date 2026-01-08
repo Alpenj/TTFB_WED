@@ -117,7 +117,11 @@ export function getOpponentStats(currentSeason, currentMatchType) {
         // 2. Filter by Match Type
         if (typeFilter && match.matchType !== typeFilter) return;
 
-        const opponent = match.opponent;
+        // 3. Exclude Practice Matches from Opponent Stats (Global Rule per user request)
+        if (match.matchType === '연습경기') return;
+
+        const opponent = match.opponent ? match.opponent.trim() : '';
+        if (!opponent) return; // Skip if no opponent name
         if (!stats[opponent]) {
             stats[opponent] = { name: opponent, wins: 0, draws: 0, losses: 0, total: 0, gf: 0, ga: 0 };
         }
