@@ -12,11 +12,12 @@ let stadiumData = [];
 
 export async function fetchData() {
     try {
+        const timestamp = new Date().getTime();
         const responses = await Promise.all([
-            fetch(PLAYERS_CSV_URL),
-            fetch(SCHEDULE_CSV_URL),
-            fetch(RECORDS_CSV_URL),
-            fetch(STADIUM_CSV_URL)
+            fetch(`${PLAYERS_CSV_URL}&t=${timestamp}`),
+            fetch(`${SCHEDULE_CSV_URL}&t=${timestamp}`),
+            fetch(`${RECORDS_CSV_URL}&t=${timestamp}`),
+            fetch(`${STADIUM_CSV_URL}&t=${timestamp}`)
         ]);
 
         // Check for HTTP errors
