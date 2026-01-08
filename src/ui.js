@@ -1,6 +1,8 @@
 import Chart from 'chart.js/auto';
 import { getSchedule, getStats, getTeamStats, getStadium, getAvailableSeasons, getAvailableMatchTypes, getMatchRecords, getPlayerEvents, getOpponentStats, getPlayerMatchHistory } from './data.js';
 
+window.getPlayerMatchHistory = getPlayerMatchHistory; // Expose for inline onclick handlers
+
 export function SetupDashboard() {
     const app = document.querySelector('#app');
 
@@ -425,9 +427,10 @@ function renderMatches(container, currentSeason, currentMatchType) {
             el.className = `flex items-center bg-gray-800 p-4 rounded-xl border-l-4 ${statusColor} shadow-sm animate-fade-in`;
             el.innerHTML = `
                 <div class="flex flex-col mr-4 w-16">
-                    <span class="text-xs text-gray-500 font-mono text-center">
-                        ${window.currentSeason === 'all' && match.season ? `<span class="block text-[10px] text-gray-600">'${match.season.slice(-2)}</span>` : ''}
-                        ${match.round}
+                    <span class="text-xs text-gray-500 font-mono text-center leading-tight">
+                        ${window.currentSeason === 'all' && match.season ? `<span class="block text-[10px] text-gray-600 mb-0.5">'${match.season.slice(-2)}</span>` : ''}
+                        <span class="font-bold block">${match.matchType}</span>
+                        <span class="text-[10px] block">${match.matchId}</span>
                     </span>
                     <span class="text-xs text-gray-400 font-mono text-center mt-1 bg-gray-900 rounded px-1">${match.date ? match.date.substring(5) : '-'}</span>
                 </div>
@@ -650,14 +653,14 @@ function renderStats(container, currentSeason, currentMatchType) {
     const tableContainer = document.createElement('div');
     tableContainer.className = 'bg-gray-800 rounded-2xl border border-gray-700 overflow-hidden flex flex-col';
 
-    // Pagination State
+    // Pagination & Sort State
     let currentPage = 1;
     const itemsPerPage = 10;
 
-    // Sort Helper Function
+    // Sort Helper
     const getSortIndicator = (key) => {
-        if (sortState.key !== key) return '<span class="text-gray-600 ml-1">⇅</span>';
-        return sortState.order === 'asc' ? '<span class="text-neonGreen ml-1">▲</span>' : '<span class="text-neonGreen ml-1">▼</span>';
+        if (sortState.key !== key) return '<span class="text-gray-600 ml-1 text-[10px]">⇅</span>';
+        return sortState.order === 'asc' ? '<span class="text-neonGreen ml-1 text-[10px]">▲</span>' : '<span class="text-neonGreen ml-1 text-[10px]">▼</span>';
     };
 
     const renderTablePage = (page) => {
@@ -666,56 +669,56 @@ function renderStats(container, currentSeason, currentMatchType) {
             let valA = a[sortState.key];
             let valB = b[sortState.key];
 
-            // Handle secondary sort by name
-            if (valA === valB) {
-                return a.name.localeCompare(b.name);
+            if (sortState.key === 'position') {
+                const posOrder = { 'FW': 1, 'MF': 2, 'DF': 3, 'GK': 4 };
+                valA = posOrder[valA] || 99;
+                valB = posOrder[valB] || 99;
             }
 
-            if (sortState.order === 'asc') {
-                return valA > valB ? 1 : -1;
-            } else {
-                return valA < valB ? 1 : -1;
-            }
+            if (valA === valB) return a.name.localeCompare(b.name);
+            return sortState.order === 'asc' ? (valA > valB ? 1 : -1) : (valA < valB ? 1 : -1);
         });
 
-        const totalPages = Math.ceil(stats.players.length / itemsPerPage);
+        const totalPages = Math.ceil(stats.players.length / itemsPerPage) || 1;
+        if (page > totalPages) page = totalPages;
+
         const start = (page - 1) * itemsPerPage;
         const end = start + itemsPerPage;
         const pageData = stats.players.slice(start, end);
 
-        const rowsHtml = pageData.map(p => `
-            <tr class="border-b border-gray-700 last:border-0 hover:bg-gray-750">
-                <td class="p-3 text-sm text-gray-300 w-16">${p.position}</td>
-                <td class="p-3 text-sm font-bold text-white cursor-pointer hover:text-neonGreen hover:underline transition-colors player-name-cell" data-player-name="${p.name}">${p.name}</td>
-                <td class="p-3 text-center text-xs text-gray-400 font-mono w-24">
-                    <span class="text-neonGreen">${p.starts}</span> / <span class="text-white">${p.substitutes}</span>
-                </td>
-                <td class="p-3 text-sm text-center text-neonGreen font-mono w-12">${p.goals}</td>
-                <td class="p-3 text-sm text-center text-gray-400 font-mono w-12">${p.assists}</td>
-                <td class="p-3 text-sm text-center text-white font-mono w-12 font-bold">${p.attackPoints}</td>
-            </tr>
-        `).join('');
+        const tableBody = tableContainer.querySelector('tbody');
+        if (!tableBody) return; // Safety check
 
-        if (tableBody) {
-            tableBody.innerHTML = rowsHtml;
-            // Attach Event Listeners safely
-            tableBody.querySelectorAll('.player-name-cell').forEach(cell => {
-                cell.addEventListener('click', (e) => {
-                    const name = e.target.dataset.playerName;
-                    if (name) window.showPlayerProfileModal(name);
-                });
-            });
-        }
+        const rowsHtml = pageData.map((p, index) => {
+            // Rank Calculation (Global index based on sort)
+            const globalIndex = start + index + 1;
+
+            return `
+            <tr class="border-b border-gray-700 last:border-0 hover:bg-gray-750 transition-colors">
+                 <td class="p-3 text-center text-xs text-gray-500 font-mono w-12">${globalIndex}</td>
+                <td class="p-3 text-sm text-gray-300 w-16 text-center">${p.position}</td>
+                <td class="p-3 text-sm font-bold text-white cursor-pointer hover:text-neonGreen hover:underline transition-colors player-name-cell" onclick="window.showHistoryModal('${p.name}', 'all', window.getPlayerMatchHistory('${p.name}'))">${p.name}</td>
+                <td class="p-3 text-center text-xs text-gray-400 font-mono w-24">
+                    <span class="text-neonGreen font-bold">${p.starts}</span> / <span class="text-white">${p.substitutes}</span>
+                </td>
+                <td class="p-3 text-sm text-center text-neonGreen font-mono w-16 font-bold bg-gray-800/50">${p.attackPoints}</td>
+                <td class="p-3 text-sm text-center text-gray-300 font-mono w-16">${p.goals}</td>
+                <td class="p-3 text-sm text-center text-gray-400 font-mono w-16">${p.assists}</td>
+            </tr>
+        `}).join('');
+
+        tableBody.innerHTML = rowsHtml || '<tr><td colspan="7" class="text-center py-10 text-gray-500">기록 없음</td></tr>';
 
         // Update Pagination Controls
         const paginationEl = tableContainer.querySelector('.pagination-controls');
         if (paginationEl) {
             paginationEl.innerHTML = `
-                <button ${page === 1 ? 'disabled' : ''} class="prev-btn px-3 py-1 bg-gray-700 rounded text-xs ${page === 1 ? 'opacity-50' : 'hover:bg-gray-600'}">이전</button>
-                <span class="text-xs text-gray-400">${page} / ${totalPages}</span>
-                <button ${page === totalPages ? 'disabled' : ''} class="next-btn px-3 py-1 bg-gray-700 rounded text-xs ${page === totalPages ? 'opacity-50' : 'hover:bg-gray-600'}">다음</button>
+                <button ${page === 1 ? 'disabled' : ''} class="prev-btn px-3 py-1 bg-gray-700 rounded text-xs ${page === 1 ? 'opacity-50 cursor-not-allowed' : 'hover:bg-gray-600 border border-gray-600'} text-gray-300">이전</button>
+                <span class="text-xs text-gray-400 font-mono">${page} / ${totalPages}</span>
+                <button ${page === totalPages ? 'disabled' : ''} class="next-btn px-3 py-1 bg-gray-700 rounded text-xs ${page === totalPages ? 'opacity-50 cursor-not-allowed' : 'hover:bg-gray-600 border border-gray-600'} text-gray-300">다음</button>
             `;
 
+            // Re-attach listeners using closure to avoid querySelector lookup issues if re-rendered
             paginationEl.querySelector('.prev-btn').onclick = () => {
                 if (currentPage > 1) { currentPage--; renderTablePage(currentPage); }
             };
@@ -723,26 +726,67 @@ function renderStats(container, currentSeason, currentMatchType) {
                 if (currentPage < totalPages) { currentPage++; renderTablePage(currentPage); }
             };
         }
+
+        // Update Header Sort Indicators
+        const thead = tableContainer.querySelector('thead');
+        if (thead) {
+            thead.querySelectorAll('th[data-sort]').forEach(th => {
+                const key = th.dataset.sort;
+                th.innerHTML = `${th.innerText.split(' ')[0]} ${getSortIndicator(key)}`;
+
+                // Re-attach click listener? No, it's better to attach once.
+                // But replacing innerHTML breaks listeners if attached to TH.
+                // Solution: Attach listener to TR or THEAD once, or re-attach here.
+                // Let's attach to THEAD once in the initial HTML setup, using event delegation.
+            });
+        }
     };
 
+    // Initial HTML Structure
     tableContainer.innerHTML = `
-        <div class="overflow-x-auto max-h-[400px] overflow-y-auto relative">
-            <table class="w-full">
-                <thead class="bg-gray-900 border-b border-gray-700 sticky top-0 z-10 w-full">
+        <div class="overflow-x-auto max-h-[500px] overflow-y-auto relative custom-scrollbar">
+            <table class="w-full relative border-collapse">
+                <thead class="bg-gray-900 border-b border-gray-700 sticky top-0 z-10 shadow-sm">
                     <tr>
-                        <th class="cursor-pointer hover:bg-gray-800 p-3 text-left text-xs text-gray-500 font-medium select-none" data-sort="position">포지션 ${getSortIndicator('position')}</th>
-                        <th class="cursor-pointer hover:bg-gray-800 p-3 text-left text-xs text-gray-500 font-medium select-none" data-sort="name">선수명 ${getSortIndicator('name')}</th>
-                        <th class="cursor-pointer hover:bg-gray-800 p-3 text-center text-xs text-gray-500 font-medium select-none" data-sort="starts">출전 (선발/교체) ${getSortIndicator('starts')}</th>
-                        <th class="cursor-pointer hover:bg-gray-800 p-3 text-center text-xs text-gray-500 font-medium select-none" data-sort="goals">득점 ${getSortIndicator('goals')}</th>
-                        <th class="cursor-pointer hover:bg-gray-800 p-3 text-center text-xs text-gray-500 font-medium select-none" data-sort="assists">도움 ${getSortIndicator('assists')}</th>
-                        <th class="cursor-pointer hover:bg-gray-800 p-3 text-center text-xs text-gray-500 font-medium select-none" data-sort="attackPoints">공격P ${getSortIndicator('attackPoints')}</th>
+                         <th class="p-3 text-center text-xs text-gray-500 font-medium w-12">순위</th>
+                        <th class="cursor-pointer hover:bg-gray-800 p-3 text-center text-xs text-gray-500 font-medium select-none transition-colors group" data-sort="position">포지션</th>
+                        <th class="cursor-pointer hover:bg-gray-800 p-3 text-left text-xs text-gray-500 font-medium select-none transition-colors group" data-sort="name">선수명</th>
+                        <th class="cursor-pointer hover:bg-gray-800 p-3 text-center text-xs text-gray-500 font-medium select-none transition-colors group" data-sort="starts">출전(선발/교체)</th>
+                        <th class="cursor-pointer hover:bg-gray-800 p-3 text-center text-xs text-neonGreen font-bold select-none transition-colors group bg-gray-800/50" data-sort="attackPoints">공격P</th>
+                        <th class="cursor-pointer hover:bg-gray-800 p-3 text-center text-xs text-gray-500 font-medium select-none transition-colors group" data-sort="goals">득점</th>
+                        <th class="cursor-pointer hover:bg-gray-800 p-3 text-center text-xs text-gray-500 font-medium select-none transition-colors group" data-sort="assists">도움</th>
                     </tr>
                 </thead>
-                <tbody></tbody>
+                <tbody class="divide-y divide-gray-700/50"></tbody>
             </table>
         </div>
         <div class="pagination-controls p-3 border-t border-gray-700 flex justify-between items-center bg-gray-800"></div>
     `;
+
+    // Attach Header Click Listeners (Event Delegation)
+    const headerRow = tableContainer.querySelector('thead tr');
+    if (headerRow) {
+        headerRow.addEventListener('click', (e) => {
+            const th = e.target.closest('th[data-sort]');
+            if (!th) return;
+            const key = th.dataset.sort;
+
+            if (sortState.key === key) {
+                sortState.order = sortState.order === 'desc' ? 'asc' : 'desc';
+            } else {
+                sortState.key = key;
+                sortState.order = 'desc'; // Default new sort to desc for stats
+                if (key === 'name' || key === 'position') sortState.order = 'asc';
+            }
+            renderTablePage(currentPage);
+        });
+    }
+
+    container.appendChild(chartsContainer);
+    container.appendChild(tableContainer);
+
+    // Initial Render
+    renderTablePage(currentPage);
 
     // Add Click Listeners to Headers
     const attachHeaderListeners = () => {

@@ -263,13 +263,13 @@ function parseScheduleCSV(csvText) {
 
 function parseRecordsCSV(csvText) {
     const rows = parseCSV(csvText);
-    // Header: 시즌(0), ID(1), 포지션(2), 선수명(3), 출전/선발(4), 득점(5), 도움(6), 경고(7), 퇴장(8)
+    // Header: 시즌(0), ID(1), 매치타입(2), 선수명(3), 출전/선발(4), 득점(5), 도움(6), 경고(7), 퇴장(8)
     return rows.slice(1).map(row => {
         if (row.length < 4) return null;
         return {
             season: row[0].trim().replace('시즌', ''),
-            matchId: row[1].trim(),
-            position: row[2].trim(),
+            matchId: row[1].trim(), // e.g. '1R'
+            matchType: row[2].trim(), // e.g. '리그', '컵'
             name: row[3].trim(),
             appearanceType: row[4] ? row[4].trim() : '', // '선발', '교체', 'Start', 'Sub'
             goals: parseInt(row[5] ? row[5].trim() : 0) || 0,
@@ -492,8 +492,9 @@ export function getStats(seasonFilter, matchTypeFilter) {
     // Calculate Efficiency
     const playersArray = Object.values(statsMap);
 
-    // Sort players by Goals (Desc) -> Assists (Desc) -> Appearances (Desc) -> Name (Asc)
+    // Sort: AttackPoints (Desc) > Goals (Desc) > Assists (Desc) > Appearances (Desc) > Name (Asc)
     playersArray.sort((a, b) => {
+        if (b.attackPoints !== a.attackPoints) return b.attackPoints - a.attackPoints;
         if (b.goals !== a.goals) return b.goals - a.goals;
         if (b.assists !== a.assists) return b.assists - a.assists;
         if (b.appearances !== a.appearances) return b.appearances - a.appearances;
@@ -526,7 +527,8 @@ export function getStats(seasonFilter, matchTypeFilter) {
             .sort((a, b) => b.ownGoals - a.ownGoals)
             .slice(0, 5),
         topYellowCards: [...playersArray].sort((a, b) => b.yellowCards - a.yellowCards).slice(0, 5),
-        topRedCards: [...playersArray].sort((a, b) => b.redCards - a.redCards).slice(0, 5)
+        topRedCards: [...playersArray].sort((a, b) => b.redCards - a.redCards).slice(0, 5),
+        topAttackPoints: [...playersArray].sort((a, b) => b.attackPoints - a.attackPoints || b.appearances - a.appearances).slice(0, 5)
     };
 }
 
