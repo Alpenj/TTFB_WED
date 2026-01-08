@@ -1,5 +1,5 @@
 import Chart from 'chart.js/auto';
-import { getSchedule, getStats, getTeamStats, getStadium, getAvailableSeasons, getAvailableMatchTypes, getMatchRecords, getPlayerEvents, getOpponentStats } from './data.js';
+import { getSchedule, getStats, getTeamStats, getStadium, getAvailableSeasons, getAvailableMatchTypes, getMatchRecords, getPlayerEvents, getOpponentStats, getPlayerMatchHistory } from './data.js';
 
 export function SetupDashboard() {
     const app = document.querySelector('#app');
@@ -683,7 +683,7 @@ function renderStats(container, currentSeason, currentMatchType) {
         const rowsHtml = pageData.map(p => `
             <tr class="border-b border-gray-700 last:border-0 hover:bg-gray-750">
                 <td class="p-3 text-sm text-gray-300 w-16">${p.position}</td>
-                <td class="p-3 text-sm font-bold text-white">${p.name}</td>
+                <td class="p-3 text-sm font-bold text-white cursor-pointer hover:text-neonGreen hover:underline transition-colors" onclick="window.showPlayerProfileModal('${p.name}')">${p.name}</td>
                 <td class="p-3 text-center text-xs text-gray-400 font-mono w-24">
                     <span class="text-neonGreen">${p.starts}</span> / <span class="text-white">${p.substitutes}</span>
                 </td>
@@ -990,3 +990,81 @@ function showHistoryModal(playerName, eventType, events) {
     document.body.appendChild(modal);
 }
 window.showHistoryModal = showHistoryModal;
+
+// Player Profile Modal (All Matches)
+function showPlayerProfileModal(playerName) {
+    const events = window.getPlayerMatchHistory(playerName);
+
+    // Calculate total stats for header from events
+    const totals = events.reduce((acc, e) => {
+        acc.goals += e.goals;
+        acc.assists += e.assists;
+        acc.yellowCards += e.yellowCards;
+        acc.redCards += e.redCards;
+        return acc;
+    }, { goals: 0, assists: 0, yellowCards: 0, redCards: 0 });
+
+    const existingModal = document.querySelector('#profile-modal');
+    if (existingModal) existingModal.remove();
+
+    const modal = document.createElement('div');
+    modal.id = 'profile-modal';
+    modal.className = 'fixed inset-0 z-50 flex items-center justify-center p-4 bg-black/80 backdrop-blur-sm animate-fade-in';
+    modal.innerHTML = `
+        <div class="bg-gray-800 rounded-3xl p-6 w-full max-w-lg border border-gray-700 shadow-2xl relative flex flex-col max-h-[85vh]">
+            <div class="flex justify-between items-start mb-6">
+                <div>
+                    <h3 class="text-2xl font-bold text-white mb-1">${playerName}</h3>
+                    <div class="flex space-x-3 text-sm text-gray-400">
+                        <span>득점 <span class="text-neonGreen font-bold">${totals.goals}</span></span>
+                        <span>도움 <span class="text-white font-bold">${totals.assists}</span></span>
+                        <span>경고 <span class="text-yellow-400 font-bold">${totals.yellowCards}</span></span>
+                    </div>
+                </div>
+                <button class="text-gray-500 hover:text-white" onclick="document.querySelector('#profile-modal').remove()">
+                    <svg xmlns="http://www.w3.org/2000/svg" class="h-6 w-6" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M6 18L18 6M6 6l12 12" />
+                    </svg>
+                </button>
+            </div>
+            
+            <div class="overflow-y-auto pr-1 custom-scrollbar flex-1">
+                <div class="space-y-3">
+                    ${events.map(e => `
+                        <div class="p-4 rounded-xl bg-gray-700/50 hover:bg-gray-700 transition-colors border border-gray-600/30">
+                            <div class="flex justify-between items-center mb-2">
+                                <div class="flex items-center space-x-2">
+                                    <span class="text-[10px] font-mono text-neonGreen px-2 py-0.5 bg-neonGreen/10 rounded whitespace-nowrap">${e.round}</span>
+                                    <span class="text-xs text-gray-400">${e.date}</span>
+                                </div>
+                                <span class="text-xs font-bold ${e.appearance === '교체' ? 'text-gray-500' : 'text-neonGreen'}">
+                                    ${e.appearance}
+                                </span>
+                            </div>
+                            
+                            <div class="flex justify-between items-center">
+                                <span class="text-sm font-bold text-white">vs ${e.opponent}</span>
+                                <div class="flex space-x-2 text-xs font-mono">
+                                    ${e.goals > 0 ? `<span class="text-neonGreen">G ${e.goals}</span>` : ''}
+                                    ${e.assists > 0 ? `<span class="text-blue-400">A ${e.assists}</span>` : ''}
+                                    ${e.yellowCards > 0 ? `<span class="text-yellow-400">Y ${e.yellowCards}</span>` : ''}
+                                    ${e.redCards > 0 ? `<span class="text-red-500">R ${e.redCards}</span>` : ''}
+                                    ${e.goals === 0 && e.assists === 0 && e.yellowCards === 0 && e.redCards === 0 ? '<span class="text-gray-600">-</span>' : ''}
+                                </div>
+                            </div>
+                        </div>
+                    `).join('')}
+                    ${events.length === 0 ? '<div class="text-center text-gray-500 py-10">경기 기록이 없습니다.</div>' : ''}
+                </div>
+            </div>
+        </div>
+    `;
+
+    // Close on click outside
+    modal.addEventListener('click', (e) => {
+        if (e.target === modal) modal.remove();
+    });
+
+    document.body.appendChild(modal);
+}
+window.showPlayerProfileModal = showPlayerProfileModal;

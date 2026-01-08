@@ -131,11 +131,13 @@ export function getOpponentStats(currentSeason, currentMatchType) {
         // But scheduleData usually has "result" column? Let's check parseScheduleCSV.
         // It has 'result' column (index 7).
 
-        const result = match.result; // '승', '무', '패' or similar
+        const result = match.result ? match.result.trim() : '';
 
-        if (['승', 'Win', 'W'].includes(result)) s.wins++;
-        else if (['무', 'Draw', 'D'].includes(result)) s.draws++;
-        else if (['패', 'Loss', 'L'].includes(result)) s.losses++;
+        // Robust Check
+        const res = result.toUpperCase();
+        if (['승', 'WIN', 'W', 'O'].some(k => res.includes(k))) s.wins++;
+        else if (['무', 'DRAW', 'D', '△', '-'].some(k => res.includes(k))) s.draws++;
+        else if (['패', 'LOSS', 'L', 'LOSE', 'X'].some(k => res.includes(k))) s.losses++;
 
         // Goals For / Against calculation could be complex without explicit score in schedule.
         // We can aggregate from records if needed, but for now W/D/L is primary request.
@@ -143,6 +145,37 @@ export function getOpponentStats(currentSeason, currentMatchType) {
 
     return Object.values(stats).sort((a, b) => b.wins - a.wins || b.total - a.total);
 }
+
+export function getPlayerMatchHistory(playerName) {
+    const records = recordsData.filter(r => r.name === playerName);
+
+    // Create map for fast lookup
+    const scheduleMap = new Map();
+    scheduleData.forEach(m => scheduleMap.set(`${m.season}-${m.matchId}`, m));
+
+    const history = records.map(r => {
+        const match = scheduleMap.get(`${r.season}-${r.matchId}`);
+        if (!match) return null;
+
+        return {
+            season: r.season,
+            round: match.round,
+            date: match.date,
+            opponent: match.opponent,
+            matchType: match.matchType,
+            appearance: r.appearanceType,
+            goals: r.goals,
+            assists: r.assists,
+            yellowCards: r.yellowCards,
+            redCards: r.redCards,
+            attackPoints: r.goals + r.assists
+        };
+    }).filter(h => h !== null);
+
+    history.sort((a, b) => new Date(b.date) - new Date(a.date));
+    return history;
+}
+
 
 function parsePlayersCSV(csvText) {
     const rows = parseCSV(csvText);
