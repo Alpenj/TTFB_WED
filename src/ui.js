@@ -444,25 +444,29 @@ function renderStats(container, currentSeason) {
     }
     chartsContainer.appendChild(assistsChartContainer);
 
-    // 3. Clean Sheets List
-    const cleanSheetContainer = document.createElement('div');
-    cleanSheetContainer.className = 'bg-gray-800 p-4 rounded-2xl border border-gray-700';
-    cleanSheetContainer.innerHTML = `
-    <h3 class="text-sm text-gray-400 mb-3 leading-snug">클린시트<br><span class="text-xs text-gray-500 font-normal">(GK/DF)</span></h3>
+    // 3. Appearances List (Start/Sub)
+    const appearanceContainer = document.createElement('div');
+    appearanceContainer.className = 'bg-gray-800 p-4 rounded-2xl border border-gray-700';
+    appearanceContainer.innerHTML = `
+    <h3 class="text-sm text-gray-400 mb-3 leading-snug">출전 횟수<br><span class="text-xs text-gray-500 font-normal">(선발/교체)</span></h3>
         <div class="space-y-2">
-            ${stats.topCleanSheets.filter(p => p.cleanSheets > 0).slice(0, 5).map((p, i) => `
+            ${stats.topAppearances.filter(p => p.appearances > 0).slice(0, 5).map((p, i) => `
                 <div class="flex items-center justify-between border-b border-gray-700 pb-2 last:border-0 last:pb-0">
                     <div class="flex items-center space-x-2 overflow-hidden">
                         <span class="text-xs font-mono text-gray-500 w-3 flex-shrink-0">${i + 1}</span>
                         <span class="text-sm text-white font-bold truncate">${p.name}</span>
                         <span class="text-[10px] text-gray-500 flex-shrink-0">(${p.position})</span>
                     </div>
-                    <span class="text-sm text-neonGreen font-mono font-bold flex-shrink-0">${p.cleanSheets}</span>
+                    <div class="flex items-center space-x-1 text-xs font-mono">
+                        <span class="text-neonGreen font-bold">${p.starts}</span>
+                        <span class="text-gray-500">/</span>
+                        <span class="text-white">${p.substitutes}</span>
+                    </div>
                 </div>
             `).join('') || '<div class="text-center text-gray-500 text-xs py-4">기록 없음</div>'}
         </div>
 `;
-    chartsContainer.appendChild(cleanSheetContainer);
+    chartsContainer.appendChild(appearanceContainer);
 
     // 4. Yellow Cards List
     const yellowCardContainer = document.createElement('div');

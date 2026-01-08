@@ -325,6 +325,9 @@ export function getStats(seasonFilter) {
         topScorers: [...playersArray].sort((a, b) => b.goals - a.goals || b.appearances - a.appearances).slice(0, 5),
         topAssists: [...playersArray].sort((a, b) => b.assists - a.assists || b.appearances - a.appearances).slice(0, 5),
         topEfficiency: efficiency.sort((a, b) => b.pointsPerGame - a.pointsPerGame).slice(0, 5),
+        topAppearances: [...playersArray]
+            .sort((a, b) => b.appearances - a.appearances || b.starts - a.starts)
+            .slice(0, 5),
         topCleanSheets: [...playersArray]
             .filter(p => p.position === 'GK' || p.position === 'DF')
             .sort((a, b) => b.cleanSheets - a.cleanSheets || b.appearances - a.appearances)
