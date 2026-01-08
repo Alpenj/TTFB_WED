@@ -185,7 +185,7 @@ function renderHome(container, currentSeason, currentMatchType) {
         const resultColor = isWin ? 'text-neonGreen' : (isDraw ? 'text-yellow-400' : 'text-red-400');
 
         recentResultMarkup = `
-            <div class="bg-gray-800 rounded-3xl p-6 border border-gray-700">
+            <div class="bg-gray-800 rounded-3xl p-6 border border-gray-700 cursor-pointer hover:bg-gray-750 transition-colors" id="btn-recent-match">
                 <div class="flex justify-between items-center mb-4">
                     <h2 class="text-lg font-bold text-white">최근 경기 결과</h2>
                     <span class="text-xs text-gray-400 flex items-center">
@@ -284,6 +284,15 @@ function renderHome(container, currentSeason, currentMatchType) {
     const nextMatchBtn = container.querySelector('#btn-next-match');
     if (nextMatchBtn) {
         nextMatchBtn.addEventListener('click', () => {
+            const navBtn = document.querySelector('button[data-target="matches"]');
+            if (navBtn) navBtn.click();
+        });
+    }
+
+    // 1-1. Recent Match -> Schedule (Added)
+    const recentMatchBtn = container.querySelector('#btn-recent-match');
+    if (recentMatchBtn) {
+        recentMatchBtn.addEventListener('click', () => {
             const navBtn = document.querySelector('button[data-target="matches"]');
             if (navBtn) navBtn.click();
         });
