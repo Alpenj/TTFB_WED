@@ -117,11 +117,14 @@ export function getOpponentStats(currentSeason, currentMatchType) {
         // 2. Filter by Match Type
         if (typeFilter && match.matchType !== typeFilter) return;
 
-        // 3. Exclude Practice Matches from Opponent Stats (Global Rule per user request)
-        if (match.matchType === '연습경기') return;
+        // 3. Exclude Practice Matches from "All" View (Global Rule)
+        // Only show practice matches if explicitly filtered by '연습경기'
+        if ((!typeFilter || typeFilter === 'all') && match.matchType === '연습경기') return;
 
+        // 3. Filter Empty Opponents (Fix for blank entries)
         const opponent = match.opponent ? match.opponent.trim() : '';
         if (!opponent) return; // Skip if no opponent name
+
         if (!stats[opponent]) {
             stats[opponent] = { name: opponent, wins: 0, draws: 0, losses: 0, total: 0, gf: 0, ga: 0 };
         }
@@ -551,6 +554,10 @@ export function getTeamStats(seasonFilter, matchTypeFilter) {
     const targetSchedule = scheduleData.filter(m => {
         const seasonMatch = (!seasonFilter || seasonFilter === 'all') ? true : m.season === seasonFilter;
         const typeMatch = (!matchTypeFilter || matchTypeFilter === 'all') ? true : m.matchType === matchTypeFilter;
+
+        // Exclude Practice Matches from "All" View
+        if ((!matchTypeFilter || matchTypeFilter === 'all') && m.matchType === '연습경기') return false;
+
         return seasonMatch && typeMatch;
     });
 

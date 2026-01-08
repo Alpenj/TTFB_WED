@@ -342,6 +342,50 @@ function renderHome(container, currentSeason, currentMatchType) {
             });
         }
     });
+
+    // 4. Opponent Stats (Added per user request)
+    const opponentStats = getOpponentStats(currentSeason, currentMatchType);
+    // Explicitly filter blank names and practice matches if needed (though data.js handles practice match filtering for 'all')
+    const validOpponents = opponentStats.filter(o => o.name);
+
+    if (validOpponents.length > 0) {
+        const oppSection = document.createElement('div');
+        oppSection.className = 'bg-gray-800 p-4 rounded-2xl border border-gray-700 w-full mb-6 mt-6';
+        oppSection.innerHTML = `
+            <div class="flex justify-between items-center mb-3">
+                <h3 class="text-sm font-bold text-white">상대 전적 <span class="text-xs text-gray-500 font-normal">(승/무/패)</span></h3>
+                ${currentMatchType === 'all' && currentSeason === 'all' ? '<span class="text-[10px] text-gray-500">* 연습경기 제외</span>' : ''}
+            </div>
+            <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
+                ${validOpponents.map((o, i) => `
+                    <div class="flex items-center justify-between border-b border-gray-700 pb-2 last:border-0 last:pb-0 bg-gray-700/30 p-2 rounded">
+                         <div class="flex items-center space-x-2 w-1/3">
+                            <span class="text-xs font-mono text-gray-500 w-3 flex-shrink-0">${i + 1}</span>
+                            <span class="text-sm text-white font-bold truncate">${o.name}</span>
+                        </div>
+                        <div class="flex items-center space-x-2 text-xs font-mono user-select-none">
+                            <div class="flex items-center space-x-1" title="승">
+                                <span class="w-1.5 h-1.5 rounded-full bg-neonGreen"></span>
+                                <span class="text-white">${o.wins}</span>
+                            </div>
+                            <div class="flex items-center space-x-1" title="무">
+                                <span class="w-1.5 h-1.5 rounded-full bg-gray-400"></span>
+                                <span class="text-gray-300">${o.draws}</span>
+                            </div>
+                            <div class="flex items-center space-x-1" title="패">
+                                <span class="w-1.5 h-1.5 rounded-full bg-red-500"></span>
+                                <span class="text-gray-400">${o.losses}</span>
+                            </div>
+                        </div>
+                        <div class="text-[10px] text-gray-500 font-mono w-8 text-right">
+                             ${Math.round((o.wins / o.total) * 100)}%
+                        </div>
+                    </div>
+                `).join('')}
+            </div>
+        `;
+        container.appendChild(oppSection);
+    }
 }
 
 function renderMatches(container, currentSeason, currentMatchType) {
@@ -784,11 +828,11 @@ function renderStats(container, currentSeason, currentMatchType) {
                          <th class="p-3 text-center text-xs text-gray-500 font-medium w-12">순위</th>
                         <th class="cursor-pointer hover:bg-gray-800 p-3 text-center text-xs text-gray-500 font-medium select-none transition-colors group" data-sort="position">포지션</th>
                         <th class="cursor-pointer hover:bg-gray-800 p-3 text-left text-xs text-gray-500 font-medium select-none transition-colors group" data-sort="name">선수명</th>
-                        <th class="cursor-pointer hover:bg-gray-800 p-3 text-center text-xs text-gray-500 font-medium select-none transition-colors group" data-sort="starts">출전(선발/교체)</th>
-                        <th class="cursor-pointer hover:bg-gray-800 p-3 text-center text-xs text-neonGreen font-bold select-none transition-colors group bg-gray-800/50" data-sort="attackPoints">공격P</th>
-                        <th class="cursor-pointer hover:bg-gray-800 p-3 text-center text-xs text-gray-500 font-medium select-none transition-colors group" data-sort="goals">득점</th>
-                        <th class="cursor-pointer hover:bg-gray-800 p-3 text-center text-xs text-gray-500 font-medium select-none transition-colors group" data-sort="assists">도움</th>
-                        <th class="cursor-pointer hover:bg-gray-800 p-3 text-center text-xs text-red-400 font-medium select-none transition-colors group" data-sort="ownGoals">자살골</th>
+                        <th class="cursor-pointer hover:bg-gray-800 p-3 text-center text-xs text-gray-500 font-medium select-none transition-colors group whitespace-nowrap" data-sort="starts">출전(선발/교체)</th>
+                        <th class="cursor-pointer hover:bg-gray-800 p-3 text-center text-xs text-neonGreen font-bold select-none transition-colors group bg-gray-800/50 whitespace-nowrap" data-sort="attackPoints">공격포인트</th>
+                        <th class="cursor-pointer hover:bg-gray-800 p-3 text-center text-xs text-gray-500 font-medium select-none transition-colors group whitespace-nowrap" data-sort="goals">득점</th>
+                        <th class="cursor-pointer hover:bg-gray-800 p-3 text-center text-xs text-gray-500 font-medium select-none transition-colors group whitespace-nowrap" data-sort="assists">도움</th>
+                        <th class="cursor-pointer hover:bg-gray-800 p-3 text-center text-xs text-red-400 font-medium select-none transition-colors group whitespace-nowrap" data-sort="ownGoals">자살골</th>
                     </tr>
                 </thead>
                 <tbody class="divide-y divide-gray-700/50"></tbody>
@@ -1128,7 +1172,7 @@ function showPlayerProfileModal(playerName, seasonFilter) {
                             <div class="flex justify-between items-center mb-2">
                                 <div class="flex items-center space-x-2">
                                     <span class="text-[10px] font-mono text-neonGreen px-2 py-0.5 bg-neonGreen/10 rounded whitespace-nowrap">
-                                        ${e.season && e.season !== window.currentSeason ? `'${e.season.slice(-2)} ` : ''}${e.round}
+                                        '${e.season ? e.season.slice(-2) : ''} ${e.matchType || e.round}
                                     </span>
                                     <span class="text-xs text-gray-400">${e.date}</span>
                                 </div>
