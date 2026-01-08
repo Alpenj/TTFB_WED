@@ -48,6 +48,62 @@ function parseCSV(text) {
 // We need to dynamically identify season columns.
 // Header: 2024시즌, 2025시즌, ..., 포지션, 이름
 // We need to dynamically identify season columns.
+export function getPlayerEvents(currentSeason, currentMatchType, playerName, eventType) {
+    const filter = String(currentSeason);
+    const typeFilter = currentMatchType === 'all' ? null : currentMatchType;
+
+    // Create a map for quick schedule lookup
+    const scheduleMap = new Map();
+    scheduleData.forEach(m => {
+        scheduleMap.set(`${m.season}-${m.matchId}`, m);
+    });
+
+    const events = [];
+
+    recordsData.forEach(r => {
+        // 1. Filter by Player
+        if (r.name !== playerName) return;
+
+        // 2. Filter by Season
+        if (filter !== 'all' && String(r.season) !== filter) return;
+
+        // 3. Lookup Match Info
+        const matchKey = `${r.season}-${r.matchId}`;
+        const match = scheduleMap.get(matchKey);
+        if (!match) return; // Should not happen ideally
+
+        // 4. Filter by Match Type
+        if (typeFilter && match.matchType !== typeFilter) return;
+
+        // 5. Check Event Type
+        let count = 0;
+        if (eventType === 'goals') count = r.goals > 0 ? r.goals : 0;
+        else if (eventType === 'assists') count = r.assists;
+        else if (eventType === 'yellowCards') count = r.yellowCards;
+        else if (eventType === 'redCards') count = r.redCards;
+        else if (eventType === 'ownGoals') count = r.goals < 0 ? Math.abs(r.goals) : 0;
+        else if (eventType === 'appearances') count = 1; // Used for "Apps" list
+
+        if (count > 0) {
+            events.push({
+                season: r.season,
+                matchId: r.matchId,
+                round: match.round,
+                date: match.date,
+                opponent: match.opponent,
+                count: count,
+                type: eventType,
+                submissionType: r.appearanceType // For appearances (Start/Sub)
+            });
+        }
+    });
+
+    // Sort by date desc
+    events.sort((a, b) => new Date(b.date) - new Date(a.date));
+
+    return events;
+}
+
 function parsePlayersCSV(csvText) {
     const rows = parseCSV(csvText);
     if (rows.length < 2) return [];

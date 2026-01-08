@@ -1,5 +1,5 @@
 import Chart from 'chart.js/auto';
-import { getSchedule, getStats, getTeamStats, getStadium, getAvailableSeasons, getAvailableMatchTypes, getMatchRecords } from './data.js';
+import { getSchedule, getStats, getTeamStats, getStadium, getAvailableSeasons, getAvailableMatchTypes, getMatchRecords, getPlayerEvents } from './data.js';
 
 export function SetupDashboard() {
     const app = document.querySelector('#app');
@@ -530,7 +530,7 @@ function renderStats(container, currentSeason, currentMatchType) {
         <h3 class="text-sm text-gray-400 mb-3 leading-snug">출전 횟수<br><span class="text-xs text-gray-500 font-normal">(선발/교체)</span></h3>
         <div class="space-y-2">
             ${stats.topAppearances.filter(p => p.appearances > 0).slice(0, 5).map((p, i) => `
-                <div class="flex items-center justify-between border-b border-gray-700 pb-2 last:border-0 last:pb-0">
+                <div class="flex items-center justify-between border-b border-gray-700 pb-2 last:border-0 last:pb-0 hover:bg-gray-700/50 cursor-pointer p-1 rounded transition-colors" onclick="window.showHistoryModal('${p.name}', 'appearances', getPlayerEvents('${currentSeason}', '${currentMatchType || 'all'}', '${p.name}', 'appearances'))">
                     <div class="flex items-center space-x-2 overflow-hidden">
                         <span class="text-xs font-mono text-gray-500 w-3 flex-shrink-0">${i + 1}</span>
                         <span class="text-sm text-white font-bold truncate">${p.name}</span>
@@ -554,7 +554,7 @@ function renderStats(container, currentSeason, currentMatchType) {
             <h3 class="text-sm text-gray-400 mb-3">경고</h3>
         <div class="space-y-2">
             ${stats.topYellowCards.filter(p => p.yellowCards > 0).slice(0, 5).map((p, i) => `
-                <div class="flex items-center justify-between border-b border-gray-700 pb-2 last:border-0 last:pb-0">
+                <div class="flex items-center justify-between border-b border-gray-700 pb-2 last:border-0 last:pb-0 hover:bg-gray-700/50 cursor-pointer p-1 rounded transition-colors" onclick="window.showHistoryModal('${p.name}', 'yellowCards', getPlayerEvents('${currentSeason}', '${currentMatchType || 'all'}', '${p.name}', 'yellowCards'))">
                     <div class="flex items-center space-x-2 overflow-hidden">
                         <span class="text-xs font-mono text-gray-500 w-3 flex-shrink-0">${i + 1}</span>
                         <span class="text-sm text-white font-bold truncate">${p.name}</span>
@@ -574,7 +574,7 @@ function renderStats(container, currentSeason, currentMatchType) {
             <h3 class="text-sm text-gray-400 mb-3 leading-snug">자책골<br><span class="text-xs text-gray-500 font-normal">(Own Goals)</span></h3>
         <div class="space-y-2">
             ${stats.topOwnGoals.slice(0, 5).map((p, i) => `
-                    <div class="flex items-center justify-between border-b border-gray-700 pb-2 last:border-0 last:pb-0">
+                    <div class="flex items-center justify-between border-b border-gray-700 pb-2 last:border-0 last:pb-0 hover:bg-gray-700/50 cursor-pointer p-1 rounded transition-colors" onclick="window.showHistoryModal('${p.name}', 'ownGoals', getPlayerEvents('${currentSeason}', '${currentMatchType || 'all'}', '${p.name}', 'ownGoals'))">
                         <div class="flex items-center space-x-2 overflow-hidden">
                             <span class="text-xs font-mono text-gray-500 w-3 flex-shrink-0">${i + 1}</span>
                             <span class="text-sm text-white font-bold truncate">${p.name}</span>
@@ -595,7 +595,7 @@ function renderStats(container, currentSeason, currentMatchType) {
             <h3 class="text-sm text-gray-400 mb-3">퇴장</h3>
         <div class="space-y-2">
             ${stats.topRedCards.filter(p => p.redCards > 0).slice(0, 5).map((p, i) => `
-                <div class="flex items-center justify-between border-b border-gray-700 pb-2 last:border-0 last:pb-0">
+                <div class="flex items-center justify-between border-b border-gray-700 pb-2 last:border-0 last:pb-0 hover:bg-gray-700/50 cursor-pointer p-1 rounded transition-colors" onclick="window.showHistoryModal('${p.name}', 'redCards', getPlayerEvents('${currentSeason}', '${currentMatchType || 'all'}', '${p.name}', 'redCards'))">
                     <div class="flex items-center space-x-2 overflow-hidden">
                         <span class="text-xs font-mono text-gray-500 w-3 flex-shrink-0">${i + 1}</span>
                         <span class="text-sm text-white font-bold truncate">${p.name}</span>
@@ -765,6 +765,16 @@ function renderStats(container, currentSeason, currentMatchType) {
                 options: {
                     responsive: true,
                     maintainAspectRatio: true,
+                    onClick: (e, elements) => {
+                        if (elements.length > 0) {
+                            const index = elements[0].index;
+                            const player = validScorers[index];
+                            if (player) {
+                                const events = getPlayerEvents(currentSeason, currentMatchType, player.name, 'goals');
+                                showHistoryModal(player.name, 'goals', events);
+                            }
+                        }
+                    },
                     scales: {
                         y: {
                             beginAtZero: true,
@@ -800,6 +810,16 @@ function renderStats(container, currentSeason, currentMatchType) {
                 options: {
                     responsive: true,
                     maintainAspectRatio: true,
+                    onClick: (e, elements) => {
+                        if (elements.length > 0) {
+                            const index = elements[0].index;
+                            const player = validAssisters[index];
+                            if (player) {
+                                const events = getPlayerEvents(currentSeason, currentMatchType, player.name, 'assists');
+                                showHistoryModal(player.name, 'assists', events);
+                            }
+                        }
+                    },
                     scales: {
                         y: {
                             beginAtZero: true,
@@ -866,3 +886,70 @@ function showMapModal(shortName) {
 // strictly speaking regular event listeners are better, but I used innerHTML string injection before.
 // I will instead attach event listeners via delegation or direct attachment after render.
 window.showMapModal = showMapModal;
+
+// Stat Details Modal
+function showHistoryModal(playerName, eventType, events) {
+    const existingModal = document.querySelector('#history-modal');
+    if (existingModal) existingModal.remove();
+
+    const titleMap = {
+        'goals': '득점 기록',
+        'assists': '도움 기록',
+        'yellowCards': '경고 기록',
+        'redCards': '퇴장 기록',
+        'ownGoals': '자책골 기록',
+        'appearances': '출전 기록'
+    };
+
+    const title = titleMap[eventType] || '상세 기록';
+
+    const modal = document.createElement('div');
+    modal.id = 'history-modal';
+    modal.className = 'fixed inset-0 z-50 flex items-center justify-center p-4 bg-black/80 backdrop-blur-sm animate-fade-in';
+    modal.innerHTML = `
+        <div class="bg-gray-800 rounded-3xl p-6 w-full max-w-sm border border-gray-700 shadow-2xl relative flex flex-col max-h-[80vh]">
+            <div class="flex justify-between items-center mb-4">
+                <div>
+                    <h3 class="text-xl font-bold text-white">${playerName}</h3>
+                    <span class="text-sm text-gray-400">${title} (총 ${events.length}회)</span>
+                </div>
+                <button class="text-gray-500 hover:text-white" onclick="document.querySelector('#history-modal').remove()">
+                    <svg xmlns="http://www.w3.org/2000/svg" class="h-6 w-6" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M6 18L18 6M6 6l12 12" />
+                    </svg>
+                </button>
+            </div>
+            
+            <div class="overflow-y-auto pr-1 custom-scrollbar flex-1">
+                <div class="space-y-2">
+                    ${events.map(e => `
+                        <div class="flex items-center justify-between p-3 rounded-xl bg-gray-700/50 hover:bg-gray-700 transition-colors">
+                            <div class="flex items-center space-x-3">
+                                <span class="text-xs font-mono text-neonGreen w-8 text-center bg-neonGreen/10 rounded py-1">${e.round}</span>
+                                <div class="flex flex-col">
+                                    <span class="text-sm text-white font-bold">vs ${e.opponent}</span>
+                                    <span class="text-[10px] text-gray-400">${e.date}</span>
+                                </div>
+                            </div>
+                            <div class="flex items-center">
+                                ${eventType === 'appearances'
+            ? `<span class="text-xs font-bold ${e.submissionType === '교체' ? 'text-gray-400' : 'text-neonGreen'}">${e.submissionType || '선발'}</span>`
+            : `<span class="text-lg font-bold text-white font-mono">+${e.count}</span>`
+        }
+                            </div>
+                        </div>
+                    `).join('')}
+                    ${events.length === 0 ? '<div class="text-center text-gray-500 py-10">기록이 없습니다.</div>' : ''}
+                </div>
+            </div>
+        </div>
+    `;
+
+    // Close on click outside
+    modal.addEventListener('click', (e) => {
+        if (e.target === modal) modal.remove();
+    });
+
+    document.body.appendChild(modal);
+}
+window.showHistoryModal = showHistoryModal;
