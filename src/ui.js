@@ -603,29 +603,7 @@ function renderStats(container, currentSeason, currentMatchType) {
 `;
     chartsContainer.appendChild(yellowCardContainer);
 
-    // 5. Own Goals List (Optional, only provided if exists)
-    if (stats.topOwnGoals && stats.topOwnGoals.length > 0) {
-        const ogContainer = document.createElement('div');
-        ogContainer.className = 'bg-gray-800 p-4 rounded-2xl border border-gray-700';
-        ogContainer.innerHTML = `
-            <h3 class="text-sm text-gray-400 mb-3 leading-snug">자책골<br><span class="text-xs text-gray-500 font-normal">(Own Goals)</span></h3>
-        <div class="space-y-2">
-            ${stats.topOwnGoals.slice(0, 5).map((p, i) => `
-                    <div class="flex items-center justify-between border-b border-gray-700 pb-2 last:border-0 last:pb-0 hover:bg-gray-700/50 cursor-pointer p-1 rounded transition-colors" onclick="window.showHistoryModal('${p.name}', 'ownGoals', window.getPlayerEvents('${currentSeason}', '${currentMatchType || 'all'}', '${p.name}', 'ownGoals'))">
-                        <div class="flex items-center space-x-2 overflow-hidden">
-                            <span class="text-xs font-mono text-gray-500 w-3 flex-shrink-0">${i + 1}</span>
-                            <span class="text-sm text-white font-bold truncate">${p.name}</span>
-                            <span class="text-[10px] text-gray-500 flex-shrink-0">(${p.position})</span>
-                        </div>
-                        <span class="text-sm text-red-400 font-mono font-bold flex-shrink-0">${p.ownGoals}</span>
-                    </div>
-                `).join('')}
-        </div>
-    `;
-        chartsContainer.appendChild(ogContainer);
-    }
-
-    // 5. Red Cards List
+    // 5. Red Cards List (Moved up)
     const redCardContainer = document.createElement('div');
     redCardContainer.className = 'bg-gray-800 p-4 rounded-2xl border border-gray-700';
     redCardContainer.innerHTML = `
@@ -644,16 +622,39 @@ function renderStats(container, currentSeason, currentMatchType) {
 `;
     chartsContainer.appendChild(redCardContainer);
 
-    // 6. Opponent Stats (Head-to-Head)
+    // 6. Own Goals List (Moved to bottom right slot, Always visible)
+    const ogContainer = document.createElement('div');
+    ogContainer.className = 'bg-gray-800 p-4 rounded-2xl border border-gray-700';
+    ogContainer.innerHTML = `
+        <h3 class="text-sm text-gray-400 mb-3 leading-snug">자살골<br><span class="text-xs text-gray-500 font-normal">(Own Goals)</span></h3>
+        <div class="space-y-2">
+            ${(stats.topOwnGoals || []).filter(p => p.ownGoals > 0).slice(0, 5).map((p, i) => `
+                <div class="flex items-center justify-between border-b border-gray-700 pb-2 last:border-0 last:pb-0 hover:bg-gray-700/50 cursor-pointer p-1 rounded transition-colors" onclick="window.showHistoryModal('${p.name}', 'ownGoals', window.getPlayerEvents('${currentSeason}', '${currentMatchType || 'all'}', '${p.name}', 'ownGoals'))">
+                    <div class="flex items-center space-x-2 overflow-hidden">
+                        <span class="text-xs font-mono text-gray-500 w-3 flex-shrink-0">${i + 1}</span>
+                        <span class="text-sm text-white font-bold truncate">${p.name}</span>
+                        <span class="text-[10px] text-gray-500 flex-shrink-0">(${p.position})</span>
+                    </div>
+                    <span class="text-sm text-red-400 font-mono font-bold flex-shrink-0">${p.ownGoals}</span>
+                </div>
+            `).join('') || '<div class="text-center text-gray-500 text-xs py-4">기록 없음</div>'}
+        </div>
+    `;
+    chartsContainer.appendChild(ogContainer);
+
+
+    // 7. Opponent Stats (Moved below grid, Full Width)
     const opponentStats = getOpponentStats(currentSeason, currentMatchType || 'all');
-    if (opponentStats.length > 0) {
-        const oppContainer = document.createElement('div');
-        oppContainer.className = 'bg-gray-800 p-4 rounded-2xl border border-gray-700 col-span-1 md:col-span-2 lg:col-span-1';
+    let oppContainer = null;
+    // Hide Opponent Stats if "Practice Match" is selected
+    if (opponentStats.length > 0 && currentMatchType !== '연습경기') {
+        oppContainer = document.createElement('div');
+        oppContainer.className = 'bg-gray-800 p-4 rounded-2xl border border-gray-700 w-full mb-6';
         oppContainer.innerHTML = `
             <h3 class="text-sm text-gray-400 mb-3">상대 전적 <span class="text-xs text-gray-500 font-normal">(승/무/패)</span></h3>
-            <div class="space-y-2 max-h-60 overflow-y-auto custom-scrollbar pr-1">
+            <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
                 ${opponentStats.map((o, i) => `
-                    <div class="flex items-center justify-between border-b border-gray-700 pb-2 last:border-0 last:pb-0">
+                    <div class="flex items-center justify-between border-b border-gray-700 pb-2 last:border-0 last:pb-0 bg-gray-700/30 p-2 rounded">
                          <div class="flex items-center space-x-2 w-1/3">
                             <span class="text-xs font-mono text-gray-500 w-3 flex-shrink-0">${i + 1}</span>
                             <span class="text-sm text-white font-bold truncate">${o.name}</span>
@@ -679,8 +680,8 @@ function renderStats(container, currentSeason, currentMatchType) {
                 `).join('')}
             </div>
         `;
-        chartsContainer.appendChild(oppContainer);
     }
+
     const tableContainer = document.createElement('div');
     tableContainer.className = 'bg-gray-800 rounded-2xl border border-gray-700 overflow-hidden flex flex-col';
 
@@ -816,6 +817,7 @@ function renderStats(container, currentSeason, currentMatchType) {
     }
 
     container.appendChild(chartsContainer);
+    if (oppContainer) container.appendChild(oppContainer); // Append Opponent Stats below grid
     container.appendChild(tableContainer);
 
     // Initial Render
