@@ -199,7 +199,9 @@ export function getPlayerMatchHistory(playerName, seasonFilter) {
             assists: r.assists,
             yellowCards: r.yellowCards,
             redCards: r.redCards,
-            attackPoints: r.goals + r.assists
+            attackPoints: r.goals + r.assists,
+            note: r.note,
+            matchId: r.matchId
         };
     }).filter(h => h !== null);
 
@@ -283,13 +285,14 @@ function parseRecordsCSV(csvText) {
         return {
             season: row[0].trim().replace('시즌', ''),
             matchId: row[1].trim(), // e.g. '1R'
-            matchType: row[2].trim(), // e.g. '리그', '컵'
+            position: row[2].trim(), // e.g. 'MF', 'DF' (Changed from matchType based on screenshot)
             name: row[3].trim(),
-            appearanceType: row[4] ? row[4].trim() : '', // '선발', '교체', 'Start', 'Sub'
+            appearanceType: row[4] ? row[4].trim() : '', // '선발', '교체'
             goals: parseInt(row[5] ? row[5].trim() : 0) || 0,
             assists: parseInt(row[6] ? row[6].trim() : 0) || 0,
-            yellowCards: parseInt(row[7] ? row[7].trim() : 0) || 0,
-            redCards: parseInt(row[8] ? row[8].trim() : 0) || 0
+            note: row[7] ? row[7].trim() : '', // Column 7: Note (비고)
+            yellowCards: parseInt(row[8] ? row[8].trim() : 0) || 0,
+            redCards: parseInt(row[9] ? row[9].trim() : 0) || 0
         };
     }).filter(r => r && r.matchId && r.name);
 }
@@ -563,7 +566,14 @@ export function getTeamStats(seasonFilter, matchTypeFilter) {
 
     targetSchedule.forEach(match => {
         if (!match.result) return;
-        const res = match.result;
+        let res = match.result;
+
+        // Clean up PK info for stats calculation (stats are based on regular time)
+        // Format: "2:2 (4:3 PK)" -> "2:2"
+        const mainScoreMatch = res.match(/^(\d+:\d+)/);
+        if (mainScoreMatch) {
+            res = mainScoreMatch[1];
+        }
 
         if (res.includes('승')) wins++;
         else if (res.includes('무')) draws++;
@@ -582,6 +592,48 @@ export function getTeamStats(seasonFilter, matchTypeFilter) {
     const winRate = total > 0 ? Math.round((wins / total) * 100) : 0;
 
     return { wins, draws, losses, winRate };
+}
+
+export function getStadiumStats(seasonFilter) {
+    const stats = {};
+
+    const targetSchedule = scheduleData.filter(m => {
+        return (!seasonFilter || seasonFilter === 'all') ? true : m.season === seasonFilter;
+    });
+
+    targetSchedule.forEach(match => {
+        if (!match.result) return;
+        const stadiumName = getStadium(match.stadium) || 'Unknown';
+
+        if (!stats[stadiumName]) {
+            stats[stadiumName] = { name: stadiumName, wins: 0, draws: 0, losses: 0, total: 0 };
+        }
+
+        const s = stats[stadiumName];
+        let res = match.result;
+
+        // Handle PK: treat as Draw for official W-D-L stats
+        const mainScoreMatch = res.match(/^(\d+:\d+)/);
+        if (mainScoreMatch) res = mainScoreMatch[1];
+
+        s.total++;
+        if (res.includes('승')) s.wins++;
+        else if (res.includes('무')) s.draws++;
+        else if (res.includes('패')) s.losses++;
+        else if (res.includes(':')) {
+            const [home, away] = res.split(':').map(Number);
+            if (!isNaN(home) && !isNaN(away)) {
+                if (home > away) s.wins++;
+                else if (home < away) s.losses++;
+                else s.draws++;
+            }
+        }
+    });
+
+    return Object.values(stats).map(s => ({
+        ...s,
+        winRate: s.total > 0 ? Math.round((s.wins / s.total) * 100) : 0
+    })).sort((a, b) => b.total - a.total || b.wins - a.wins); // Sort by most played, then wins
 }
 
 export function getMatchRecords(season, matchId) {

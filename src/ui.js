@@ -1,5 +1,5 @@
 import Chart from 'chart.js/auto';
-import { getSchedule, getStats, getTeamStats, getStadium, getAvailableSeasons, getAvailableMatchTypes, getMatchRecords, getPlayerEvents, getOpponentStats, getPlayerMatchHistory } from './data.js';
+import { getSchedule, getStats, getTeamStats, getStadium, getStadiumStats, getAvailableSeasons, getAvailableMatchTypes, getMatchRecords, getPlayerEvents, getOpponentStats, getPlayerMatchHistory } from './data.js';
 
 window.getPlayerMatchHistory = getPlayerMatchHistory; // Expose for inline onclick handlers
 
@@ -221,7 +221,14 @@ function renderHome(container, currentSeason, currentMatchType) {
         const resultColor = isWin ? 'text-neonGreen' : (isDraw ? 'text-yellow-400' : 'text-red-400');
 
         recentResultMarkup = `
-            <div class="bg-gray-800 rounded-3xl p-6 border border-gray-700 cursor-pointer hover:bg-gray-750 transition-colors" id="btn-recent-match">
+            <div class="bg-gray-800 rounded-3xl p-6 border border-gray-700 cursor-pointer hover:bg-gray-750 transition-colors" id="btn-recent-match" onclick="
+                const selector = document.getElementById('season-selector');
+                if (selector) {
+                    selector.value = '${lastMatch.season}';
+                    selector.dispatchEvent(new Event('change'));
+                }
+                document.querySelector('button[data-target=\\'matches\\']').click();
+            ">
                 <div class="flex justify-between items-center mb-4">
                     <h2 class="text-lg font-bold text-white">최근 경기 결과</h2>
                     <span class="text-xs text-gray-400 flex items-center">
@@ -519,7 +526,15 @@ function renderMatches(container, currentSeason, currentMatchType) {
         const pageItems = filteredSchedule.slice(start, end);
 
         if (pageItems.length === 0) {
-            listContainer.innerHTML = `<div class="text-center text-gray-500 py-10">일정이 없습니다.</div>`;
+            let emptyMessage = '일정이 없습니다.';
+            if (currentFilter === '플레이오프' || currentMatchType === '플레이오프') {
+                // Check if League 10R is finished
+                const league10R = schedule.find(m => m.matchType === '리그' && (m.matchId === '10R' || m.matchId === '10'));
+                if (!league10R || !league10R.result) {
+                    emptyMessage = '리그 결과 대기 중';
+                }
+            }
+            listContainer.innerHTML = `<div class="text-center text-gray-500 py-10">${emptyMessage}</div>`;
             return;
         }
 
@@ -528,12 +543,32 @@ function renderMatches(container, currentSeason, currentMatchType) {
             let resultText = '';
 
             if (match.result) {
-                const parts = match.result.split(':');
+                // Parse Result: "2:2 (4:3 PK)"
+                const mainMatch = match.result.match(/^(\d+:\d+)/);
+                const pkMatch = match.result.match(/\((\d+:\d+)\s*(PK|승부차기)\)/i);
+
+                let mainResult = mainMatch ? mainMatch[1] : match.result;
+                let pkScore = pkMatch ? pkMatch[1] : null;
+
+                const parts = mainResult.split(':');
                 const isScore = parts.length === 2 && !isNaN(parseInt(parts[0])) && !isNaN(parseInt(parts[1]));
 
-                const isWin = match.result.includes('승') || (isScore && parseInt(parts[0]) > parseInt(parts[1]));
-                const isDraw = match.result.includes('무') || (isScore && parseInt(parts[0]) === parseInt(parts[1]));
-                // Loss is else
+                let isWin = mainResult.includes('승') || (isScore && parseInt(parts[0]) > parseInt(parts[1]));
+                let isDraw = mainResult.includes('무') || (isScore && parseInt(parts[0]) === parseInt(parts[1]));
+                let isLoss = !isWin && !isDraw;
+
+                // PK Logic for Visuals
+                if (pkScore) {
+                    const pkParts = pkScore.split(':').map(Number);
+                    const pkWin = pkParts[0] > pkParts[1];
+                    // If we won PK, visually treat as Win (Green)
+                    // If we lost PK, visually treat as Loss (Red)
+                    if (pkWin) {
+                        isWin = true; isDraw = false; isLoss = false;
+                    } else {
+                        isWin = false; isDraw = false; isLoss = true;
+                    }
+                }
 
                 if (isWin) statusColor = 'border-neonGreen';
                 else if (isDraw) statusColor = 'border-yellow-400';
@@ -541,7 +576,12 @@ function renderMatches(container, currentSeason, currentMatchType) {
 
                 const textColor = isWin ? 'text-neonGreen' : (isDraw ? 'text-yellow-400' : 'text-red-400');
 
-                resultText = `<span class="font-bold ml-auto ${textColor}">${match.result}</span>`;
+                let displayScore = `<span class="font-bold ml-auto ${textColor}">${mainResult}</span>`;
+                if (pkScore) {
+                    displayScore += `<span class="text-[10px] text-gray-400 ml-1 block text-right font-mono">(${pkScore} PK)</span>`;
+                }
+
+                resultText = `<div class="flex flex-col items-end">${displayScore}</div>`;
             } else {
                 resultText = `<span class="bg-gray-700 text-gray-300 text-xs px-2 py-1 rounded ml-auto">예정</span>`;
             }
@@ -627,7 +667,9 @@ function renderMatches(container, currentSeason, currentMatchType) {
 function renderStats(container, currentSeason, currentMatchType) {
     const stats = getStats(currentSeason, currentMatchType);
 
-    // Sort State
+    const content = container;
+    content.innerHTML = ''; // Ensure we clear it here if not passed cleared
+
     let sortState = { key: 'goals', order: 'desc' }; // Default sort
 
     // Top Charts Grid
@@ -656,7 +698,7 @@ function renderStats(container, currentSeason, currentMatchType) {
              <span class="text-xs text-neonGreen font-mono">Top 5</span>
         </div>
         <div class="space-y-3">
-            ${stats.topScorers.slice(0, 5).map((p, index) => `
+            ${stats.topScorers.filter(p => p.goals > 0).slice(0, 5).map((p, index) => `
                 <div class="flex items-center justify-between group h-6 cursor-pointer" onclick="window.showHistoryModal('${p.name}', 'goals', window.getPlayerEvents('${currentSeason}', '${currentMatchType || 'all'}', '${p.name}', 'goals'))">
                     <div class="flex items-center space-x-3 overflow-hidden">
                         <span class="text-xs font-mono w-4 shrink-0 ${index < 3 ? 'text-neonGreen' : 'text-gray-500'}">${index + 1}</span>
@@ -680,7 +722,7 @@ function renderStats(container, currentSeason, currentMatchType) {
              <span class="text-xs text-blue-400 font-mono">Top 5</span>
         </div>
         <div class="space-y-3">
-             ${stats.topAssists.slice(0, 5).map((p, index) => `
+             ${stats.topAssists.filter(p => p.assists > 0).slice(0, 5).map((p, index) => `
                 <div class="flex items-center justify-between group h-6 cursor-pointer" onclick="window.showHistoryModal('${p.name}', 'assists', window.getPlayerEvents('${currentSeason}', '${currentMatchType || 'all'}', '${p.name}', 'assists'))">
                     <div class="flex items-center space-x-3 overflow-hidden">
                         <span class="text-xs font-mono w-4 shrink-0 ${index < 3 ? 'text-blue-400' : 'text-gray-500'}">${index + 1}</span>
@@ -704,7 +746,7 @@ function renderStats(container, currentSeason, currentMatchType) {
              <span class="text-xs text-purple-400 font-mono">Top 5</span>
         </div>
         <div class="space-y-3">
-             ${stats.topAppearances.slice(0, 5).map((p, index) => `
+             ${stats.topAppearances.filter(p => p.appearances > 0).slice(0, 5).map((p, index) => `
                 <div class="flex items-center justify-between group h-6 cursor-pointer" onclick="window.showHistoryModal('${p.name}', 'appearances', window.getPlayerEvents('${currentSeason}', '${currentMatchType || 'all'}', '${p.name}', 'appearances'))">
                     <div class="flex items-center space-x-3 overflow-hidden">
                         <span class="text-xs font-mono w-4 shrink-0 ${index < 3 ? 'text-purple-400' : 'text-gray-500'}">${index + 1}</span>
@@ -730,7 +772,7 @@ function renderStats(container, currentSeason, currentMatchType) {
              <span class="text-xs text-yellow-400 font-mono">Top 5</span>
         </div>
         <div class="space-y-3">
-             ${stats.topYellowCards.slice(0, 5).map((p, index) => `
+             ${stats.topYellowCards.filter(p => p.yellowCards > 0).slice(0, 5).map((p, index) => `
                  <div class="flex items-center justify-between group h-6 cursor-pointer" onclick="window.showHistoryModal('${p.name}', 'yellowCards', window.getPlayerEvents('${currentSeason}', '${currentMatchType || 'all'}', '${p.name}', 'yellowCards'))">
                     <div class="flex items-center space-x-3 overflow-hidden">
                         <span class="text-xs font-mono w-4 shrink-0 ${index < 3 ? 'text-yellow-400' : 'text-gray-500'}">${index + 1}</span>
@@ -754,7 +796,7 @@ function renderStats(container, currentSeason, currentMatchType) {
              <span class="text-xs text-red-500 font-mono">Top 5</span>
         </div>
         <div class="space-y-3">
-             ${stats.topRedCards.slice(0, 5).map((p, index) => `
+             ${stats.topRedCards.filter(p => p.redCards > 0).slice(0, 5).map((p, index) => `
                  <div class="flex items-center justify-between group h-6 cursor-pointer" onclick="window.showHistoryModal('${p.name}', 'redCards', window.getPlayerEvents('${currentSeason}', '${currentMatchType || 'all'}', '${p.name}', 'redCards'))">
                     <div class="flex items-center space-x-3 overflow-hidden">
                         <span class="text-xs font-mono w-4 shrink-0 ${index < 3 ? 'text-red-500' : 'text-gray-500'}">${index + 1}</span>
@@ -790,6 +832,35 @@ function renderStats(container, currentSeason, currentMatchType) {
         </div>
     `;
     chartsContainer.appendChild(ogContainer);
+
+    // 7. Stadium Stats (New Section)
+    const stadiumStats = getStadiumStats(currentSeason);
+    // Always render container to show "No Records" if empty, consistent with other sections
+    const stadiumContainer = document.createElement('div');
+    stadiumContainer.className = 'col-span-1 md:col-span-2 lg:col-span-3 bg-gray-800 rounded-3xl p-6 border border-gray-700 hover:bg-gray-750 transition-colors mt-6';
+    stadiumContainer.innerHTML = `
+        <div class="flex items-center justify-between mb-4">
+                <h2 class="text-lg font-bold text-white flex items-center">
+                <span class="mr-2">🏟️</span> 구장 별 전적
+            </h2>
+        </div>
+        <div class="space-y-3">
+            ${stadiumStats.length > 0 ? stadiumStats.map(s => `
+                <div class="flex items-center justify-between p-3 rounded-lg bg-gray-700/30">
+                    <span class="text-sm text-gray-200 font-bold">${s.name}</span>
+                    <div class="flex items-center space-x-4">
+                            <span class="text-xs text-gray-400">
+                            <span class="text-neonGreen font-bold">${s.wins}승</span> 
+                            <span class="text-gray-300 font-bold">${s.draws}무</span> 
+                            <span class="text-red-400 font-bold">${s.losses}패</span>
+                            </span>
+                            <span class="text-xs font-mono text-gray-500 w-12 text-right">${s.winRate}%</span>
+                    </div>
+                </div>
+            `).join('') : '<div class="text-center text-gray-500 text-xs py-4">기록 없음</div>'}
+        </div>
+    `;
+    chartsContainer.appendChild(stadiumContainer);
 
 
     // 7. Opponent Stats (Moved below grid, Full Width)
@@ -831,12 +902,23 @@ function renderStats(container, currentSeason, currentMatchType) {
         `;
     }
 
+
+    // Table Section
+    const tableSection = document.createElement('div');
+    tableSection.className = 'mt-6';
+    tableSection.innerHTML = `<h2 class="text-lg font-bold text-white mb-4">선수 개인 기록</h2>`;
+
     const tableContainer = document.createElement('div');
     tableContainer.className = 'bg-gray-800 rounded-2xl border border-gray-700 overflow-hidden flex flex-col';
 
     // Pagination & Sort State
     let currentPage = 1;
     const itemsPerPage = 10;
+
+    // ... (rest of table logic logic stays inside tableContainer, but we append tableContainer to tableSection or container)
+    // Actually simpler: just modify container appending logic or insert the title as a separate element before appending tableContainer.
+    // Let's modify the end of function where content is appended.
+
 
     // Sort Helper
     const getSortIndicator = (key) => {
@@ -966,8 +1048,13 @@ function renderStats(container, currentSeason, currentMatchType) {
     }
 
     container.appendChild(chartsContainer);
-    if (oppContainer) container.appendChild(oppContainer); // Append Opponent Stats below grid
-    container.appendChild(tableContainer);
+    console.log('Appended chartsContainer');
+    if (oppContainer) {
+        container.appendChild(oppContainer);
+        console.log('Appended oppContainer');
+    }
+    container.appendChild(tableSection); // Append Section Title
+    container.appendChild(tableContainer); // Append Table
 
     // Initial Render
     renderTablePage(currentPage);
@@ -1201,7 +1288,40 @@ function showHistoryModal(playerName, eventType, events) {
             
             <div class="overflow-y-auto pr-1 custom-scrollbar flex-1">
                 <div class="space-y-2">
-                    ${events.map(e => `
+                    ${events.map(e => {
+        // Logic for Goal-Assist Linking
+        let linkedInfo = '';
+        if (e.note && (e.goals > 0 || e.assists > 0)) {
+            // Extract group tags like G1, G2, A1, A2
+            const tags = e.note.match(/[GA]\d+/gi);
+            if (tags) {
+                // Find all records for this match
+                const matchRecords = getMatchRecords(e.season, e.matchId);
+
+                tags.forEach(tag => {
+                    const isGoalTag = tag.toUpperCase().startsWith('G'); // Assuming G is used for Goals/Assists pairs usually
+                    // But user might use G1 for scorer and assister both.
+                    // Let's assume matching tags link them.
+
+                    // Find partner
+                    const partners = matchRecords.filter(r =>
+                        r.name !== playerName &&
+                        r.note &&
+                        r.note.toUpperCase().includes(tag.toUpperCase())
+                    );
+
+                    partners.forEach(p => {
+                        if (e.goals > 0 && p.assists > 0) {
+                            linkedInfo += ` <span class="text-[10px] text-gray-400 font-normal ml-1">(도움: ${p.name})</span>`;
+                        } else if (e.assists > 0 && p.goals > 0) {
+                            linkedInfo += ` <span class="text-[10px] text-gray-400 font-normal ml-1">(득점: ${p.name})</span>`;
+                        }
+                    });
+                });
+            }
+        }
+
+        return `
                         <div class="flex items-center justify-between p-3 rounded-xl bg-gray-700/50 hover:bg-gray-700 transition-colors">
                             <div class="flex items-center space-x-3">
                                 <span class="text-[10px] font-mono text-neonGreen px-2 py-0.5 bg-neonGreen/10 rounded whitespace-nowrap flex-shrink-0">'${e.season.slice(-2)} ${e.round}</span>
@@ -1210,14 +1330,15 @@ function showHistoryModal(playerName, eventType, events) {
                                     <span class="text-[10px] text-gray-400">${e.date}</span>
                                 </div>
                             </div>
-                            <div class="flex items-center">
+                            <div class="flex items-center flex-col items-end">
                                 ${eventType === 'appearances'
-            ? `<span class="text-xs font-bold ${e.submissionType === '교체' ? 'text-gray-400' : 'text-neonGreen'}">${e.submissionType || '선발'}</span>`
-            : `<span class="text-lg font-bold text-white font-mono">+${e.count}</span>`
-        }
+                ? `<span class="text-xs font-bold ${e.appearance === '교체' ? 'text-gray-400' : 'text-neonGreen'}">${e.appearance || '선발'}</span>`
+                : `<div class="flex items-center"><span class="text-lg font-bold text-white font-mono">+${eventType === 'goals' ? e.goals : (eventType === 'assists' ? e.assists : e.count || 1)}</span></div>`
+            }
+                                ${linkedInfo}
                             </div>
                         </div>
-                    `).join('')}
+                    `}).join('')}
                     ${events.length === 0 ? '<div class="text-center text-gray-500 py-10">기록이 없습니다.</div>' : ''}
                 </div>
             </div>
