@@ -497,38 +497,7 @@ function renderStats(container, currentSeason, currentMatchType) {
     // ...
 
     // 6. Stats Table
-    const tableContainer = document.createElement('div');
-    tableContainer.className = 'bg-gray-800 rounded-2xl border border-gray-700 overflow-hidden';
 
-    // Pagination State
-    let currentPage = 1;
-    const itemsPerPage = 10;
-
-    const renderTablePage = (page) => {
-        // Sort Data
-        stats.players.sort((a, b) => {
-            let valA = a[sortState.key];
-            let valB = b[sortState.key];
-
-            // Handle string vs number if needed, but mostly numbers here.
-            // Secondary sort by name if values are equal
-            if (valA === valB) {
-                return a.name.localeCompare(b.name);
-            }
-
-            if (sortState.order === 'asc') {
-                return valA > valB ? 1 : -1;
-            } else {
-                return valA < valB ? 1 : -1;
-            }
-        });
-
-        const totalPages = Math.ceil(stats.players.length / itemsPerPage);
-        const start = (page - 1) * itemsPerPage;
-        const end = start + itemsPerPage;
-        const pageData = stats.players.slice(start, end);
-
-        const rowsHtml = pageData.map(p => `    chartsContainer.className = 'grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4 mb-4';
 
     // 1. Goals Chart
     const goalsChartContainer = document.createElement('div');
@@ -645,24 +614,24 @@ function renderStats(container, currentSeason, currentMatchType) {
     // Pagination State
     let currentPage = 1;
     const itemsPerPage = 10;
-    
+
     // Sort Helper Function
     const getSortIndicator = (key) => {
         if (sortState.key !== key) return '<span class="text-gray-600 ml-1">⇅</span>';
         return sortState.order === 'asc' ? '<span class="text-neonGreen ml-1">▲</span>' : '<span class="text-neonGreen ml-1">▼</span>';
     };
-    
+
     const renderTablePage = (page) => {
         // Sort Data
         stats.players.sort((a, b) => {
             let valA = a[sortState.key];
             let valB = b[sortState.key];
-            
+
             // Handle secondary sort by name
             if (valA === valB) {
                 return a.name.localeCompare(b.name);
             }
-            
+
             if (sortState.order === 'asc') {
                 return valA > valB ? 1 : -1;
             } else {
@@ -695,7 +664,7 @@ function renderStats(container, currentSeason, currentMatchType) {
         const paginationEl = tableContainer.querySelector('.pagination-controls');
         if (paginationEl) {
             paginationEl.innerHTML = `
-        < button ${ page === 1 ? 'disabled' : '' } class="prev-btn px-3 py-1 bg-gray-700 rounded text-xs ${page === 1 ? 'opacity-50' : 'hover:bg-gray-600'}" > 이전</button >
+        < button ${page === 1 ? 'disabled' : ''} class="prev-btn px-3 py-1 bg-gray-700 rounded text-xs ${page === 1 ? 'opacity-50' : 'hover:bg-gray-600'}" > 이전</button >
                 <span class="text-xs text-gray-400">${page} / ${totalPages}</span>
                 <button ${page === totalPages ? 'disabled' : ''} class="next-btn px-3 py-1 bg-gray-700 rounded text-xs ${page === totalPages ? 'opacity-50' : 'hover:bg-gray-600'}">다음</button>
     `;
@@ -730,7 +699,7 @@ function renderStats(container, currentSeason, currentMatchType) {
 
     // Add Click Listeners to Headers
     const attachHeaderListeners = () => {
-         tableContainer.querySelectorAll('th').forEach(th => {
+        tableContainer.querySelectorAll('th').forEach(th => {
             th.removeEventListener('click', handleHeaderClick); // Avoid duplicates if any
             th.addEventListener('click', handleHeaderClick);
         });
@@ -745,22 +714,22 @@ function renderStats(container, currentSeason, currentMatchType) {
             sortState.key = key;
             sortState.order = 'desc';
         }
-        
+
         // Update Indicators Manually
         tableContainer.querySelectorAll('th').forEach(header => {
-             const k = header.getAttribute('data-sort');
-             const indicatorSpan = header.querySelector('span');
-             if (indicatorSpan) {
-                 if (sortState.key !== k) {
-                     indicatorSpan.className = "text-gray-600 ml-1";
-                     indicatorSpan.innerHTML = "⇅";
-                 } else {
-                     indicatorSpan.className = "text-neonGreen ml-1";
-                     indicatorSpan.innerHTML = sortState.order === 'asc' ? "▲" : "▼";
-                 }
-             }
+            const k = header.getAttribute('data-sort');
+            const indicatorSpan = header.querySelector('span');
+            if (indicatorSpan) {
+                if (sortState.key !== k) {
+                    indicatorSpan.className = "text-gray-600 ml-1";
+                    indicatorSpan.innerHTML = "⇅";
+                } else {
+                    indicatorSpan.className = "text-neonGreen ml-1";
+                    indicatorSpan.innerHTML = sortState.order === 'asc' ? "▲" : "▼";
+                }
+            }
         });
-        
+
         renderTablePage(currentPage);
     };
 
