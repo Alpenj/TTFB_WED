@@ -14,7 +14,7 @@ export function SetupDashboard() {
 
     // Initial Layout: Header, Main Content, Bottom Nav
     app.innerHTML = `
-        <header class="p-4 flex items-center justify-between bg-black/50 backdrop-blur-md sticky top-0 z-10 border-b border-gray-800">
+        <header class="p-4 flex items-center justify-between bg-black/50 backdrop-blur-md z-10 border-b border-gray-800 shrink-0">
             <h1 id="app-title" class="text-xl font-bold bg-gradient-to-r from-white to-gray-400 bg-clip-text text-transparent cursor-pointer hover:opacity-80 transition-opacity">TTFB_WED</h1>
             <div class="flex items-center space-x-2">
                  <select id="season-selector" class="bg-gray-800 text-white text-xs rounded-lg px-2 py-1 border border-gray-700 outline-none focus:border-neonGreen">
@@ -25,7 +25,7 @@ export function SetupDashboard() {
         </header>
         
         <!-- Match Type Tabs -->
-        <div class="sticky top-[60px] z-[5] bg-black/50 backdrop-blur-md border-b border-gray-800 overflow-x-auto custom-scrollbar">
+        <div class="z-[5] bg-black/50 backdrop-blur-md border-b border-gray-800 overflow-x-auto custom-scrollbar shrink-0">
             <div class="flex items-center px-4 space-x-4 min-w-max h-12" id="type-tabs">
                 <button data-type="all" class="type-tab-btn relative px-1 py-3 text-sm font-bold text-neonGreen transition-colors">
                     전체
@@ -40,11 +40,11 @@ export function SetupDashboard() {
             </div>
         </div>
 
-        <main id="content" class="flex-1 overflow-y-auto p-4 pb-20 space-y-6">
+        <main id="content" class="flex-1 overflow-y-auto p-4 space-y-6 scrollbar-hide">
             <!-- Dynamic Content -->
         </main>
 
-        <nav class="absolute bottom-0 w-full bg-black/80 backdrop-blur-lg border-t border-gray-800 p-2">
+        <nav class="w-full bg-black/80 backdrop-blur-lg border-t border-gray-800 p-2 shrink-0 z-20">
             <ul class="flex justify-around items-center">
                 <li>
                     <button data-target="home" class="nav-btn flex flex-col items-center p-2 text-neonGreen transition-colors">
