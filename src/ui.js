@@ -678,7 +678,15 @@ function renderStats(container, currentSeason, currentMatchType) {
                     responsive: true,
                     maintainAspectRatio: true,
                     scales: {
-                        y: { beginAtZero: true, grid: { color: '#374151' }, ticks: { color: '#9CA3AF' } },
+                        y: {
+                            beginAtZero: true,
+                            grid: { color: '#374151' },
+                            ticks: {
+                                color: '#9CA3AF',
+                                stepSize: 1,
+                                precision: 0
+                            }
+                        },
                         x: { grid: { display: false }, ticks: { color: '#9CA3AF' } }
                     },
                     plugins: { legend: { display: false } }
@@ -705,7 +713,15 @@ function renderStats(container, currentSeason, currentMatchType) {
                     responsive: true,
                     maintainAspectRatio: true,
                     scales: {
-                        y: { beginAtZero: true, grid: { color: '#374151' }, ticks: { color: '#9CA3AF' } },
+                        y: {
+                            beginAtZero: true,
+                            grid: { color: '#374151' },
+                            ticks: {
+                                color: '#9CA3AF',
+                                stepSize: 1,
+                                precision: 0
+                            }
+                        },
                         x: { grid: { display: false }, ticks: { color: '#9CA3AF' } }
                     },
                     plugins: { legend: { display: false } }
