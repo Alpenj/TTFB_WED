@@ -402,3 +402,7 @@ export function getTeamStats(seasonFilter, matchTypeFilter) {
 
     return { wins, draws, losses, winRate };
 }
+
+export function getMatchRecords(season, matchId) {
+    return recordsData.filter(r => r.season === season && r.matchId === matchId);
+}

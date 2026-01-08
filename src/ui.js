@@ -1,5 +1,5 @@
 import Chart from 'chart.js/auto';
-import { getSchedule, getStats, getTeamStats, getStadium, getAvailableSeasons, getAvailableMatchTypes } from './data.js';
+import { getSchedule, getStats, getTeamStats, getStadium, getAvailableSeasons, getAvailableMatchTypes, getMatchRecords } from './data.js';
 
 export function SetupDashboard() {
     const app = document.querySelector('#app');
@@ -179,14 +179,14 @@ function renderHome(container, currentSeason, currentMatchType) {
     if (lastMatch) {
         const isWin = lastMatch.result.includes('승') || (lastMatch.result.includes(':') && parseInt(lastMatch.result.split(':')[0]) > parseInt(lastMatch.result.split(':')[1]));
         const isDraw = lastMatch.result.includes('무') || (lastMatch.result.includes(':') && parseInt(lastMatch.result.split(':')[0]) === parseInt(lastMatch.result.split(':')[1]));
-        const resultColor = isWin ? 'text-green-400' : (isDraw ? 'text-gray-400' : 'text-red-400');
+        const resultColor = isWin ? 'text-neonGreen' : (isDraw ? 'text-yellow-400' : 'text-red-400');
 
         recentResultMarkup = `
             <div class="bg-gray-800 rounded-3xl p-6 border border-gray-700">
                 <div class="flex justify-between items-center mb-4">
                     <h2 class="text-lg font-bold text-white">최근 경기 결과</h2>
                     <span class="text-xs text-gray-400 flex items-center">
-                        <span class="w-2 h-2 rounded-full ${isWin ? 'bg-green-500' : (isDraw ? 'bg-gray-500' : 'bg-red-500')} mr-2"></span>
+                        <span class="w-2 h-2 rounded-full ${isWin ? 'bg-neonGreen' : (isDraw ? 'bg-yellow-400' : 'bg-red-500')} mr-2"></span>
                         ${lastMatch.result}
                     </span>
                 </div>
@@ -376,9 +376,31 @@ function renderMatches(container, currentSeason, currentMatchType) {
             if (match.result) {
                 if (match.result.includes('승')) statusColor = 'border-neonGreen';
                 else if (match.result.includes('패')) statusColor = 'border-red-500';
-                resultText = `<span class="font-bold ml-auto ${match.result.includes('승') ? 'text-neonGreen' : 'text-red-500'}">${match.result}</span>`;
+                else statusColor = 'border-yellow-400'; // Draw
+
+                const isDraw = match.result.includes('무') || (match.result.includes(':') && parseInt(match.result.split(':')[0]) === parseInt(match.result.split(':')[1]));
+                const textColor = match.result.includes('승') ? 'text-neonGreen' : (isDraw ? 'text-yellow-400' : 'text-red-400');
+
+                resultText = `<span class="font-bold ml-auto ${textColor}">${match.result}</span>`;
             } else {
                 resultText = `<span class="bg-gray-700 text-gray-300 text-xs px-2 py-1 rounded ml-auto">예정</span>`;
+            }
+
+            // Get Scorer Details
+            const records = getMatchRecords(match.season, match.matchId);
+            const scorers = records.filter(r => r.goals > 0);
+            const assisters = records.filter(r => r.assists > 0);
+
+            let detailsMarkup = '';
+            if (scorers.length > 0) {
+                const scorerText = scorers.map(p => `<span class="text-gray-300">${p.name}</span>${p.goals > 1 ? `<span class="text-neonGreen text-[10px] ml-0.5">(${p.goals})</span>` : ''}`).join(', ');
+                detailsMarkup += `<div class="mt-2 text-xs flex items-center space-x-1"><span class="text-neonGreen">⚽</span> <span>${scorerText}</span></div>`;
+            }
+            if (assisters.length > 0) {
+                // Optional: Show assists? User only mentioned "goals/assists". 
+                // Let's combine or show separate line. Separate line is cleaner.
+                const assistText = assisters.map(p => `<span class="text-gray-300">${p.name}</span>${p.assists > 1 ? `<span class="text-gray-500 text-[10px] ml-0.5">(${p.assists})</span>` : ''}`).join(', ');
+                detailsMarkup += `<div class="mt-1 text-xs flex items-center space-x-1"><span class="text-blue-400">👟</span> <span>${assistText}</span></div>`;
             }
 
             const el = document.createElement('div');
@@ -394,6 +416,8 @@ function renderMatches(container, currentSeason, currentMatchType) {
                         ${match.time ? `<span>🕒 ${match.time}</span>` : ''}
                         ${match.stadium ? `<span class="ml-2"><button onclick="window.showMapModal('${match.stadium}')" class="hover:text-neonGreen underline decoration-gray-600 transition-colors text-left">🏟️ ${match.stadium}</button></span>` : ''}
                     </div>
+                    ${detailsMarkup}
+                </div>
                 </div>
                 ${resultText}
             `;
