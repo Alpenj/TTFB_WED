@@ -147,15 +147,32 @@ export function getOpponentStats(currentSeason, currentMatchType) {
         let isDraw = ['무', 'DRAW', 'D', '△', '-'].some(k => res.includes(k));
         let isLoss = ['패', 'LOSS', 'L', 'LOSE', 'X'].some(k => res.includes(k));
 
-        // If no explicit text, try to find a score pattern "N:M"
+        // If no explicit text, try to find a score pattern "N:M" or "N:M (PK N:M)"
         if (!isWin && !isDraw && !isLoss) {
-            const scoreMatch = result.match(/(\d+)\s*[:]\s*(\d+)/);
+            const scoreMatch = result.match(/(\d+)\s*[:]\s*(\d+)(?:\s*\(PK\s*(\d+)\s*[:]\s*(\d+)\))?/i);
             if (scoreMatch) {
-                const ourScore = parseInt(scoreMatch[1]);
-                const oppScore = parseInt(scoreMatch[2]);
-                if (ourScore > oppScore) isWin = true;
-                else if (ourScore === oppScore) isDraw = true;
-                else isLoss = true;
+                const mainScore = {
+                    our: parseInt(scoreMatch[1]),
+                    opp: parseInt(scoreMatch[2]),
+                    pk: scoreMatch[3] && scoreMatch[4] ? { our: parseInt(scoreMatch[3]), opp: parseInt(scoreMatch[4]) } : null
+                };
+
+                isWin = mainScore.our > mainScore.opp;
+                isDraw = mainScore.our === mainScore.opp;
+                isLoss = mainScore.our < mainScore.opp;
+
+                // PK Logic: If draw and PK score exists, flip result based on PK
+                if (isDraw && mainScore.pk) {
+                    if (mainScore.pk.our > mainScore.pk.opp) {
+                        isWin = true;
+                        isDraw = false;
+                        isLoss = false;
+                    } else if (mainScore.pk.our < mainScore.pk.opp) {
+                        isWin = false;
+                        isDraw = false;
+                        isLoss = true;
+                    }
+                }
             }
         }
 
@@ -578,12 +595,36 @@ export function getTeamStats(seasonFilter, matchTypeFilter) {
         if (res.includes('승')) wins++;
         else if (res.includes('무')) draws++;
         else if (res.includes('패')) losses++;
-        else if (res.includes(':')) {
-            const [home, away] = res.split(':').map(Number);
-            if (!isNaN(home) && !isNaN(away)) {
-                if (home > away) wins++;
-                else if (home < away) losses++;
-                else draws++;
+        else {
+            // Try to parse "N:M (PK N:M)"
+            const scoreMatch = match.result.match(/(\d+)\s*[:]\s*(\d+)(?:\s*\(PK\s*(\d+)\s*[:]\s*(\d+)\))?/i);
+            if (scoreMatch) {
+                const mainScore = {
+                    our: parseInt(scoreMatch[1]),
+                    opp: parseInt(scoreMatch[2]),
+                    pk: scoreMatch[3] && scoreMatch[4] ? { our: parseInt(scoreMatch[3]), opp: parseInt(scoreMatch[4]) } : null
+                };
+
+                let isWin = mainScore.our > mainScore.opp;
+                let isDraw = mainScore.our === mainScore.opp;
+                let isLoss = mainScore.our < mainScore.opp;
+
+                // PK Logic
+                if (isDraw && mainScore.pk) {
+                    if (mainScore.pk.our > mainScore.pk.opp) {
+                        isWin = true;
+                        isDraw = false;
+                        isLoss = false;
+                    } else if (mainScore.pk.our < mainScore.pk.opp) {
+                        isWin = false;
+                        isDraw = false;
+                        isLoss = true;
+                    }
+                }
+
+                if (isWin) wins++;
+                else if (isDraw) draws++;
+                else if (isLoss) losses++;
             }
         }
     });
@@ -594,16 +635,30 @@ export function getTeamStats(seasonFilter, matchTypeFilter) {
     return { wins, draws, losses, winRate };
 }
 
-export function getStadiumStats(seasonFilter) {
+export function getStadiumStats(seasonFilter, matchTypeFilter) {
     const stats = {};
 
     const targetSchedule = scheduleData.filter(m => {
-        return (!seasonFilter || seasonFilter === 'all') ? true : m.season === seasonFilter;
+        const seasonMatch = (!seasonFilter || seasonFilter === 'all') ? true : m.season === seasonFilter;
+        // Match Type Filter: if 'all', include everything (maybe exclude practice? User said "Practice tab show no stats", but "All tab show stats". 
+        // User request 1: "구장 별 전적도 전체,리그,연습경기,컵,플레이오프 각 탭에 맞게 계산해서 보여주는데 연습경기 탭에서는 보여줄 필요 없어"
+        // So for calculation, just filter by matchType if provided and not 'all'.
+        const typeMatch = (!matchTypeFilter || matchTypeFilter === 'all') ? true : m.matchType === matchTypeFilter;
+        return seasonMatch && typeMatch;
     });
 
     targetSchedule.forEach(match => {
         if (!match.result) return;
-        const stadiumName = getStadium(match.stadium) || 'Unknown';
+        const stadiumName = getStadium(match.stadium); // getStadium returns null/undefined if not found? No, it returns name. 
+        // If unknown, let's check what getStadium returns or if match.stadium is empty.
+        // The original code had `|| 'Unknown'`. We want to exclude if it resolves to Unknown or is empty.
+
+        // Strict Filter: Exclude if name is falsy, 'Unknown', or empty.
+        // Also check if the resulting name actually contains "Unknown" (case-insensitive) just in case.
+        if (!stadiumName ||
+            stadiumName === 'Unknown' ||
+            stadiumName.trim() === '' ||
+            stadiumName.toLowerCase().includes('unknown')) return;
 
         if (!stats[stadiumName]) {
             stats[stadiumName] = { name: stadiumName, wins: 0, draws: 0, losses: 0, total: 0 };
@@ -612,20 +667,40 @@ export function getStadiumStats(seasonFilter) {
         const s = stats[stadiumName];
         let res = match.result;
 
-        // Handle PK: treat as Draw for official W-D-L stats
-        const mainScoreMatch = res.match(/^(\d+:\d+)/);
-        if (mainScoreMatch) res = mainScoreMatch[1];
-
         s.total++;
         if (res.includes('승')) s.wins++;
         else if (res.includes('무')) s.draws++;
         else if (res.includes('패')) s.losses++;
-        else if (res.includes(':')) {
-            const [home, away] = res.split(':').map(Number);
-            if (!isNaN(home) && !isNaN(away)) {
-                if (home > away) s.wins++;
-                else if (home < away) s.losses++;
-                else s.draws++;
+        else {
+            // Try to parse "N:M (PK N:M)"
+            const scoreMatch = match.result.match(/(\d+)\s*[:]\s*(\d+)(?:\s*\(PK\s*(\d+)\s*[:]\s*(\d+)\))?/i);
+            if (scoreMatch) {
+                const mainScore = {
+                    our: parseInt(scoreMatch[1]),
+                    opp: parseInt(scoreMatch[2]),
+                    pk: scoreMatch[3] && scoreMatch[4] ? { our: parseInt(scoreMatch[3]), opp: parseInt(scoreMatch[4]) } : null
+                };
+
+                let isWin = mainScore.our > mainScore.opp;
+                let isDraw = mainScore.our === mainScore.opp;
+                let isLoss = mainScore.our < mainScore.opp;
+
+                // PK Logic
+                if (isDraw && mainScore.pk) {
+                    if (mainScore.pk.our > mainScore.pk.opp) {
+                        isWin = true;
+                        isDraw = false;
+                        isLoss = false;
+                    } else if (mainScore.pk.our < mainScore.pk.opp) {
+                        isWin = false;
+                        isDraw = false;
+                        isLoss = true;
+                    }
+                }
+
+                if (isWin) s.wins++;
+                else if (isDraw) s.draws++;
+                else if (isLoss) s.losses++;
             }
         }
     });

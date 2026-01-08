@@ -834,45 +834,62 @@ function renderStats(container, currentSeason, currentMatchType) {
     chartsContainer.appendChild(ogContainer);
 
     // 7. Stadium Stats (New Section)
-    const stadiumStats = getStadiumStats(currentSeason);
-    // Always render container to show "No Records" if empty, consistent with other sections
-    const stadiumContainer = document.createElement('div');
-    stadiumContainer.className = 'col-span-1 md:col-span-2 lg:col-span-3 bg-gray-800 rounded-3xl p-6 border border-gray-700 hover:bg-gray-750 transition-colors mt-6';
-    stadiumContainer.innerHTML = `
-        <div class="flex items-center justify-between mb-4">
-                <h2 class="text-lg font-bold text-white flex items-center">
-                <span class="mr-2">🏟️</span> 구장 별 전적
-            </h2>
-        </div>
-        <div class="space-y-3">
-            ${stadiumStats.length > 0 ? stadiumStats.map(s => `
-                <div class="flex items-center justify-between p-3 rounded-lg bg-gray-700/30">
-                    <span class="text-sm text-gray-200 font-bold">${s.name}</span>
-                    <div class="flex items-center space-x-4">
-                            <span class="text-xs text-gray-400">
-                            <span class="text-neonGreen font-bold">${s.wins}승</span> 
-                            <span class="text-gray-300 font-bold">${s.draws}무</span> 
-                            <span class="text-red-400 font-bold">${s.losses}패</span>
-                            </span>
-                            <span class="text-xs font-mono text-gray-500 w-12 text-right">${s.winRate}%</span>
-                    </div>
+    const stadiumStats = getStadiumStats(currentSeason, currentMatchType);
+    if (currentMatchType !== '연습경기') {
+        const stadiumContainer = document.createElement('div');
+        stadiumContainer.className = 'col-span-1 md:col-span-2 lg:col-span-3 bg-gray-800 rounded-3xl border border-gray-700 hover:bg-gray-750 transition-colors mt-6 overflow-hidden';
+
+        // Header with Toggle
+        const header = document.createElement('div');
+        header.className = 'p-6 flex items-center justify-between cursor-pointer';
+        header.onclick = () => {
+            const content = stadiumContainer.querySelector('.stadium-list');
+            const icon = stadiumContainer.querySelector('.toggle-icon');
+            content.classList.toggle('hidden');
+            icon.style.transform = content.classList.contains('hidden') ? 'rotate(0deg)' : 'rotate(180deg)';
+        };
+
+        header.innerHTML = `
+            <div class="flex items-center">
+                <span class="mr-2">🏟️</span>
+                <h2 class="text-lg font-bold text-white">구장 별 전적</h2>
+            </div>
+            <svg xmlns="http://www.w3.org/2000/svg" class="h-5 w-5 text-gray-400 transform transition-transform duration-300 toggle-icon rotate-0" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 9l-7 7-7-7" />
+            </svg>
+        `;
+
+        // Content (Collapsed by default, "hidden")
+        const content = document.createElement('div');
+        content.className = 'stadium-list px-6 pb-6 space-y-3 hidden'; // Hidden by default
+        content.innerHTML = stadiumStats.length > 0 ? stadiumStats.map(s => `
+            <div class="flex items-center justify-between p-3 rounded-lg bg-gray-700/30">
+                <span class="text-sm text-gray-200 font-bold">${s.name}</span>
+                <div class="flex items-center space-x-4">
+                     <span class="text-xs text-gray-400">
+                        <span class="text-neonGreen font-bold">${s.wins}승</span> 
+                        <span class="text-gray-300 font-bold">${s.draws}무</span> 
+                        <span class="text-red-400 font-bold">${s.losses}패</span>
+                     </span>
+                     <span class="text-xs font-mono text-gray-500 w-12 text-right">${s.winRate}%</span>
                 </div>
-            `).join('') : '<div class="text-center text-gray-500 text-xs py-4">기록 없음</div>'}
-        </div>
-    `;
-    chartsContainer.appendChild(stadiumContainer);
+            </div>
+        `).join('') : '<div class="text-center text-gray-500 text-xs py-4">기록 없음</div>';
 
+        stadiumContainer.appendChild(header);
+        stadiumContainer.appendChild(content);
+        chartsContainer.appendChild(stadiumContainer);
+    }
 
-    // 7. Opponent Stats (Moved below grid, Full Width)
+    // 8. Opponent Stats
     const opponentStats = getOpponentStats(currentSeason, currentMatchType || 'all');
     let oppContainer = null;
-    // Hide Opponent Stats if "Practice Match" is selected
     if (opponentStats.length > 0 && currentMatchType !== '연습경기') {
         oppContainer = document.createElement('div');
         oppContainer.className = 'bg-gray-800 p-4 rounded-2xl border border-gray-700 w-full mb-6';
         oppContainer.innerHTML = `
             <h3 class="text-sm text-gray-400 mb-3">상대 전적 <span class="text-xs text-gray-500 font-normal">(승/무/패)</span></h3>
-            <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
+             <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
                 ${opponentStats.map((o, i) => `
                     <div class="flex items-center justify-between border-b border-gray-700 pb-2 last:border-0 last:pb-0 bg-gray-700/30 p-2 rounded">
                          <div class="flex items-center space-x-2 w-1/3">
@@ -902,23 +919,66 @@ function renderStats(container, currentSeason, currentMatchType) {
         `;
     }
 
-
-    // Table Section
-    const tableSection = document.createElement('div');
-    tableSection.className = 'mt-6';
-    tableSection.innerHTML = `<h2 class="text-lg font-bold text-white mb-4">선수 개인 기록</h2>`;
-
+    // 9. Table Section (With Title Inside and Collapsible)
     const tableContainer = document.createElement('div');
-    tableContainer.className = 'bg-gray-800 rounded-2xl border border-gray-700 overflow-hidden flex flex-col';
+    tableContainer.className = 'flex flex-col mt-6 bg-gray-800 rounded-3xl border border-gray-700 overflow-hidden'; // Moved styling to main container
+
+    // Header with Toggle
+    const tableHeader = document.createElement('div');
+    tableHeader.className = 'p-6 flex items-center justify-between cursor-pointer hover:bg-gray-750 transition-colors';
+    tableHeader.onclick = () => {
+        const content = tableContainer.querySelector('.table-content');
+        const icon = tableContainer.querySelector('.toggle-icon');
+        content.classList.toggle('hidden');
+        icon.style.transform = content.classList.contains('hidden') ? 'rotate(0deg)' : 'rotate(180deg)';
+    };
+
+    tableHeader.innerHTML = `
+        <div class="flex items-center">
+            <span class="mr-2">📊</span>
+            <h2 class="text-lg font-bold text-white">선수 개인 기록</h2>
+        </div>
+        <svg xmlns="http://www.w3.org/2000/svg" class="h-5 w-5 text-gray-400 transform transition-transform duration-300 toggle-icon rotate-180" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 9l-7 7-7-7" />
+        </svg>
+    `;
+    tableContainer.appendChild(tableHeader);
+
+    // Content Wrapper (holds the actual table and pagination)
+    const tableContent = document.createElement('div');
+    tableContent.className = 'table-content px-0 pb-0 space-y-3'; // Default visible
+
+    // Actual Table Wrapper (Inner)
+    const tableWrapper = document.createElement('div');
+    tableWrapper.className = 'overflow-hidden flex flex-col'; // Removed bg/border since container has it
+
+    tableWrapper.innerHTML = `
+        <div class="overflow-x-auto max-h-[500px] overflow-y-auto relative custom-scrollbar">
+            <table class="w-full relative border-collapse">
+                <thead class="bg-gray-900 border-b border-gray-700 sticky top-0 z-10 shadow-sm">
+                    <tr>
+                         <th class="p-3 text-center text-xs text-gray-500 font-medium w-12">순위</th>
+                        <th class="cursor-pointer hover:bg-gray-800 p-3 text-center text-xs text-gray-500 font-medium select-none transition-colors group" data-sort="position">포지션</th>
+                        <th class="cursor-pointer hover:bg-gray-800 p-3 text-left text-xs text-gray-500 font-medium select-none transition-colors group" data-sort="name">선수명</th>
+                        <th class="cursor-pointer hover:bg-gray-800 p-3 text-center text-xs text-gray-500 font-medium select-none transition-colors group whitespace-nowrap" data-sort="starts">출전(선발/교체)</th>
+                        <th class="cursor-pointer hover:bg-gray-800 p-3 text-center text-xs text-neonGreen font-bold select-none transition-colors group bg-gray-800/50 whitespace-nowrap" data-sort="attackPoints">공격포인트</th>
+                        <th class="cursor-pointer hover:bg-gray-800 p-3 text-center text-xs text-gray-500 font-medium select-none transition-colors group whitespace-nowrap" data-sort="goals">득점</th>
+                        <th class="cursor-pointer hover:bg-gray-800 p-3 text-center text-xs text-gray-500 font-medium select-none transition-colors group whitespace-nowrap" data-sort="assists">도움</th>
+                        <th class="cursor-pointer hover:bg-gray-800 p-3 text-center text-xs text-red-400 font-medium select-none transition-colors group whitespace-nowrap" data-sort="ownGoals">자살골</th>
+                    </tr>
+                </thead>
+                <tbody class="divide-y divide-gray-700/50"></tbody>
+            </table>
+        </div>
+        <div class="pagination-controls p-3 border-t border-gray-700 flex justify-between items-center bg-gray-800"></div>
+    `;
+
+    tableContent.appendChild(tableWrapper);
+    tableContainer.appendChild(tableContent);
 
     // Pagination & Sort State
     let currentPage = 1;
     const itemsPerPage = 10;
-
-    // ... (rest of table logic logic stays inside tableContainer, but we append tableContainer to tableSection or container)
-    // Actually simpler: just modify container appending logic or insert the title as a separate element before appending tableContainer.
-    // Let's modify the end of function where content is appended.
-
 
     // Sort Helper
     const getSortIndicator = (key) => {
@@ -949,8 +1009,8 @@ function renderStats(container, currentSeason, currentMatchType) {
         const end = start + itemsPerPage;
         const pageData = stats.players.slice(start, end);
 
-        const tableBody = tableContainer.querySelector('tbody');
-        if (!tableBody) return; // Safety check
+        const tableBody = tableWrapper.querySelector('tbody');
+        if (!tableBody) return;
 
         const rowsHtml = pageData.map((p, index) => {
             // Rank Calculation (Global index based on sort)
@@ -974,7 +1034,7 @@ function renderStats(container, currentSeason, currentMatchType) {
         tableBody.innerHTML = rowsHtml || '<tr><td colspan="8" class="text-center py-10 text-gray-500">기록 없음</td></tr>';
 
         // Update Pagination Controls
-        const paginationEl = tableContainer.querySelector('.pagination-controls');
+        const paginationEl = tableWrapper.querySelector('.pagination-controls');
         if (paginationEl) {
             paginationEl.innerHTML = `
                 <button ${page === 1 ? 'disabled' : ''} class="prev-btn px-3 py-1 bg-gray-700 rounded text-xs ${page === 1 ? 'opacity-50 cursor-not-allowed' : 'hover:bg-gray-600 border border-gray-600'} text-gray-300">이전</button>
@@ -992,82 +1052,27 @@ function renderStats(container, currentSeason, currentMatchType) {
         }
 
         // Update Header Sort Indicators
-        const thead = tableContainer.querySelector('thead');
+        const thead = tableWrapper.querySelector('thead');
         if (thead) {
             thead.querySelectorAll('th[data-sort]').forEach(th => {
                 const key = th.dataset.sort;
-                th.innerHTML = `${th.innerText.split(' ')[0]} ${getSortIndicator(key)}`;
+                // Add indicator if missing
+                if (!th.querySelector('span')) {
+                    th.innerHTML += ' <span></span>';
+                }
 
-                // Re-attach click listener? No, it's better to attach once.
-                // But replacing innerHTML breaks listeners if attached to TH.
-                // Solution: Attach listener to TR or THEAD once, or re-attach here.
-                // Let's attach to THEAD once in the initial HTML setup, using event delegation.
+                const indicatorSpan = th.querySelector('span');
+                if (indicatorSpan) {
+                    if (sortState.key !== key) {
+                        indicatorSpan.className = "text-gray-600 ml-1 text-[10px]";
+                        indicatorSpan.innerHTML = "⇅";
+                    } else {
+                        indicatorSpan.className = "text-neonGreen ml-1 text-[10px]";
+                        indicatorSpan.innerHTML = sortState.order === 'asc' ? "▲" : "▼";
+                    }
+                }
             });
         }
-    };
-
-    // Initial HTML Structure
-    tableContainer.innerHTML = `
-        <div class="overflow-x-auto max-h-[500px] overflow-y-auto relative custom-scrollbar">
-            <table class="w-full relative border-collapse">
-                <thead class="bg-gray-900 border-b border-gray-700 sticky top-0 z-10 shadow-sm">
-                    <tr>
-                         <th class="p-3 text-center text-xs text-gray-500 font-medium w-12">순위</th>
-                        <th class="cursor-pointer hover:bg-gray-800 p-3 text-center text-xs text-gray-500 font-medium select-none transition-colors group" data-sort="position">포지션</th>
-                        <th class="cursor-pointer hover:bg-gray-800 p-3 text-left text-xs text-gray-500 font-medium select-none transition-colors group" data-sort="name">선수명</th>
-                        <th class="cursor-pointer hover:bg-gray-800 p-3 text-center text-xs text-gray-500 font-medium select-none transition-colors group whitespace-nowrap" data-sort="starts">출전(선발/교체)</th>
-                        <th class="cursor-pointer hover:bg-gray-800 p-3 text-center text-xs text-neonGreen font-bold select-none transition-colors group bg-gray-800/50 whitespace-nowrap" data-sort="attackPoints">공격포인트</th>
-                        <th class="cursor-pointer hover:bg-gray-800 p-3 text-center text-xs text-gray-500 font-medium select-none transition-colors group whitespace-nowrap" data-sort="goals">득점</th>
-                        <th class="cursor-pointer hover:bg-gray-800 p-3 text-center text-xs text-gray-500 font-medium select-none transition-colors group whitespace-nowrap" data-sort="assists">도움</th>
-                        <th class="cursor-pointer hover:bg-gray-800 p-3 text-center text-xs text-red-400 font-medium select-none transition-colors group whitespace-nowrap" data-sort="ownGoals">자살골</th>
-                    </tr>
-                </thead>
-                <tbody class="divide-y divide-gray-700/50"></tbody>
-            </table>
-        </div>
-        <div class="pagination-controls p-3 border-t border-gray-700 flex justify-between items-center bg-gray-800"></div>
-    `;
-
-    // Attach Header Click Listeners (Event Delegation)
-    const headerRow = tableContainer.querySelector('thead tr');
-    if (headerRow) {
-        headerRow.addEventListener('click', (e) => {
-            const th = e.target.closest('th[data-sort]');
-            if (!th) return;
-            const key = th.dataset.sort;
-
-            if (sortState.key === key) {
-                sortState.order = sortState.order === 'desc' ? 'asc' : 'desc';
-            } else {
-                sortState.key = key;
-                sortState.order = 'desc'; // Default new sort to desc for stats
-                if (key === 'name' || key === 'position') sortState.order = 'asc';
-            }
-            renderTablePage(currentPage);
-        });
-    }
-
-    container.appendChild(chartsContainer);
-    console.log('Appended chartsContainer');
-    if (oppContainer) {
-        container.appendChild(oppContainer);
-        console.log('Appended oppContainer');
-    }
-    container.appendChild(tableSection); // Append Section Title
-    container.appendChild(tableContainer); // Append Table
-
-    // Initial Render
-    renderTablePage(currentPage);
-
-    // Expose modal function to window
-    window.showPlayerProfileModal = showPlayerProfileModal;
-
-    // Add Click Listeners to Headers
-    const attachHeaderListeners = () => {
-        tableContainer.querySelectorAll('th').forEach(th => {
-            th.removeEventListener('click', handleHeaderClick); // Avoid duplicates if any
-            th.addEventListener('click', handleHeaderClick);
-        });
     };
 
     const handleHeaderClick = (e) => {
@@ -1079,32 +1084,31 @@ function renderStats(container, currentSeason, currentMatchType) {
             sortState.key = key;
             sortState.order = 'desc';
         }
-
-        // Update Indicators Manually
-        tableContainer.querySelectorAll('th').forEach(header => {
-            const k = header.getAttribute('data-sort');
-            const indicatorSpan = header.querySelector('span');
-            if (indicatorSpan) {
-                if (sortState.key !== k) {
-                    indicatorSpan.className = "text-gray-600 ml-1";
-                    indicatorSpan.innerHTML = "⇅";
-                } else {
-                    indicatorSpan.className = "text-neonGreen ml-1";
-                    indicatorSpan.innerHTML = sortState.order === 'asc' ? "▲" : "▼";
-                }
-            }
-        });
-
         renderTablePage(currentPage);
     };
 
-    // Attach initially
+    const attachHeaderListeners = () => {
+        tableWrapper.querySelectorAll('th[data-sort]').forEach(th => {
+            th.removeEventListener('click', handleHeaderClick);
+            th.addEventListener('click', handleHeaderClick);
+        });
+    };
+
     attachHeaderListeners();
 
+    // Append All to Main Container
     container.appendChild(chartsContainer);
+    if (oppContainer) {
+        container.appendChild(oppContainer);
+    }
     container.appendChild(tableContainer);
 
-    // Initial Render
+    // Initial Render of Table
+    renderTablePage(currentPage);
+
+    // Expose modal function to window
+    window.showPlayerProfileModal = showPlayerProfileModal;
+
     renderTablePage(currentPage);
 
 
@@ -1214,7 +1218,7 @@ function showMapModal(shortName) {
     modal.id = 'map-modal';
     modal.className = 'fixed inset-0 z-50 flex items-center justify-center p-4 bg-black/80 backdrop-blur-sm animate-fade-in text-center';
     modal.innerHTML = `
-        <div class="bg-gray-800 rounded-3xl p-6 w-full max-w-sm border border-gray-700 shadow-2xl relative transform transition-all scale-100">
+        < div class="bg-gray-800 rounded-3xl p-6 w-full max-w-sm border border-gray-700 shadow-2xl relative transform transition-all scale-100" >
             <button class="absolute top-4 right-4 text-gray-500 hover:text-white" onclick="document.querySelector('#map-modal').remove()">
                 <svg xmlns="http://www.w3.org/2000/svg" class="h-6 w-6" fill="none" viewBox="0 0 24 24" stroke="currentColor">
                     <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M6 18L18 6M6 6l12 12" />
@@ -1236,7 +1240,7 @@ function showMapModal(shortName) {
                 </a>
                  <div class="text-[10px] text-gray-500 mt-2">* TMAP은 앱이 설치된 모바일 기기에서만 작동합니다.</div>
             </div>
-    </div>
+    </div >
         `;
 
     // Close on click outside
@@ -1273,7 +1277,7 @@ function showHistoryModal(playerName, eventType, events) {
     modal.id = 'history-modal';
     modal.className = 'fixed inset-0 z-50 flex items-center justify-center p-4 bg-black/80 backdrop-blur-sm animate-fade-in';
     modal.innerHTML = `
-        <div class="bg-gray-800 rounded-3xl p-6 w-full max-w-sm border border-gray-700 shadow-2xl relative flex flex-col max-h-[80vh]">
+        < div class="bg-gray-800 rounded-3xl p-6 w-full max-w-sm border border-gray-700 shadow-2xl relative flex flex-col max-h-[80vh]" >
             <div class="flex justify-between items-center mb-4">
                 <div>
                     <h3 class="text-xl font-bold text-white">${playerName}</h3>
@@ -1342,8 +1346,8 @@ function showHistoryModal(playerName, eventType, events) {
                     ${events.length === 0 ? '<div class="text-center text-gray-500 py-10">기록이 없습니다.</div>' : ''}
                 </div>
             </div>
-        </div>
-    `;
+        </div >
+        `;
 
     // Close on click outside
     modal.addEventListener('click', (e) => {
@@ -1374,7 +1378,7 @@ function showPlayerProfileModal(playerName, seasonFilter) {
     modal.id = 'profile-modal';
     modal.className = 'fixed inset-0 z-50 flex items-center justify-center p-4 bg-black/80 backdrop-blur-sm animate-fade-in';
     modal.innerHTML = `
-        <div class="bg-gray-800 rounded-3xl p-6 w-full max-w-lg border border-gray-700 shadow-2xl relative flex flex-col max-h-[85vh]">
+        < div class="bg-gray-800 rounded-3xl p-6 w-full max-w-lg border border-gray-700 shadow-2xl relative flex flex-col max-h-[85vh]" >
             <div class="flex justify-between items-start mb-6">
                 <div>
                     <h3 class="text-2xl font-bold text-white mb-1">${playerName}</h3>
@@ -1422,8 +1426,8 @@ function showPlayerProfileModal(playerName, seasonFilter) {
                     ${events.length === 0 ? '<div class="text-center text-gray-500 py-10">경기 기록이 없습니다.</div>' : ''}
                 </div>
             </div>
-        </div>
-    `;
+        </div >
+        `;
 
     // Close on click outside
     modal.addEventListener('click', (e) => {
