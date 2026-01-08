@@ -938,7 +938,7 @@ function renderStats(container, currentSeason, currentMatchType) {
             <span class="mr-2">📊</span>
             <h2 class="text-lg font-bold text-white">선수 개인 기록</h2>
         </div>
-        <svg xmlns="http://www.w3.org/2000/svg" class="h-5 w-5 text-gray-400 transform transition-transform duration-300 toggle-icon rotate-180" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+        <svg xmlns="http://www.w3.org/2000/svg" class="h-5 w-5 text-gray-400 transform transition-transform duration-300 toggle-icon rotate-0" fill="none" viewBox="0 0 24 24" stroke="currentColor">
             <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 9l-7 7-7-7" />
         </svg>
     `;
@@ -946,7 +946,7 @@ function renderStats(container, currentSeason, currentMatchType) {
 
     // Content Wrapper (holds the actual table and pagination)
     const tableContent = document.createElement('div');
-    tableContent.className = 'table-content px-0 pb-0 space-y-3'; // Default visible
+    tableContent.className = 'table-content px-0 pb-0 space-y-3 hidden'; // Default hidden (Collapsed)
 
     // Actual Table Wrapper (Inner)
     const tableWrapper = document.createElement('div');
