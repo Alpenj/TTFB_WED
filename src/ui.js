@@ -177,8 +177,11 @@ function renderHome(container, currentSeason, currentMatchType) {
 
     let recentResultMarkup = '';
     if (lastMatch) {
-        const isWin = lastMatch.result.includes('승') || (lastMatch.result.includes(':') && parseInt(lastMatch.result.split(':')[0]) > parseInt(lastMatch.result.split(':')[1]));
-        const isDraw = lastMatch.result.includes('무') || (lastMatch.result.includes(':') && parseInt(lastMatch.result.split(':')[0]) === parseInt(lastMatch.result.split(':')[1]));
+        const parts = lastMatch.result.split(':');
+        const isScore = parts.length === 2 && !isNaN(parseInt(parts[0])) && !isNaN(parseInt(parts[1]));
+
+        const isWin = lastMatch.result.includes('승') || (isScore && parseInt(parts[0]) > parseInt(parts[1]));
+        const isDraw = lastMatch.result.includes('무') || (isScore && parseInt(parts[0]) === parseInt(parts[1]));
         const resultColor = isWin ? 'text-neonGreen' : (isDraw ? 'text-yellow-400' : 'text-red-400');
 
         recentResultMarkup = `
@@ -374,12 +377,18 @@ function renderMatches(container, currentSeason, currentMatchType) {
             let resultText = '';
 
             if (match.result) {
-                if (match.result.includes('승')) statusColor = 'border-neonGreen';
-                else if (match.result.includes('패')) statusColor = 'border-red-500';
-                else statusColor = 'border-yellow-400'; // Draw
+                const parts = match.result.split(':');
+                const isScore = parts.length === 2 && !isNaN(parseInt(parts[0])) && !isNaN(parseInt(parts[1]));
 
-                const isDraw = match.result.includes('무') || (match.result.includes(':') && parseInt(match.result.split(':')[0]) === parseInt(match.result.split(':')[1]));
-                const textColor = match.result.includes('승') ? 'text-neonGreen' : (isDraw ? 'text-yellow-400' : 'text-red-400');
+                const isWin = match.result.includes('승') || (isScore && parseInt(parts[0]) > parseInt(parts[1]));
+                const isDraw = match.result.includes('무') || (isScore && parseInt(parts[0]) === parseInt(parts[1]));
+                // Loss is else
+
+                if (isWin) statusColor = 'border-neonGreen';
+                else if (isDraw) statusColor = 'border-yellow-400';
+                else statusColor = 'border-red-500';
+
+                const textColor = isWin ? 'text-neonGreen' : (isDraw ? 'text-yellow-400' : 'text-red-400');
 
                 resultText = `<span class="font-bold ml-auto ${textColor}">${match.result}</span>`;
             } else {
