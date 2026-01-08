@@ -472,9 +472,54 @@ function renderMatches(container, currentSeason, currentMatchType) {
 function renderStats(container, currentSeason, currentMatchType) {
     const stats = getStats(currentSeason, currentMatchType);
 
+    // Sort State
+    let sortState = { key: 'goals', order: 'desc' }; // Default sort
+
     // Top Charts Grid
     const chartsContainer = document.createElement('div');
     chartsContainer.className = 'grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4 mb-4';
+
+    // ... (Charts rendering code remains same, omitted for brevity but preserved in real file) ...
+    // Since we are replacing the start of the function, we need to be careful.
+    // Actually, let's just insert the sort variable or modify the table rendering part.
+    // A better approach is to keep renderStats simple and handle sorting in the table section.
+
+    // Let's scroll down to table container creation.
+    // ...
+
+    // 6. Stats Table
+    const tableContainer = document.createElement('div');
+    tableContainer.className = 'bg-gray-800 rounded-2xl border border-gray-700 overflow-hidden';
+
+    // Pagination State
+    let currentPage = 1;
+    const itemsPerPage = 10;
+
+    const renderTablePage = (page) => {
+        // Sort Data
+        stats.players.sort((a, b) => {
+            let valA = a[sortState.key];
+            let valB = b[sortState.key];
+
+            // Handle string vs number if needed, but mostly numbers here.
+            // Secondary sort by name if values are equal
+            if (valA === valB) {
+                return a.name.localeCompare(b.name);
+            }
+
+            if (sortState.order === 'asc') {
+                return valA > valB ? 1 : -1;
+            } else {
+                return valA < valB ? 1 : -1;
+            }
+        });
+
+        const totalPages = Math.ceil(stats.players.length / itemsPerPage);
+        const start = (page - 1) * itemsPerPage;
+        const end = start + itemsPerPage;
+        const pageData = stats.players.slice(start, end);
+
+        const rowsHtml = pageData.map(p => `    chartsContainer.className = 'grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4 mb-4';
 
     // 1. Goals Chart
     const goalsChartContainer = document.createElement('div');
@@ -482,9 +527,9 @@ function renderStats(container, currentSeason, currentMatchType) {
 
     const validScorers = stats.topScorers.filter(p => p.goals > 0).slice(0, 5);
     if (validScorers.length > 0) {
-        goalsChartContainer.innerHTML = `<h3 class="text-sm text-gray-400 mb-4">득점 랭킹</h3><canvas id="goalsChart"></canvas>`;
+        goalsChartContainer.innerHTML = `< h3 class= "text-sm text-gray-400 mb-4" > 득점 랭킹</h3 > <canvas id="goalsChart"></canvas>`;
     } else {
-        goalsChartContainer.innerHTML = `<h3 class="text-sm text-gray-400 mb-4">득점 랭킹</h3><div class="text-center text-gray-500 text-xs py-10">기록 없음</div>`;
+        goalsChartContainer.innerHTML = `< h3 class= "text-sm text-gray-400 mb-4" > 득점 랭킹</h3 > <div class="text-center text-gray-500 text-xs py-10">기록 없음</div>`;
     }
     chartsContainer.appendChild(goalsChartContainer);
 
@@ -494,9 +539,9 @@ function renderStats(container, currentSeason, currentMatchType) {
 
     const validAssisters = stats.topAssists.filter(p => p.assists > 0).slice(0, 5);
     if (validAssisters.length > 0) {
-        assistsChartContainer.innerHTML = `<h3 class="text-sm text-gray-400 mb-4">도움 랭킹</h3><canvas id="assistsChart"></canvas>`;
+        assistsChartContainer.innerHTML = `< h3 class= "text-sm text-gray-400 mb-4" > 도움 랭킹</h3 > <canvas id="assistsChart"></canvas>`;
     } else {
-        assistsChartContainer.innerHTML = `<h3 class="text-sm text-gray-400 mb-4">도움 랭킹</h3><div class="text-center text-gray-500 text-xs py-10">기록 없음</div>`;
+        assistsChartContainer.innerHTML = `< h3 class= "text-sm text-gray-400 mb-4" > 도움 랭킹</h3 > <div class="text-center text-gray-500 text-xs py-10">기록 없음</div>`;
     }
     chartsContainer.appendChild(assistsChartContainer);
 
@@ -504,7 +549,7 @@ function renderStats(container, currentSeason, currentMatchType) {
     const appearanceContainer = document.createElement('div');
     appearanceContainer.className = 'bg-gray-800 p-4 rounded-2xl border border-gray-700';
     appearanceContainer.innerHTML = `
-    <h3 class="text-sm text-gray-400 mb-3 leading-snug">출전 횟수<br><span class="text-xs text-gray-500 font-normal">(선발/교체)</span></h3>
+        < h3 class= "text-sm text-gray-400 mb-3 leading-snug" > 출전 횟수 < br > <span class="text-xs text-gray-500 font-normal">(선발/교체)</span></h3 >
         <div class="space-y-2">
             ${stats.topAppearances.filter(p => p.appearances > 0).slice(0, 5).map((p, i) => `
                 <div class="flex items-center justify-between border-b border-gray-700 pb-2 last:border-0 last:pb-0">
@@ -528,7 +573,7 @@ function renderStats(container, currentSeason, currentMatchType) {
     const yellowCardContainer = document.createElement('div');
     yellowCardContainer.className = 'bg-gray-800 p-4 rounded-2xl border border-gray-700';
     yellowCardContainer.innerHTML = `
-    <h3 class="text-sm text-gray-400 mb-3">경고</h3>
+            < h3 class= "text-sm text-gray-400 mb-3" > 경고</h3 >
         <div class="space-y-2">
             ${stats.topYellowCards.filter(p => p.yellowCards > 0).slice(0, 5).map((p, i) => `
                 <div class="flex items-center justify-between border-b border-gray-700 pb-2 last:border-0 last:pb-0">
@@ -548,9 +593,9 @@ function renderStats(container, currentSeason, currentMatchType) {
         const ogContainer = document.createElement('div');
         ogContainer.className = 'bg-gray-800 p-4 rounded-2xl border border-gray-700';
         ogContainer.innerHTML = `
-        <h3 class="text-sm text-gray-400 mb-3 leading-snug">자책골<br><span class="text-xs text-gray-500 font-normal">(Own Goals)</span></h3>
-            <div class="space-y-2">
-                ${stats.topOwnGoals.slice(0, 5).map((p, i) => `
+            < h3 class= "text-sm text-gray-400 mb-3 leading-snug" > 자책골 < br > <span class="text-xs text-gray-500 font-normal">(Own Goals)</span></h3 >
+        <div class="space-y-2">
+            ${stats.topOwnGoals.slice(0, 5).map((p, i) => `
                     <div class="flex items-center justify-between border-b border-gray-700 pb-2 last:border-0 last:pb-0">
                         <div class="flex items-center space-x-2 overflow-hidden">
                             <span class="text-xs font-mono text-gray-500 w-3 flex-shrink-0">${i + 1}</span>
@@ -560,7 +605,7 @@ function renderStats(container, currentSeason, currentMatchType) {
                         <span class="text-sm text-red-400 font-mono font-bold flex-shrink-0">${p.ownGoals}</span>
                     </div>
                 `).join('')}
-            </div>
+        </div>
     `;
         chartsContainer.appendChild(ogContainer);
     }
@@ -569,7 +614,7 @@ function renderStats(container, currentSeason, currentMatchType) {
     const redCardContainer = document.createElement('div');
     redCardContainer.className = 'bg-gray-800 p-4 rounded-2xl border border-gray-700';
     redCardContainer.innerHTML = `
-    <h3 class="text-sm text-gray-400 mb-3">퇴장</h3>
+            < h3 class= "text-sm text-gray-400 mb-3" > 퇴장</h3 >
         <div class="space-y-2">
             ${stats.topRedCards.filter(p => p.redCards > 0).slice(0, 5).map((p, i) => `
                 <div class="flex items-center justify-between border-b border-gray-700 pb-2 last:border-0 last:pb-0">
@@ -585,77 +630,7 @@ function renderStats(container, currentSeason, currentMatchType) {
     chartsContainer.appendChild(redCardContainer);
 
 
-    // Player Table with Sticky Header & Pagination
-    const tableContainer = document.createElement('div');
-    tableContainer.className = 'bg-gray-800 rounded-2xl border border-gray-700 overflow-hidden flex flex-col';
 
-    // Pagination State
-    let currentPage = 1;
-    const rowsPerPage = 10;
-    const totalPages = Math.ceil(stats.players.length / rowsPerPage);
-
-    function renderTablePage(page) {
-        const start = (page - 1) * rowsPerPage;
-        const end = start + rowsPerPage;
-        const pageData = stats.players.slice(start, end);
-
-        const rowsHtml = pageData.map(p => `
-    <tr class="border-b border-gray-700 last:border-0 hover:bg-gray-750">
-                <td class="p-3 text-sm text-gray-300 w-16">${p.position}</td>
-                <td class="p-3 text-sm font-bold text-white">${p.name}</td>
-                <td class="p-3 text-center text-xs text-gray-400 font-mono w-24">
-                    <span class="text-neonGreen">${p.starts}</span> / <span class="text-white">${p.substitutes}</span>
-                </td>
-                <td class="p-3 text-sm text-center text-neonGreen font-mono w-12">${p.goals}</td>
-                <td class="p-3 text-sm text-center text-gray-400 font-mono w-12">${p.assists}</td>
-            </tr>
-    `).join('');
-
-        const tableBody = tableContainer.querySelector('tbody');
-        if (tableBody) tableBody.innerHTML = rowsHtml;
-
-        // Update Pagination Controls
-        const paginationEl = tableContainer.querySelector('.pagination-controls');
-        if (paginationEl) {
-            paginationEl.innerHTML = `
-    <button ${page === 1 ? 'disabled' : ''} class="prev-btn px-3 py-1 bg-gray-700 rounded text-xs ${page === 1 ? 'opacity-50' : 'hover:bg-gray-600'}">이전</button>
-                <span class="text-xs text-gray-400">${page} / ${totalPages}</span>
-                <button ${page === totalPages ? 'disabled' : ''} class="next-btn px-3 py-1 bg-gray-700 rounded text-xs ${page === totalPages ? 'opacity-50' : 'hover:bg-gray-600'}">다음</button>
-`;
-
-            // Re-attach listeners
-            paginationEl.querySelector('.prev-btn').onclick = () => {
-                if (currentPage > 1) { currentPage--; renderTablePage(currentPage); }
-            };
-            paginationEl.querySelector('.next-btn').onclick = () => {
-                if (currentPage < totalPages) { currentPage++; renderTablePage(currentPage); }
-            };
-        }
-    }
-
-    tableContainer.innerHTML = `
-    <div class="overflow-x-auto max-h-[400px] overflow-y-auto relative">
-        <table class="w-full">
-            <thead class="bg-gray-900 border-b border-gray-700 sticky top-0 z-10">
-                <tr>
-                    <th class="p-3 text-left text-xs text-gray-500 font-medium">POS</th>
-                    <th class="p-3 text-left text-xs text-gray-500 font-medium">Player</th>
-                    <th class="p-3 text-center text-xs text-gray-500 font-medium">Apps (Start/Sub)</th>
-                    <th class="p-3 text-center text-xs text-gray-500 font-medium">G</th>
-                    <th class="p-3 text-center text-xs text-gray-500 font-medium">A</th>
-                </tr>
-            </thead>
-            <tbody></tbody>
-        </table>
-        </div>
-    <div class="pagination-controls p-3 border-t border-gray-700 flex justify-between items-center bg-gray-800"></div>
-`;
-
-    container.appendChild(chartsContainer);
-    container.appendChild(tableContainer);
-
-    // Initial Render
-    renderTablePage(currentPage);
 
     // Initialize Charts
     setTimeout(() => {
@@ -741,7 +716,7 @@ function showMapModal(shortName) {
     modal.id = 'map-modal';
     modal.className = 'fixed inset-0 z-50 flex items-center justify-center p-4 bg-black/80 backdrop-blur-sm animate-fade-in text-center';
     modal.innerHTML = `
-    <div class="bg-gray-800 rounded-3xl p-6 w-full max-w-sm border border-gray-700 shadow-2xl relative transform transition-all scale-100">
+            < div class= "bg-gray-800 rounded-3xl p-6 w-full max-w-sm border border-gray-700 shadow-2xl relative transform transition-all scale-100" >
             <button class="absolute top-4 right-4 text-gray-500 hover:text-white" onclick="document.querySelector('#map-modal').remove()">
                 <svg xmlns="http://www.w3.org/2000/svg" class="h-6 w-6" fill="none" viewBox="0 0 24 24" stroke="currentColor">
                     <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M6 18L18 6M6 6l12 12" />
@@ -763,8 +738,8 @@ function showMapModal(shortName) {
                 </a>
                  <div class="text-[10px] text-gray-500 mt-2">* TMAP은 앱이 설치된 모바일 기기에서만 작동합니다.</div>
             </div>
-    </div>
-    `;
+    </div >
+        `;
 
     // Close on click outside
     modal.addEventListener('click', (e) => {

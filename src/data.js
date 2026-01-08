@@ -244,6 +244,7 @@ export function getStats(seasonFilter, matchTypeFilter) {
                 goals: 0,
                 assists: 0,
                 ownGoals: 0,
+                attackPoints: 0,
                 yellowCards: 0,
                 redCards: 0,
                 cleanSheets: 0
@@ -265,6 +266,7 @@ export function getStats(seasonFilter, matchTypeFilter) {
                 goals: 0,
                 assists: 0,
                 ownGoals: 0,
+                attackPoints: 0,
                 yellowCards: 0,
                 redCards: 0,
                 cleanSheets: 0
@@ -296,6 +298,7 @@ export function getStats(seasonFilter, matchTypeFilter) {
             player.goals += record.goals;
         }
         player.assists += record.assists;
+        player.attackPoints = player.goals + player.assists;
         player.yellowCards += record.yellowCards;
         player.redCards += record.redCards;
     });
