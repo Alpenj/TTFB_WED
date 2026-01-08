@@ -242,6 +242,7 @@ export function getStats(seasonFilter, matchTypeFilter) {
                 substitutes: 0,
                 goals: 0,
                 assists: 0,
+                ownGoals: 0,
                 yellowCards: 0,
                 redCards: 0,
                 cleanSheets: 0
@@ -262,6 +263,7 @@ export function getStats(seasonFilter, matchTypeFilter) {
                 substitutes: 0,
                 goals: 0,
                 assists: 0,
+                ownGoals: 0,
                 yellowCards: 0,
                 redCards: 0,
                 cleanSheets: 0
@@ -287,7 +289,11 @@ export function getStats(seasonFilter, matchTypeFilter) {
             player.substitutes++;
         }
 
-        player.goals += record.goals;
+        if (record.goals < 0) {
+            player.ownGoals += Math.abs(record.goals);
+        } else {
+            player.goals += record.goals;
+        }
         player.assists += record.assists;
         player.yellowCards += record.yellowCards;
         player.redCards += record.redCards;
@@ -363,6 +369,10 @@ export function getStats(seasonFilter, matchTypeFilter) {
         topCleanSheets: [...playersArray]
             .filter(p => p.position === 'GK' || p.position === 'DF')
             .sort((a, b) => b.cleanSheets - a.cleanSheets || b.appearances - a.appearances)
+            .slice(0, 5),
+        topOwnGoals: [...playersArray]
+            .filter(p => p.ownGoals > 0)
+            .sort((a, b) => b.ownGoals - a.ownGoals)
             .slice(0, 5),
         topYellowCards: [...playersArray].sort((a, b) => b.yellowCards - a.yellowCards).slice(0, 5),
         topRedCards: [...playersArray].sort((a, b) => b.redCards - a.redCards).slice(0, 5)

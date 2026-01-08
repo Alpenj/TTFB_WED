@@ -543,6 +543,28 @@ function renderStats(container, currentSeason, currentMatchType) {
 `;
     chartsContainer.appendChild(yellowCardContainer);
 
+    // 5. Own Goals List (Optional, only provided if exists)
+    if (stats.topOwnGoals && stats.topOwnGoals.length > 0) {
+        const ogContainer = document.createElement('div');
+        ogContainer.className = 'bg-gray-800 p-4 rounded-2xl border border-gray-700';
+        ogContainer.innerHTML = `
+        <h3 class="text-sm text-gray-400 mb-3 leading-snug">자책골<br><span class="text-xs text-gray-500 font-normal">(Own Goals)</span></h3>
+            <div class="space-y-2">
+                ${stats.topOwnGoals.slice(0, 5).map((p, i) => `
+                    <div class="flex items-center justify-between border-b border-gray-700 pb-2 last:border-0 last:pb-0">
+                        <div class="flex items-center space-x-2 overflow-hidden">
+                            <span class="text-xs font-mono text-gray-500 w-3 flex-shrink-0">${i + 1}</span>
+                            <span class="text-sm text-white font-bold truncate">${p.name}</span>
+                            <span class="text-[10px] text-gray-500 flex-shrink-0">(${p.position})</span>
+                        </div>
+                        <span class="text-sm text-red-400 font-mono font-bold flex-shrink-0">${p.ownGoals}</span>
+                    </div>
+                `).join('')}
+            </div>
+    `;
+        chartsContainer.appendChild(ogContainer);
+    }
+
     // 5. Red Cards List
     const redCardContainer = document.createElement('div');
     redCardContainer.className = 'bg-gray-800 p-4 rounded-2xl border border-gray-700';
