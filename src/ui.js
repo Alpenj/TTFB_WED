@@ -1218,7 +1218,7 @@ function showMapModal(shortName) {
     modal.id = 'map-modal';
     modal.className = 'fixed inset-0 z-50 flex items-center justify-center p-4 bg-black/80 backdrop-blur-sm animate-fade-in text-center';
     modal.innerHTML = `
-        < div class="bg-gray-800 rounded-3xl p-6 w-full max-w-sm border border-gray-700 shadow-2xl relative transform transition-all scale-100" >
+        <div class="bg-gray-800 rounded-3xl p-6 w-full max-w-sm border border-gray-700 shadow-2xl relative transform transition-all scale-100">
             <button class="absolute top-4 right-4 text-gray-500 hover:text-white" onclick="document.querySelector('#map-modal').remove()">
                 <svg xmlns="http://www.w3.org/2000/svg" class="h-6 w-6" fill="none" viewBox="0 0 24 24" stroke="currentColor">
                     <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M6 18L18 6M6 6l12 12" />
@@ -1240,7 +1240,7 @@ function showMapModal(shortName) {
                 </a>
                  <div class="text-[10px] text-gray-500 mt-2">* TMAP은 앱이 설치된 모바일 기기에서만 작동합니다.</div>
             </div>
-    </div >
+        </div>
         `;
 
     // Close on click outside
@@ -1277,7 +1277,7 @@ function showHistoryModal(playerName, eventType, events) {
     modal.id = 'history-modal';
     modal.className = 'fixed inset-0 z-50 flex items-center justify-center p-4 bg-black/80 backdrop-blur-sm animate-fade-in';
     modal.innerHTML = `
-        < div class="bg-gray-800 rounded-3xl p-6 w-full max-w-sm border border-gray-700 shadow-2xl relative flex flex-col max-h-[80vh]" >
+        <div class="bg-gray-800 rounded-3xl p-6 w-full max-w-sm border border-gray-700 shadow-2xl relative flex flex-col max-h-[80vh]">
             <div class="flex justify-between items-center mb-4">
                 <div>
                     <h3 class="text-xl font-bold text-white">${playerName}</h3>
@@ -1346,7 +1346,7 @@ function showHistoryModal(playerName, eventType, events) {
                     ${events.length === 0 ? '<div class="text-center text-gray-500 py-10">기록이 없습니다.</div>' : ''}
                 </div>
             </div>
-        </div >
+        </div>
         `;
 
     // Close on click outside
@@ -1378,7 +1378,7 @@ function showPlayerProfileModal(playerName, seasonFilter) {
     modal.id = 'profile-modal';
     modal.className = 'fixed inset-0 z-50 flex items-center justify-center p-4 bg-black/80 backdrop-blur-sm animate-fade-in';
     modal.innerHTML = `
-        < div class="bg-gray-800 rounded-3xl p-6 w-full max-w-lg border border-gray-700 shadow-2xl relative flex flex-col max-h-[85vh]" >
+        <div class="bg-gray-800 rounded-3xl p-6 w-full max-w-lg border border-gray-700 shadow-2xl relative flex flex-col max-h-[85vh]">
             <div class="flex justify-between items-start mb-6">
                 <div>
                     <h3 class="text-2xl font-bold text-white mb-1">${playerName}</h3>
@@ -1426,7 +1426,7 @@ function showPlayerProfileModal(playerName, seasonFilter) {
                     ${events.length === 0 ? '<div class="text-center text-gray-500 py-10">경기 기록이 없습니다.</div>' : ''}
                 </div>
             </div>
-        </div >
+        </div>
         `;
 
     // Close on click outside
