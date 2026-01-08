@@ -133,11 +133,28 @@ export function getOpponentStats(currentSeason, currentMatchType) {
 
         const result = match.result ? match.result.trim() : '';
 
-        // Robust Check
+        // Robust Check: 1. Text Search 2. Score Parse
         const res = result.toUpperCase();
-        if (['승', 'WIN', 'W', 'O'].some(k => res.includes(k))) s.wins++;
-        else if (['무', 'DRAW', 'D', '△', '-'].some(k => res.includes(k))) s.draws++;
-        else if (['패', 'LOSS', 'L', 'LOSE', 'X'].some(k => res.includes(k))) s.losses++;
+
+        let isWin = ['승', 'WIN', 'W', 'O'].some(k => res.includes(k));
+        let isDraw = ['무', 'DRAW', 'D', '△', '-'].some(k => res.includes(k));
+        let isLoss = ['패', 'LOSS', 'L', 'LOSE', 'X'].some(k => res.includes(k));
+
+        // If no explicit text, try to find a score pattern "N:M"
+        if (!isWin && !isDraw && !isLoss) {
+            const scoreMatch = result.match(/(\d+)\s*[:]\s*(\d+)/);
+            if (scoreMatch) {
+                const ourScore = parseInt(scoreMatch[1]);
+                const oppScore = parseInt(scoreMatch[2]);
+                if (ourScore > oppScore) isWin = true;
+                else if (ourScore === oppScore) isDraw = true;
+                else isLoss = true;
+            }
+        }
+
+        if (isWin) s.wins++;
+        else if (isDraw) s.draws++;
+        else if (isLoss) s.losses++;
 
         // Goals For / Against calculation could be complex without explicit score in schedule.
         // We can aggregate from records if needed, but for now W/D/L is primary request.

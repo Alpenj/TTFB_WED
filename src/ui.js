@@ -683,7 +683,7 @@ function renderStats(container, currentSeason, currentMatchType) {
         const rowsHtml = pageData.map(p => `
             <tr class="border-b border-gray-700 last:border-0 hover:bg-gray-750">
                 <td class="p-3 text-sm text-gray-300 w-16">${p.position}</td>
-                <td class="p-3 text-sm font-bold text-white cursor-pointer hover:text-neonGreen hover:underline transition-colors" onclick="window.showPlayerProfileModal(this.innerText.trim())">${p.name}</td>
+                <td class="p-3 text-sm font-bold text-white cursor-pointer hover:text-neonGreen hover:underline transition-colors" data-player-name="${p.name}" onclick="window.showPlayerProfileModal(this.dataset.playerName)">${p.name}</td>
                 <td class="p-3 text-center text-xs text-gray-400 font-mono w-24">
                     <span class="text-neonGreen">${p.starts}</span> / <span class="text-white">${p.substitutes}</span>
                 </td>
@@ -1034,7 +1034,9 @@ function showPlayerProfileModal(playerName) {
                         <div class="p-4 rounded-xl bg-gray-700/50 hover:bg-gray-700 transition-colors border border-gray-600/30">
                             <div class="flex justify-between items-center mb-2">
                                 <div class="flex items-center space-x-2">
-                                    <span class="text-[10px] font-mono text-neonGreen px-2 py-0.5 bg-neonGreen/10 rounded whitespace-nowrap">${e.round}</span>
+                                    <span class="text-[10px] font-mono text-neonGreen px-2 py-0.5 bg-neonGreen/10 rounded whitespace-nowrap">
+                                        ${e.season && e.season !== window.currentSeason ? `'${e.season.slice(-2)} ` : ''}${e.round}
+                                    </span>
                                     <span class="text-xs text-gray-400">${e.date}</span>
                                 </div>
                                 <span class="text-xs font-bold ${e.appearance === '교체' ? 'text-gray-500' : 'text-neonGreen'}">
