@@ -527,9 +527,9 @@ function renderStats(container, currentSeason, currentMatchType) {
 
     const validScorers = stats.topScorers.filter(p => p.goals > 0).slice(0, 5);
     if (validScorers.length > 0) {
-        goalsChartContainer.innerHTML = `< h3 class= "text-sm text-gray-400 mb-4" > 득점 랭킹</h3 > <canvas id="goalsChart"></canvas>`;
+        goalsChartContainer.innerHTML = `< h3 class= "text-sm text-gray-400 mb-4" > 득점 순위</h3 > <canvas id="goalsChart"></canvas>`;
     } else {
-        goalsChartContainer.innerHTML = `< h3 class= "text-sm text-gray-400 mb-4" > 득점 랭킹</h3 > <div class="text-center text-gray-500 text-xs py-10">기록 없음</div>`;
+        goalsChartContainer.innerHTML = `< h3 class= "text-sm text-gray-400 mb-4" > 득점 순위</h3 > <div class="text-center text-gray-500 text-xs py-10">기록 없음</div>`;
     }
     chartsContainer.appendChild(goalsChartContainer);
 
@@ -539,9 +539,9 @@ function renderStats(container, currentSeason, currentMatchType) {
 
     const validAssisters = stats.topAssists.filter(p => p.assists > 0).slice(0, 5);
     if (validAssisters.length > 0) {
-        assistsChartContainer.innerHTML = `< h3 class= "text-sm text-gray-400 mb-4" > 도움 랭킹</h3 > <canvas id="assistsChart"></canvas>`;
+        assistsChartContainer.innerHTML = `< h3 class= "text-sm text-gray-400 mb-4" > 도움 순위</h3 > <canvas id="assistsChart"></canvas>`;
     } else {
-        assistsChartContainer.innerHTML = `< h3 class= "text-sm text-gray-400 mb-4" > 도움 랭킹</h3 > <div class="text-center text-gray-500 text-xs py-10">기록 없음</div>`;
+        assistsChartContainer.innerHTML = `< h3 class= "text-sm text-gray-400 mb-4" > 도움 순위</h3 > <div class="text-center text-gray-500 text-xs py-10">기록 없음</div>`;
     }
     chartsContainer.appendChild(assistsChartContainer);
 
@@ -628,6 +628,141 @@ function renderStats(container, currentSeason, currentMatchType) {
         </div>
 `;
     chartsContainer.appendChild(redCardContainer);
+
+    // 6. Stats Table Container
+    const tableContainer = document.createElement('div');
+    tableContainer.className = 'bg-gray-800 rounded-2xl border border-gray-700 overflow-hidden flex flex-col';
+
+    // Pagination State
+    let currentPage = 1;
+    const itemsPerPage = 10;
+    
+    // Sort Helper Function
+    const getSortIndicator = (key) => {
+        if (sortState.key !== key) return '<span class="text-gray-600 ml-1">⇅</span>';
+        return sortState.order === 'asc' ? '<span class="text-neonGreen ml-1">▲</span>' : '<span class="text-neonGreen ml-1">▼</span>';
+    };
+    
+    const renderTablePage = (page) => {
+        // Sort Data
+        stats.players.sort((a, b) => {
+            let valA = a[sortState.key];
+            let valB = b[sortState.key];
+            
+            // Handle secondary sort by name
+            if (valA === valB) {
+                return a.name.localeCompare(b.name);
+            }
+            
+            if (sortState.order === 'asc') {
+                return valA > valB ? 1 : -1;
+            } else {
+                return valA < valB ? 1 : -1;
+            }
+        });
+
+        const totalPages = Math.ceil(stats.players.length / itemsPerPage);
+        const start = (page - 1) * itemsPerPage;
+        const end = start + itemsPerPage;
+        const pageData = stats.players.slice(start, end);
+
+        const rowsHtml = pageData.map(p => `
+            < tr class= "border-b border-gray-700 last:border-0 hover:bg-gray-750" >
+                <td class="p-3 text-sm text-gray-300 w-16">${p.position}</td>
+                <td class="p-3 text-sm font-bold text-white">${p.name}</td>
+                <td class="p-3 text-center text-xs text-gray-400 font-mono w-24">
+                    <span class="text-neonGreen">${p.starts}</span> / <span class="text-white">${p.substitutes}</span>
+                </td>
+                <td class="p-3 text-sm text-center text-neonGreen font-mono w-12">${p.goals}</td>
+                <td class="p-3 text-sm text-center text-gray-400 font-mono w-12">${p.assists}</td>
+                <td class="p-3 text-sm text-center text-white font-mono w-12 font-bold">${p.attackPoints}</td>
+            </tr >
+        `).join('');
+
+        const tableBody = tableContainer.querySelector('tbody');
+        if (tableBody) tableBody.innerHTML = rowsHtml;
+
+        // Update Pagination Controls
+        const paginationEl = tableContainer.querySelector('.pagination-controls');
+        if (paginationEl) {
+            paginationEl.innerHTML = `
+        < button ${ page === 1 ? 'disabled' : '' } class="prev-btn px-3 py-1 bg-gray-700 rounded text-xs ${page === 1 ? 'opacity-50' : 'hover:bg-gray-600'}" > 이전</button >
+                <span class="text-xs text-gray-400">${page} / ${totalPages}</span>
+                <button ${page === totalPages ? 'disabled' : ''} class="next-btn px-3 py-1 bg-gray-700 rounded text-xs ${page === totalPages ? 'opacity-50' : 'hover:bg-gray-600'}">다음</button>
+    `;
+
+            paginationEl.querySelector('.prev-btn').onclick = () => {
+                if (currentPage > 1) { currentPage--; renderTablePage(currentPage); }
+            };
+            paginationEl.querySelector('.next-btn').onclick = () => {
+                if (currentPage < totalPages) { currentPage++; renderTablePage(currentPage); }
+            };
+        }
+    };
+
+    tableContainer.innerHTML = `
+        < div class="overflow-x-auto max-h-[400px] overflow-y-auto relative" >
+            <table class="w-full">
+                <thead class="bg-gray-900 border-b border-gray-700 sticky top-0 z-10 w-full">
+                    <tr>
+                        <th class="cursor-pointer hover:bg-gray-800 p-3 text-left text-xs text-gray-500 font-medium select-none" data-sort="position">포지션 ${getSortIndicator('position')}</th>
+                        <th class="cursor-pointer hover:bg-gray-800 p-3 text-left text-xs text-gray-500 font-medium select-none" data-sort="name">선수명 ${getSortIndicator('name')}</th>
+                        <th class="cursor-pointer hover:bg-gray-800 p-3 text-center text-xs text-gray-500 font-medium select-none" data-sort="starts">출전 (선발/교체) ${getSortIndicator('starts')}</th>
+                        <th class="cursor-pointer hover:bg-gray-800 p-3 text-center text-xs text-gray-500 font-medium select-none" data-sort="goals">득점 ${getSortIndicator('goals')}</th>
+                        <th class="cursor-pointer hover:bg-gray-800 p-3 text-center text-xs text-gray-500 font-medium select-none" data-sort="assists">도움 ${getSortIndicator('assists')}</th>
+                        <th class="cursor-pointer hover:bg-gray-800 p-3 text-center text-xs text-gray-500 font-medium select-none" data-sort="attackPoints">공격P ${getSortIndicator('attackPoints')}</th>
+                    </tr>
+                </thead>
+                <tbody></tbody>
+            </table>
+        </div >
+        <div class="pagination-controls p-3 border-t border-gray-700 flex justify-between items-center bg-gray-800"></div>
+    `;
+
+    // Add Click Listeners to Headers
+    const attachHeaderListeners = () => {
+         tableContainer.querySelectorAll('th').forEach(th => {
+            th.removeEventListener('click', handleHeaderClick); // Avoid duplicates if any
+            th.addEventListener('click', handleHeaderClick);
+        });
+    };
+
+    const handleHeaderClick = (e) => {
+        const th = e.currentTarget;
+        const key = th.getAttribute('data-sort');
+        if (sortState.key === key) {
+            sortState.order = sortState.order === 'desc' ? 'asc' : 'desc';
+        } else {
+            sortState.key = key;
+            sortState.order = 'desc';
+        }
+        
+        // Update Indicators Manually
+        tableContainer.querySelectorAll('th').forEach(header => {
+             const k = header.getAttribute('data-sort');
+             const indicatorSpan = header.querySelector('span');
+             if (indicatorSpan) {
+                 if (sortState.key !== k) {
+                     indicatorSpan.className = "text-gray-600 ml-1";
+                     indicatorSpan.innerHTML = "⇅";
+                 } else {
+                     indicatorSpan.className = "text-neonGreen ml-1";
+                     indicatorSpan.innerHTML = sortState.order === 'asc' ? "▲" : "▼";
+                 }
+             }
+        });
+        
+        renderTablePage(currentPage);
+    };
+
+    // Attach initially
+    attachHeaderListeners();
+
+    container.appendChild(chartsContainer);
+    container.appendChild(tableContainer);
+
+    // Initial Render
+    renderTablePage(currentPage);
 
 
 
@@ -716,7 +851,7 @@ function showMapModal(shortName) {
     modal.id = 'map-modal';
     modal.className = 'fixed inset-0 z-50 flex items-center justify-center p-4 bg-black/80 backdrop-blur-sm animate-fade-in text-center';
     modal.innerHTML = `
-            < div class= "bg-gray-800 rounded-3xl p-6 w-full max-w-sm border border-gray-700 shadow-2xl relative transform transition-all scale-100" >
+        < div class= "bg-gray-800 rounded-3xl p-6 w-full max-w-sm border border-gray-700 shadow-2xl relative transform transition-all scale-100" >
             <button class="absolute top-4 right-4 text-gray-500 hover:text-white" onclick="document.querySelector('#map-modal').remove()">
                 <svg xmlns="http://www.w3.org/2000/svg" class="h-6 w-6" fill="none" viewBox="0 0 24 24" stroke="currentColor">
                     <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M6 18L18 6M6 6l12 12" />
