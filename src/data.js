@@ -238,7 +238,8 @@ function parseScheduleCSV(csvText) {
             time: row[4].trim(),
             stadium: row[5].trim(),
             opponent: row[6].trim(),
-            result: row[7] ? row[7].trim() : ''
+            // Combine col 7 and 8 to catch result if there's a score column inserted
+            result: (row[7] || '') + ' ' + (row[8] || '')
         };
     }).filter(m => m && m.matchId); // Filter by matchId as it is critical
 }

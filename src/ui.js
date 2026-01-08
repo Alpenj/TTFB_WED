@@ -683,7 +683,7 @@ function renderStats(container, currentSeason, currentMatchType) {
         const rowsHtml = pageData.map(p => `
             <tr class="border-b border-gray-700 last:border-0 hover:bg-gray-750">
                 <td class="p-3 text-sm text-gray-300 w-16">${p.position}</td>
-                <td class="p-3 text-sm font-bold text-white cursor-pointer hover:text-neonGreen hover:underline transition-colors" onclick="window.showPlayerProfileModal('${p.name}')">${p.name}</td>
+                <td class="p-3 text-sm font-bold text-white cursor-pointer hover:text-neonGreen hover:underline transition-colors" onclick="window.showPlayerProfileModal(this.innerText.trim())">${p.name}</td>
                 <td class="p-3 text-center text-xs text-gray-400 font-mono w-24">
                     <span class="text-neonGreen">${p.starts}</span> / <span class="text-white">${p.substitutes}</span>
                 </td>
