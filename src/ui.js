@@ -206,8 +206,8 @@ function renderHome(container, currentSeason, currentMatchType) {
         dDayMarkup = `<span class="bg-neonGreen text-black font-bold px-2 py-0.5 rounded text-xs animate-pulse">${dDay}</span>`;
     }
 
-    const lastMatch = [...schedule]
-        .filter(m => currentMatchType === 'all' ? m.matchType !== '연습경기' : true) // Filter practice matches unless explicitly selected
+    const lastMatch = currentMatchType === '연습경기' ? null : [...schedule]
+        .filter(m => currentMatchType === 'all' ? m.matchType !== '연습경기' : m.matchType === currentMatchType) // Filter by type if selected, otherwise exclude practice for 'all'
         .reverse()
         .find(m => m.result && m.result.trim() !== '');
 
