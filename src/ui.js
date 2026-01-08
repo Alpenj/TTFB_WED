@@ -206,7 +206,10 @@ function renderHome(container, currentSeason, currentMatchType) {
         dDayMarkup = `<span class="bg-neonGreen text-black font-bold px-2 py-0.5 rounded text-xs animate-pulse">${dDay}</span>`;
     }
 
-    const lastMatch = [...schedule].reverse().find(m => m.result && m.result.trim() !== '');
+    const lastMatch = [...schedule]
+        .filter(m => currentMatchType === 'all' ? m.matchType !== '연습경기' : true) // Filter practice matches unless explicitly selected
+        .reverse()
+        .find(m => m.result && m.result.trim() !== '');
 
     let recentResultMarkup = '';
     if (lastMatch) {
@@ -1099,7 +1102,7 @@ function showHistoryModal(playerName, eventType, events) {
                     ${events.map(e => `
                         <div class="flex items-center justify-between p-3 rounded-xl bg-gray-700/50 hover:bg-gray-700 transition-colors">
                             <div class="flex items-center space-x-3">
-                                <span class="text-xs font-mono text-neonGreen px-2 text-center bg-neonGreen/10 rounded py-1 whitespace-nowrap flex-shrink-0">${e.round}</span>
+                                <span class="text-[10px] font-mono text-neonGreen px-2 py-0.5 bg-neonGreen/10 rounded whitespace-nowrap flex-shrink-0">'${e.season.slice(-2)} ${e.round}</span>
                                 <div class="flex flex-col">
                                     <span class="text-sm text-white font-bold">vs ${e.opponent}</span>
                                     <span class="text-[10px] text-gray-400">${e.date}</span>
