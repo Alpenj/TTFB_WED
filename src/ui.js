@@ -1,12 +1,14 @@
 import Chart from 'chart.js/auto';
-import { getSchedule, getStats, getTeamStats, getStadium, getAvailableSeasons } from './data.js';
+import { getSchedule, getStats, getTeamStats, getStadium, getAvailableSeasons, getAvailableMatchTypes } from './data.js';
 
 export function SetupDashboard() {
     const app = document.querySelector('#app');
 
     // State
     const seasons = getAvailableSeasons();
+    const matchTypes = getAvailableMatchTypes();
     let currentSeason = seasons[0] || 'all'; // Default to latest season, fall back to 'all' if empty
+    let currentMatchType = 'all';
 
     // Initial Layout: Header, Main Content, Bottom Nav
     app.innerHTML = `
@@ -16,6 +18,10 @@ export function SetupDashboard() {
                  <select id="season-selector" class="bg-gray-800 text-white text-xs rounded-lg px-2 py-1 border border-gray-700 outline-none focus:border-neonGreen">
                     ${seasons.map(s => `<option value="${s}">${s} 시즌</option>`).join('')}
                     <option value="all">통산 기록</option>
+                 </select>
+                 <select id="type-selector" class="bg-gray-800 text-white text-xs rounded-lg px-2 py-1 border border-gray-700 outline-none focus:border-neonGreen">
+                    <option value="all">모든 경기</option>
+                    ${matchTypes.map(t => `<option value="${t}">${t}</option>`).join('')}
                  </select>
             </div>
         </header>
@@ -64,6 +70,7 @@ export function SetupDashboard() {
     `;
 
     const seasonSelector = document.getElementById('season-selector');
+    const typeSelector = document.getElementById('type-selector');
 
     function getCurrentView() {
         // Find which button is active
@@ -93,8 +100,17 @@ export function SetupDashboard() {
     seasonSelector.addEventListener('change', (e) => {
         currentSeason = e.target.value;
         const view = getCurrentView();
-        renderView(view, currentSeason);
+        renderView(view, currentSeason, currentMatchType);
     });
+
+    // Handle Type Change
+    if (typeSelector) {
+        typeSelector.addEventListener('change', (e) => {
+            currentMatchType = e.target.value;
+            const view = getCurrentView();
+            renderView(view, currentSeason, currentMatchType);
+        });
+    }
 
     // Handle Title Click -> Go Home
     const appTitle = document.getElementById('app-title');
@@ -115,10 +131,10 @@ export function SetupDashboard() {
     }
 
     // Default Render
-    renderView('home', currentSeason);
+    renderView('home', currentSeason, currentMatchType);
 }
 
-function renderView(view, currentSeason) {
+function renderView(view, currentSeason, currentMatchType) {
     const content = document.querySelector('#content');
     content.innerHTML = ''; // Clear content
     content.className = 'flex-1 overflow-y-auto p-4 pb-20 space-y-6 opacity-0 transition-opacity duration-300';
@@ -127,15 +143,15 @@ function renderView(view, currentSeason) {
         content.classList.remove('opacity-0');
     }, 50);
 
-    if (view === 'home') renderHome(content, currentSeason);
-    else if (view === 'matches') renderMatches(content, currentSeason);
-    else if (view === 'stats') renderStats(content, currentSeason);
+    if (view === 'home') renderHome(content, currentSeason, currentMatchType);
+    else if (view === 'matches') renderMatches(content, currentSeason, currentMatchType);
+    else if (view === 'stats') renderStats(content, currentSeason, currentMatchType);
 }
 
-function renderHome(container, currentSeason) {
+function renderHome(container, currentSeason, currentMatchType) {
     const schedule = getSchedule(currentSeason);
-    const stats = getStats(currentSeason);
-    const teamStats = getTeamStats(currentSeason);
+    const stats = getStats(currentSeason, currentMatchType);
+    const teamStats = getTeamStats(currentSeason, currentMatchType);
 
     const today = new Date();
     // Parse '2026.01.18' format
@@ -283,8 +299,15 @@ function renderHome(container, currentSeason) {
     });
 }
 
-function renderMatches(container, currentSeason) {
-    const schedule = getSchedule(currentSeason);
+function renderMatches(container, currentSeason, currentMatchType) {
+    // If a specific match type is selected globally, we might want to respect it
+    // But this view has its own tabs. We can filter the INITIAL list or just let the tabs handle it.
+    // However, if Global is 'League', having tabs for 'Cup' seems weird if it shows nothing.
+    // Let's filter the source schedule first if currentMatchType !='all'
+    let schedule = getSchedule(currentSeason);
+    if (currentMatchType && currentMatchType !== 'all') {
+        schedule = schedule.filter(m => m.matchType === currentMatchType);
+    }
 
     // State
     let currentFilter = 'all'; // 'all', 'league', 'cup'
@@ -293,7 +316,7 @@ function renderMatches(container, currentSeason) {
 
     // Dynamic Filter UI
     // Extract unique types from schedule (e.g., '리그', '컵', '플레이오프')
-    const uniqueTypes = [...new Set(schedule.map(m => m.type).filter(type => type && type.trim() !== ''))];
+    const uniqueTypes = [...new Set(schedule.map(m => m.matchType).filter(type => type && type.trim() !== ''))];
     const filterOptions = ['전체', ...uniqueTypes];
 
     const filterContainer = document.createElement('div');
@@ -330,7 +353,7 @@ function renderMatches(container, currentSeason) {
         // Filter Data
         const filteredSchedule = schedule.filter(m => {
             if (currentFilter === 'all') return true;
-            return m.type === currentFilter;
+            return m.matchType === currentFilter;
         });
 
         const totalPages = Math.ceil(filteredSchedule.length / itemsPerPage);
@@ -413,8 +436,8 @@ function renderMatches(container, currentSeason) {
     renderPage(currentPage);
 }
 
-function renderStats(container, currentSeason) {
-    const stats = getStats(currentSeason);
+function renderStats(container, currentSeason, currentMatchType) {
+    const stats = getStats(currentSeason, currentMatchType);
 
     // Top Charts Grid
     const chartsContainer = document.createElement('div');

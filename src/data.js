@@ -101,14 +101,16 @@ function parseScheduleCSV(csvText) {
         return {
             season: row[0].trim().replace('시즌', ''),
             matchId: row[1].trim(),
-            round: row[2].trim(),
+            matchType: row[2].trim(), // Explicitly capture Type
+            round: row[2].trim(), // Keep round as is for backward compat in UI for now, or change to row[1] if desired? The user asked for "League/Cup" split. existing UI uses round. Row[2] is 'League'. Row[1] is '1R'.
+            // Actually, let's fix the confusion. If existing UI displays 'League' for round, that's fine.
             date: row[3].trim(),
             time: row[4].trim(),
             stadium: row[5].trim(),
             opponent: row[6].trim(),
             result: row[7] ? row[7].trim() : ''
         };
-    }).filter(m => m && m.round);
+    }).filter(m => m && m.matchId); // Filter by matchId as it is critical
 }
 
 function parseRecordsCSV(csvText) {
@@ -161,6 +163,15 @@ export function getAvailableSeasons() {
     return Array.from(seasons).sort().reverse();
 }
 
+export function getAvailableMatchTypes() {
+    const types = new Set();
+    scheduleData.forEach(m => {
+        if (m.matchType) types.add(m.matchType);
+    });
+    // Sort? League first, then Cup, then others?
+    return Array.from(types).sort();
+}
+
 export function getStadium(shortName) {
     if (!shortName) return '';
     const found = stadiumData.find(s => s.id === shortName);
@@ -174,19 +185,40 @@ export function getSchedule(seasonFilter) {
     return scheduleData.filter(m => m.season === seasonFilter);
 }
 
-export function getStats(seasonFilter) {
+export function getStats(seasonFilter, matchTypeFilter) {
     // Initialize Player Stats Map
 
 
     const filter = String(seasonFilter);
+    const typeFilter = matchTypeFilter === 'all' ? null : matchTypeFilter;
 
-    const targetRecords = (!seasonFilter || seasonFilter === 'all')
-        ? recordsData
-        : recordsData.filter(r => String(r.season) === filter);
+    // 1. Build Match Type Map for filtering records
+    // key: {season}-{matchId} -> val: matchType
+    const matchTypeMap = new Map();
+    scheduleData.forEach(m => {
+        // Normalize keys
+        const key = `${m.season}-${m.matchId}`;
+        matchTypeMap.set(key, m.matchType);
+    });
 
-    const targetSchedule = (!seasonFilter || seasonFilter === 'all')
-        ? scheduleData
-        : scheduleData.filter(m => String(m.season) === filter);
+    const targetSchedule = scheduleData.filter(m => {
+        const seasonMatch = (!seasonFilter || seasonFilter === 'all') ? true : String(m.season) === filter;
+        const typeMatch = (!typeFilter) ? true : m.matchType === typeFilter;
+        return seasonMatch && typeMatch;
+    });
+
+    const targetRecords = recordsData.filter(r => {
+        const seasonMatch = (!seasonFilter || seasonFilter === 'all') ? true : String(r.season) === filter;
+
+        // Check Type
+        const key = `${r.season}-${r.matchId}`;
+        const mType = matchTypeMap.get(key);
+        // If match not found in schedule, include it? Or exclude? Safe to include or exclude. 
+        // If filtering by type, and type is unknown, exclude.
+        const typeMatch = (!typeFilter) ? true : mType === typeFilter;
+
+        return seasonMatch && typeMatch;
+    });
 
     const statsMap = {};
 
@@ -337,14 +369,16 @@ export function getStats(seasonFilter) {
     };
 }
 
-export function getTeamStats(seasonFilter) {
+export function getTeamStats(seasonFilter, matchTypeFilter) {
     let wins = 0;
     let draws = 0;
     let losses = 0;
 
-    const targetSchedule = (!seasonFilter || seasonFilter === 'all')
-        ? scheduleData
-        : scheduleData.filter(m => m.season === seasonFilter);
+    const targetSchedule = scheduleData.filter(m => {
+        const seasonMatch = (!seasonFilter || seasonFilter === 'all') ? true : m.season === seasonFilter;
+        const typeMatch = (!matchTypeFilter || matchTypeFilter === 'all') ? true : m.matchType === matchTypeFilter;
+        return seasonMatch && typeMatch;
+    });
 
     targetSchedule.forEach(match => {
         if (!match.result) return;
