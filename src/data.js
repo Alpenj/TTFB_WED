@@ -163,8 +163,15 @@ export function getOpponentStats(currentSeason, currentMatchType) {
     return Object.values(stats).sort((a, b) => b.wins - a.wins || b.total - a.total);
 }
 
-export function getPlayerMatchHistory(playerName) {
-    const records = recordsData.filter(r => r.name === playerName);
+export function getPlayerMatchHistory(playerName, seasonFilter) {
+    const filter = seasonFilter && seasonFilter !== 'all' ? String(seasonFilter) : null;
+
+    // Filter records by name AND season (if provided)
+    const records = recordsData.filter(r => {
+        if (r.name !== playerName) return false;
+        if (filter && String(r.season) !== filter) return false;
+        return true;
+    });
 
     // Create map for fast lookup
     const scheduleMap = new Map();
