@@ -554,7 +554,7 @@ function renderStats(container, currentSeason, currentMatchType) {
             <h3 class="text-sm text-gray-400 mb-3">경고</h3>
         <div class="space-y-2">
             ${stats.topYellowCards.filter(p => p.yellowCards > 0).slice(0, 5).map((p, i) => `
-                <div class="flex items-center justify-between border-b border-gray-700 pb-2 last:border-0 last:pb-0 hover:bg-gray-700/50 cursor-pointer p-1 rounded transition-colors" onclick="window.showHistoryModal('${p.name}', 'yellowCards', getPlayerEvents('${currentSeason}', '${currentMatchType || 'all'}', '${p.name}', 'yellowCards'))">
+                <div class="flex items-center justify-between border-b border-gray-700 pb-2 last:border-0 last:pb-0 hover:bg-gray-700/50 cursor-pointer p-1 rounded transition-colors" onclick="window.showHistoryModal('${p.name}', 'yellowCards', window.getPlayerEvents('${currentSeason}', '${currentMatchType || 'all'}', '${p.name}', 'yellowCards'))">
                     <div class="flex items-center space-x-2 overflow-hidden">
                         <span class="text-xs font-mono text-gray-500 w-3 flex-shrink-0">${i + 1}</span>
                         <span class="text-sm text-white font-bold truncate">${p.name}</span>
@@ -574,7 +574,7 @@ function renderStats(container, currentSeason, currentMatchType) {
             <h3 class="text-sm text-gray-400 mb-3 leading-snug">자책골<br><span class="text-xs text-gray-500 font-normal">(Own Goals)</span></h3>
         <div class="space-y-2">
             ${stats.topOwnGoals.slice(0, 5).map((p, i) => `
-                    <div class="flex items-center justify-between border-b border-gray-700 pb-2 last:border-0 last:pb-0 hover:bg-gray-700/50 cursor-pointer p-1 rounded transition-colors" onclick="window.showHistoryModal('${p.name}', 'ownGoals', getPlayerEvents('${currentSeason}', '${currentMatchType || 'all'}', '${p.name}', 'ownGoals'))">
+                    <div class="flex items-center justify-between border-b border-gray-700 pb-2 last:border-0 last:pb-0 hover:bg-gray-700/50 cursor-pointer p-1 rounded transition-colors" onclick="window.showHistoryModal('${p.name}', 'ownGoals', window.getPlayerEvents('${currentSeason}', '${currentMatchType || 'all'}', '${p.name}', 'ownGoals'))">
                         <div class="flex items-center space-x-2 overflow-hidden">
                             <span class="text-xs font-mono text-gray-500 w-3 flex-shrink-0">${i + 1}</span>
                             <span class="text-sm text-white font-bold truncate">${p.name}</span>
@@ -595,7 +595,7 @@ function renderStats(container, currentSeason, currentMatchType) {
             <h3 class="text-sm text-gray-400 mb-3">퇴장</h3>
         <div class="space-y-2">
             ${stats.topRedCards.filter(p => p.redCards > 0).slice(0, 5).map((p, i) => `
-                <div class="flex items-center justify-between border-b border-gray-700 pb-2 last:border-0 last:pb-0 hover:bg-gray-700/50 cursor-pointer p-1 rounded transition-colors" onclick="window.showHistoryModal('${p.name}', 'redCards', getPlayerEvents('${currentSeason}', '${currentMatchType || 'all'}', '${p.name}', 'redCards'))">
+                <div class="flex items-center justify-between border-b border-gray-700 pb-2 last:border-0 last:pb-0 hover:bg-gray-700/50 cursor-pointer p-1 rounded transition-colors" onclick="window.showHistoryModal('${p.name}', 'redCards', window.getPlayerEvents('${currentSeason}', '${currentMatchType || 'all'}', '${p.name}', 'redCards'))">
                     <div class="flex items-center space-x-2 overflow-hidden">
                         <span class="text-xs font-mono text-gray-500 w-3 flex-shrink-0">${i + 1}</span>
                         <span class="text-sm text-white font-bold truncate">${p.name}</span>
@@ -926,7 +926,7 @@ function showHistoryModal(playerName, eventType, events) {
                     ${events.map(e => `
                         <div class="flex items-center justify-between p-3 rounded-xl bg-gray-700/50 hover:bg-gray-700 transition-colors">
                             <div class="flex items-center space-x-3">
-                                <span class="text-xs font-mono text-neonGreen w-auto px-2 min-w-[2rem] text-center bg-neonGreen/10 rounded py-1 whitespace-nowrap">${e.round}</span>
+                                <span class="text-xs font-mono text-neonGreen px-2 text-center bg-neonGreen/10 rounded py-1 whitespace-nowrap flex-shrink-0">${e.round}</span>
                                 <div class="flex flex-col">
                                     <span class="text-sm text-white font-bold">vs ${e.opponent}</span>
                                     <span class="text-[10px] text-gray-400">${e.date}</span>
