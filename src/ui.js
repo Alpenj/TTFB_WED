@@ -735,10 +735,11 @@ function renderStats(container, currentSeason, currentMatchType) {
                 <td class="p-3 text-sm text-center text-neonGreen font-mono w-16 font-bold bg-gray-800/50">${p.attackPoints}</td>
                 <td class="p-3 text-sm text-center text-gray-300 font-mono w-16">${p.goals}</td>
                 <td class="p-3 text-sm text-center text-gray-400 font-mono w-16">${p.assists}</td>
+                <td class="p-3 text-sm text-center text-red-400 font-mono w-16">${p.ownGoals}</td>
             </tr>
         `}).join('');
 
-        tableBody.innerHTML = rowsHtml || '<tr><td colspan="7" class="text-center py-10 text-gray-500">기록 없음</td></tr>';
+        tableBody.innerHTML = rowsHtml || '<tr><td colspan="8" class="text-center py-10 text-gray-500">기록 없음</td></tr>';
 
         // Update Pagination Controls
         const paginationEl = tableContainer.querySelector('.pagination-controls');
@@ -786,6 +787,7 @@ function renderStats(container, currentSeason, currentMatchType) {
                         <th class="cursor-pointer hover:bg-gray-800 p-3 text-center text-xs text-neonGreen font-bold select-none transition-colors group bg-gray-800/50" data-sort="attackPoints">공격P</th>
                         <th class="cursor-pointer hover:bg-gray-800 p-3 text-center text-xs text-gray-500 font-medium select-none transition-colors group" data-sort="goals">득점</th>
                         <th class="cursor-pointer hover:bg-gray-800 p-3 text-center text-xs text-gray-500 font-medium select-none transition-colors group" data-sort="assists">도움</th>
+                        <th class="cursor-pointer hover:bg-gray-800 p-3 text-center text-xs text-red-400 font-medium select-none transition-colors group" data-sort="ownGoals">자살골</th>
                     </tr>
                 </thead>
                 <tbody class="divide-y divide-gray-700/50"></tbody>
