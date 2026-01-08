@@ -505,9 +505,9 @@ function renderStats(container, currentSeason, currentMatchType) {
 
     const validScorers = stats.topScorers.filter(p => p.goals > 0).slice(0, 5);
     if (validScorers.length > 0) {
-        goalsChartContainer.innerHTML = `< h3 class= "text-sm text-gray-400 mb-4" > 득점 순위</h3 > <canvas id="goalsChart"></canvas>`;
+        goalsChartContainer.innerHTML = `<h3 class="text-sm text-gray-400 mb-4">득점 순위</h3><canvas id="goalsChart"></canvas>`;
     } else {
-        goalsChartContainer.innerHTML = `< h3 class= "text-sm text-gray-400 mb-4" > 득점 순위</h3 > <div class="text-center text-gray-500 text-xs py-10">기록 없음</div>`;
+        goalsChartContainer.innerHTML = `<h3 class="text-sm text-gray-400 mb-4">득점 순위</h3><div class="text-center text-gray-500 text-xs py-10">기록 없음</div>`;
     }
     chartsContainer.appendChild(goalsChartContainer);
 
@@ -517,9 +517,9 @@ function renderStats(container, currentSeason, currentMatchType) {
 
     const validAssisters = stats.topAssists.filter(p => p.assists > 0).slice(0, 5);
     if (validAssisters.length > 0) {
-        assistsChartContainer.innerHTML = `< h3 class= "text-sm text-gray-400 mb-4" > 도움 순위</h3 > <canvas id="assistsChart"></canvas>`;
+        assistsChartContainer.innerHTML = `<h3 class="text-sm text-gray-400 mb-4">도움 순위</h3><canvas id="assistsChart"></canvas>`;
     } else {
-        assistsChartContainer.innerHTML = `< h3 class= "text-sm text-gray-400 mb-4" > 도움 순위</h3 > <div class="text-center text-gray-500 text-xs py-10">기록 없음</div>`;
+        assistsChartContainer.innerHTML = `<h3 class="text-sm text-gray-400 mb-4">도움 순위</h3><div class="text-center text-gray-500 text-xs py-10">기록 없음</div>`;
     }
     chartsContainer.appendChild(assistsChartContainer);
 
@@ -527,7 +527,7 @@ function renderStats(container, currentSeason, currentMatchType) {
     const appearanceContainer = document.createElement('div');
     appearanceContainer.className = 'bg-gray-800 p-4 rounded-2xl border border-gray-700';
     appearanceContainer.innerHTML = `
-        < h3 class= "text-sm text-gray-400 mb-3 leading-snug" > 출전 횟수 < br > <span class="text-xs text-gray-500 font-normal">(선발/교체)</span></h3 >
+        <h3 class="text-sm text-gray-400 mb-3 leading-snug">출전 횟수<br><span class="text-xs text-gray-500 font-normal">(선발/교체)</span></h3>
         <div class="space-y-2">
             ${stats.topAppearances.filter(p => p.appearances > 0).slice(0, 5).map((p, i) => `
                 <div class="flex items-center justify-between border-b border-gray-700 pb-2 last:border-0 last:pb-0">
@@ -551,7 +551,7 @@ function renderStats(container, currentSeason, currentMatchType) {
     const yellowCardContainer = document.createElement('div');
     yellowCardContainer.className = 'bg-gray-800 p-4 rounded-2xl border border-gray-700';
     yellowCardContainer.innerHTML = `
-            < h3 class= "text-sm text-gray-400 mb-3" > 경고</h3 >
+            <h3 class="text-sm text-gray-400 mb-3">경고</h3>
         <div class="space-y-2">
             ${stats.topYellowCards.filter(p => p.yellowCards > 0).slice(0, 5).map((p, i) => `
                 <div class="flex items-center justify-between border-b border-gray-700 pb-2 last:border-0 last:pb-0">
@@ -571,7 +571,7 @@ function renderStats(container, currentSeason, currentMatchType) {
         const ogContainer = document.createElement('div');
         ogContainer.className = 'bg-gray-800 p-4 rounded-2xl border border-gray-700';
         ogContainer.innerHTML = `
-            < h3 class= "text-sm text-gray-400 mb-3 leading-snug" > 자책골 < br > <span class="text-xs text-gray-500 font-normal">(Own Goals)</span></h3 >
+            <h3 class="text-sm text-gray-400 mb-3 leading-snug">자책골<br><span class="text-xs text-gray-500 font-normal">(Own Goals)</span></h3>
         <div class="space-y-2">
             ${stats.topOwnGoals.slice(0, 5).map((p, i) => `
                     <div class="flex items-center justify-between border-b border-gray-700 pb-2 last:border-0 last:pb-0">
@@ -592,7 +592,7 @@ function renderStats(container, currentSeason, currentMatchType) {
     const redCardContainer = document.createElement('div');
     redCardContainer.className = 'bg-gray-800 p-4 rounded-2xl border border-gray-700';
     redCardContainer.innerHTML = `
-            < h3 class= "text-sm text-gray-400 mb-3" > 퇴장</h3 >
+            <h3 class="text-sm text-gray-400 mb-3">퇴장</h3>
         <div class="space-y-2">
             ${stats.topRedCards.filter(p => p.redCards > 0).slice(0, 5).map((p, i) => `
                 <div class="flex items-center justify-between border-b border-gray-700 pb-2 last:border-0 last:pb-0">
@@ -645,7 +645,7 @@ function renderStats(container, currentSeason, currentMatchType) {
         const pageData = stats.players.slice(start, end);
 
         const rowsHtml = pageData.map(p => `
-            < tr class= "border-b border-gray-700 last:border-0 hover:bg-gray-750" >
+            <tr class="border-b border-gray-700 last:border-0 hover:bg-gray-750">
                 <td class="p-3 text-sm text-gray-300 w-16">${p.position}</td>
                 <td class="p-3 text-sm font-bold text-white">${p.name}</td>
                 <td class="p-3 text-center text-xs text-gray-400 font-mono w-24">
@@ -654,7 +654,7 @@ function renderStats(container, currentSeason, currentMatchType) {
                 <td class="p-3 text-sm text-center text-neonGreen font-mono w-12">${p.goals}</td>
                 <td class="p-3 text-sm text-center text-gray-400 font-mono w-12">${p.assists}</td>
                 <td class="p-3 text-sm text-center text-white font-mono w-12 font-bold">${p.attackPoints}</td>
-            </tr >
+            </tr>
         `).join('');
 
         const tableBody = tableContainer.querySelector('tbody');
@@ -664,10 +664,10 @@ function renderStats(container, currentSeason, currentMatchType) {
         const paginationEl = tableContainer.querySelector('.pagination-controls');
         if (paginationEl) {
             paginationEl.innerHTML = `
-        < button ${page === 1 ? 'disabled' : ''} class="prev-btn px-3 py-1 bg-gray-700 rounded text-xs ${page === 1 ? 'opacity-50' : 'hover:bg-gray-600'}" > 이전</button >
+                <button ${page === 1 ? 'disabled' : ''} class="prev-btn px-3 py-1 bg-gray-700 rounded text-xs ${page === 1 ? 'opacity-50' : 'hover:bg-gray-600'}">이전</button>
                 <span class="text-xs text-gray-400">${page} / ${totalPages}</span>
                 <button ${page === totalPages ? 'disabled' : ''} class="next-btn px-3 py-1 bg-gray-700 rounded text-xs ${page === totalPages ? 'opacity-50' : 'hover:bg-gray-600'}">다음</button>
-    `;
+            `;
 
             paginationEl.querySelector('.prev-btn').onclick = () => {
                 if (currentPage > 1) { currentPage--; renderTablePage(currentPage); }
@@ -679,7 +679,7 @@ function renderStats(container, currentSeason, currentMatchType) {
     };
 
     tableContainer.innerHTML = `
-        < div class="overflow-x-auto max-h-[400px] overflow-y-auto relative" >
+        <div class="overflow-x-auto max-h-[400px] overflow-y-auto relative">
             <table class="w-full">
                 <thead class="bg-gray-900 border-b border-gray-700 sticky top-0 z-10 w-full">
                     <tr>
@@ -693,7 +693,7 @@ function renderStats(container, currentSeason, currentMatchType) {
                 </thead>
                 <tbody></tbody>
             </table>
-        </div >
+        </div>
         <div class="pagination-controls p-3 border-t border-gray-700 flex justify-between items-center bg-gray-800"></div>
     `;
 
@@ -829,7 +829,7 @@ function showMapModal(shortName) {
     modal.id = 'map-modal';
     modal.className = 'fixed inset-0 z-50 flex items-center justify-center p-4 bg-black/80 backdrop-blur-sm animate-fade-in text-center';
     modal.innerHTML = `
-        < div class= "bg-gray-800 rounded-3xl p-6 w-full max-w-sm border border-gray-700 shadow-2xl relative transform transition-all scale-100" >
+        <div class="bg-gray-800 rounded-3xl p-6 w-full max-w-sm border border-gray-700 shadow-2xl relative transform transition-all scale-100">
             <button class="absolute top-4 right-4 text-gray-500 hover:text-white" onclick="document.querySelector('#map-modal').remove()">
                 <svg xmlns="http://www.w3.org/2000/svg" class="h-6 w-6" fill="none" viewBox="0 0 24 24" stroke="currentColor">
                     <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M6 18L18 6M6 6l12 12" />
@@ -851,7 +851,7 @@ function showMapModal(shortName) {
                 </a>
                  <div class="text-[10px] text-gray-500 mt-2">* TMAP은 앱이 설치된 모바일 기기에서만 작동합니다.</div>
             </div>
-    </div >
+    </div>
         `;
 
     // Close on click outside
