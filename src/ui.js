@@ -697,7 +697,7 @@ function renderStats(container, currentSeason, currentMatchType) {
             <tr class="border-b border-gray-700 last:border-0 hover:bg-gray-750 transition-colors">
                  <td class="p-3 text-center text-xs text-gray-500 font-mono w-12">${globalIndex}</td>
                 <td class="p-3 text-sm text-gray-300 w-16 text-center">${p.position}</td>
-                <td class="p-3 text-sm font-bold text-white cursor-pointer hover:text-neonGreen hover:underline transition-colors player-name-cell" onclick="window.showHistoryModal('${p.name}', 'all', window.getPlayerMatchHistory('${p.name}'))">${p.name}</td>
+                <td class="p-3 text-sm font-bold text-white cursor-pointer hover:text-neonGreen hover:underline transition-colors player-name-cell" onclick="window.showPlayerProfileModal('${p.name}')">${p.name}</td>
                 <td class="p-3 text-center text-xs text-gray-400 font-mono w-24">
                     <span class="text-neonGreen font-bold">${p.starts}</span> / <span class="text-white">${p.substitutes}</span>
                 </td>
@@ -787,6 +787,9 @@ function renderStats(container, currentSeason, currentMatchType) {
 
     // Initial Render
     renderTablePage(currentPage);
+
+    // Expose modal function to window
+    window.showPlayerProfileModal = showPlayerProfileModal;
 
     // Add Click Listeners to Headers
     const attachHeaderListeners = () => {
