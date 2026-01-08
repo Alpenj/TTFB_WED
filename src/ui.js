@@ -21,12 +21,24 @@ export function SetupDashboard() {
                     ${seasons.map(s => `<option value="${s}">${s} 시즌</option>`).join('')}
                     <option value="all">통산 기록</option>
                  </select>
-                 <select id="type-selector" class="bg-gray-800 text-white text-xs rounded-lg px-2 py-1 border border-gray-700 outline-none focus:border-neonGreen">
-                    <option value="all">모든 경기</option>
-                    ${matchTypes.map(t => `<option value="${t}">${t}</option>`).join('')}
-                 </select>
             </div>
         </header>
+        
+        <!-- Match Type Tabs -->
+        <div class="sticky top-[60px] z-[5] bg-black/50 backdrop-blur-md border-b border-gray-800 overflow-x-auto custom-scrollbar">
+            <div class="flex items-center px-4 space-x-4 min-w-max h-12" id="type-tabs">
+                <button data-type="all" class="type-tab-btn relative px-1 py-3 text-sm font-bold text-neonGreen transition-colors">
+                    전체
+                    <span class="absolute bottom-0 left-0 w-full h-0.5 bg-neonGreen rounded-t-full transition-all"></span>
+                </button>
+                ${matchTypes.map(t => `
+                    <button data-type="${t}" class="type-tab-btn relative px-1 py-3 text-sm font-medium text-gray-500 hover:text-gray-300 transition-colors">
+                        ${t}
+                        <span class="absolute bottom-0 left-0 w-full h-0.5 bg-neonGreen rounded-t-full opacity-0 transition-all"></span>
+                    </button>
+                `).join('')}
+            </div>
+        </div>
 
         <main id="content" class="flex-1 overflow-y-auto p-4 pb-20 space-y-6">
             <!-- Dynamic Content -->
@@ -105,10 +117,29 @@ export function SetupDashboard() {
         renderView(view, currentSeason, currentMatchType);
     });
 
-    // Handle Type Change
-    if (typeSelector) {
-        typeSelector.addEventListener('change', (e) => {
-            currentMatchType = e.target.value;
+    // Handle Type Tab Click
+    const typeTabsContainer = document.getElementById('type-tabs');
+    if (typeTabsContainer) {
+        // Event delegation
+        typeTabsContainer.addEventListener('click', (e) => {
+            const btn = e.target.closest('.type-tab-btn');
+            if (!btn) return;
+
+            const selectedType = btn.dataset.type;
+            currentMatchType = selectedType === 'all' ? 'all' : selectedType;
+
+            // Update UI State
+            document.querySelectorAll('.type-tab-btn').forEach(b => {
+                b.classList.remove('text-neonGreen', 'font-bold');
+                b.classList.add('text-gray-500', 'font-medium');
+                b.querySelector('span').classList.remove('opacity-100');
+                b.querySelector('span').classList.add('opacity-0');
+            });
+            btn.classList.remove('text-gray-500', 'font-medium');
+            btn.classList.add('text-neonGreen', 'font-bold');
+            btn.querySelector('span').classList.remove('opacity-0');
+            btn.querySelector('span').classList.add('opacity-100');
+
             const view = getCurrentView();
             renderView(view, currentSeason, currentMatchType);
         });
