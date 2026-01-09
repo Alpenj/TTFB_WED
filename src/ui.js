@@ -934,11 +934,14 @@ function renderStats(container, currentSeason, currentMatchType) {
     };
 
     tableHeader.innerHTML = `
-        <div class="flex items-center">
-            <span class="mr-2">📊</span>
-            <h2 class="text-lg font-bold text-white">선수 개인 기록</h2>
+        <div class="flex items-center space-x-4 w-full">
+            <div class="flex items-center flex-shrink-0">
+                <span class="mr-2">📊</span>
+                <h2 class="text-lg font-bold text-white">선수 개인 기록</h2>
+            </div>
+            <input type="text" placeholder="선수명 검색..." class="bg-gray-700/50 text-white text-sm px-3 py-1 rounded-full border border-gray-600 focus:border-neonGreen outline-none transition-all w-48" onclick="event.stopPropagation()">
         </div>
-        <svg xmlns="http://www.w3.org/2000/svg" class="h-5 w-5 text-gray-400 transform transition-transform duration-300 toggle-icon rotate-0" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+        <svg xmlns="http://www.w3.org/2000/svg" class="h-5 w-5 text-gray-400 transform transition-transform duration-300 toggle-icon rotate-0 flex-shrink-0 ml-4" fill="none" viewBox="0 0 24 24" stroke="currentColor">
             <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 9l-7 7-7-7" />
         </svg>
     `;
@@ -979,6 +982,19 @@ function renderStats(container, currentSeason, currentMatchType) {
     // Pagination & Sort State
     let currentPage = 1;
     const itemsPerPage = 10;
+    let filteredPlayers = [...stats.players]; // Initialize with all players
+
+    // Header Search Input Logic
+    const searchInput = tableHeader.querySelector('input');
+    if (searchInput) {
+        searchInput.onclick = (e) => e.stopPropagation(); // Prevent collapse
+        searchInput.oninput = (e) => {
+            const query = e.target.value.toLowerCase().trim();
+            filteredPlayers = stats.players.filter(p => p.name.toLowerCase().includes(query));
+            currentPage = 1;
+            renderTablePage(currentPage);
+        };
+    }
 
     // Sort Helper
     const getSortIndicator = (key) => {
@@ -988,7 +1004,7 @@ function renderStats(container, currentSeason, currentMatchType) {
 
     const renderTablePage = (page) => {
         // Sort Data
-        stats.players.sort((a, b) => {
+        filteredPlayers.sort((a, b) => {
             let valA = a[sortState.key];
             let valB = b[sortState.key];
 
@@ -1002,12 +1018,12 @@ function renderStats(container, currentSeason, currentMatchType) {
             return sortState.order === 'asc' ? (valA > valB ? 1 : -1) : (valA < valB ? 1 : -1);
         });
 
-        const totalPages = Math.ceil(stats.players.length / itemsPerPage) || 1;
+        const totalPages = Math.ceil(filteredPlayers.length / itemsPerPage) || 1;
         if (page > totalPages) page = totalPages;
 
         const start = (page - 1) * itemsPerPage;
         const end = start + itemsPerPage;
-        const pageData = stats.players.slice(start, end);
+        const pageData = filteredPlayers.slice(start, end);
 
         const tableBody = tableWrapper.querySelector('tbody');
         if (!tableBody) return;
