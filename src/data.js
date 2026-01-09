@@ -133,19 +133,7 @@ export function getOpponentStats(currentSeason, currentMatchType) {
         }
 
         const s = stats[opponent];
-        s.total++;
-
-        // Calculate Result
-        // Logic: Check records for this match. 
-        // We need to calculate team score for this match.
-        // But scheduleData usually has "result" column? Let's check parseScheduleCSV.
-        // It has 'result' column (index 7).
-
-        const result = match.result ? match.result.trim() : '';
-
-        // Robust Check: 1. Text Search 2. Score Parse
-        const res = result.toUpperCase();
-
+        // Determine Result
         let isWin = ['승', 'WIN', 'W', 'O'].some(k => res.includes(k));
         let isDraw = ['무', 'DRAW', 'D', '△', '-'].some(k => res.includes(k));
         let isLoss = ['패', 'LOSS', 'L', 'LOSE', 'X'].some(k => res.includes(k));
@@ -179,9 +167,9 @@ export function getOpponentStats(currentSeason, currentMatchType) {
             }
         }
 
-        if (isWin) s.wins++;
-        else if (isDraw) s.draws++;
-        else if (isLoss) s.losses++;
+        if (isWin) { s.wins++; s.total++; }
+        else if (isDraw) { s.draws++; s.total++; }
+        else if (isLoss) { s.losses++; s.total++; }
 
         // Goals For / Against calculation could be complex without explicit score in schedule.
         // We can aggregate from records if needed, but for now W/D/L is primary request.
