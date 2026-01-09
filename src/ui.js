@@ -1250,20 +1250,23 @@ function showHistoryModal(playerName, eventType, events) {
         }
 
         return `
-                        <div class="flex items-center justify-between p-3 rounded-xl bg-gray-700/50 hover:bg-gray-700 transition-colors">
-                            <div class="flex items-center space-x-3">
+                        <div class="flex items-start justify-between p-3 rounded-xl bg-gray-700/50 hover:bg-gray-700 transition-colors">
+                            <div class="flex items-center space-x-3 overflow-hidden">
                                 <span class="text-[10px] font-mono text-neonGreen px-2 py-0.5 bg-neonGreen/10 rounded whitespace-nowrap flex-shrink-0">'${e.season.slice(-2)} ${e.round}</span>
-                                <div class="flex flex-col">
-                                    <span class="text-sm text-white font-bold">vs ${e.opponent}</span>
+                                <div class="flex flex-col min-w-0">
+                                    <span class="text-sm text-white font-bold truncate">vs ${e.opponent}</span>
                                     <span class="text-[10px] text-gray-400">${e.date}</span>
                                 </div>
                             </div>
-                            <div class="flex items-center flex-col items-end">
+                            
+                            <div class="flex flex-col items-end ml-2 flex-shrink-0">
                                 ${eventType === 'appearances'
                 ? `<span class="text-xs font-bold ${e.appearance === '교체' ? 'text-gray-400' : 'text-neonGreen'}">${e.appearance || '선발'}</span>`
-                : `<div class="flex items-center"><span class="text-lg font-bold text-white font-mono">+${eventType === 'goals' ? e.goals : (eventType === 'assists' ? e.assists : e.count || 1)}</span></div>`
+                : `<div class="flex items-end flex-col">
+                                        <span class="text-lg font-bold text-white font-mono leading-none">+${eventType === 'goals' ? e.goals : (eventType === 'assists' ? e.assists : e.count || 1)}</span>
+                                   </div>`
             }
-                                ${linkedInfo}
+                                ${eventType !== 'appearances' && linkedInfo ? `<div class="mt-1 flex justify-end">${linkedInfo}</div>` : ''}
                             </div>
                         </div>
                     `}).join('')}

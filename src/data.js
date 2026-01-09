@@ -97,8 +97,8 @@ export function getPlayerEvents(currentSeason, currentMatchType, playerName, eve
         }
     });
 
-    // Sort by date desc
-    events.sort((a, b) => new Date(b.date) - new Date(a.date));
+    // Sort by date ASC (Past to Recent) per user request
+    events.sort((a, b) => new Date(a.date) - new Date(b.date));
 
     return events;
 }
@@ -140,7 +140,7 @@ export function getPlayerMatchHistory(playerName, seasonFilter) {
         };
     }).filter(h => h !== null);
 
-    history.sort((a, b) => new Date(b.date) - new Date(a.date));
+    history.sort((a, b) => new Date(a.date) - new Date(b.date)); // ASC
     return history;
 }
 
