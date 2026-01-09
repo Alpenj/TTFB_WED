@@ -44,10 +44,6 @@ function parseCSV(text) {
     return text.trim().split('\n').map(line => line.split(','));
 }
 
-// Header: 2024시즌, 2025시즌, ..., 포지션, 이름
-// We need to dynamically identify season columns.
-// Header: 2024시즌, 2025시즌, ..., 포지션, 이름
-// We need to dynamically identify season columns.
 export function getPlayerEvents(currentSeason, currentMatchType, playerName, eventType) {
     const filter = String(currentSeason);
     const typeFilter = currentMatchType === 'all' ? null : currentMatchType;
@@ -110,6 +106,7 @@ export function getPlayerEvents(currentSeason, currentMatchType, playerName, eve
 export function getOpponentStats(currentSeason, currentMatchType) {
     const filter = String(currentSeason);
     const typeFilter = currentMatchType === 'all' ? null : currentMatchType;
+    const now = new Date();
 
     const stats = {};
 
@@ -121,59 +118,77 @@ export function getOpponentStats(currentSeason, currentMatchType) {
         if (typeFilter && match.matchType !== typeFilter) return;
 
         // 3. Exclude Practice Matches from "All" View (Global Rule)
-        // Only show practice matches if explicitly filtered by '연습경기'
         if ((!typeFilter || typeFilter === 'all') && match.matchType === '연습경기') return;
 
-        // 3. Filter Empty Opponents (Fix for blank entries)
+        // 4. Validate Result and Date
+        let res = match.result ? match.result.trim() : '';
+        if (!res) return; // Skip empty results
+
+        const matchDate = new Date(match.date);
+        if (matchDate > now) return; // Skip future matches
+
+        // 5. Filter Empty Opponents
         const opponent = match.opponent ? match.opponent.trim() : '';
-        if (!opponent) return; // Skip if no opponent name
+        if (!opponent) return;
 
         if (!stats[opponent]) {
             stats[opponent] = { name: opponent, wins: 0, draws: 0, losses: 0, total: 0, gf: 0, ga: 0 };
         }
 
         const s = stats[opponent];
-        // Determine Result
+
         let isWin = ['승', 'WIN', 'W', 'O'].some(k => res.includes(k));
-        let isDraw = ['무', 'DRAW', 'D', '△', '-'].some(k => res.includes(k));
+        let isDraw = ['무', 'DRAW', 'D', '△', '-', 'SAME'].some(k => res.includes(k));
         let isLoss = ['패', 'LOSS', 'L', 'LOSE', 'X'].some(k => res.includes(k));
 
-        // If no explicit text, try to find a score pattern "N:M" or "N:M (PK N:M)"
         if (!isWin && !isDraw && !isLoss) {
-            const scoreMatch = result.match(/(\d+)\s*[:]\s*(\d+)(?:\s*\(PK\s*(\d+)\s*[:]\s*(\d+)\))?/i);
-            if (scoreMatch) {
+            const scoreMatch = res.match(/(\d+)\s*[:]\s*(\d+)(?:\s*\(PK\s*(\d+)\s*[:]\s*(\d+)\))?/i);
+            const pkSuffixMatch = res.match(/(\d+)\s*[:]\s*(\d+)\s*\(\s*(\d+)\s*[:]\s*(\d+)\s*PK\s*\)/i);
+
+            if (scoreMatch || pkSuffixMatch) {
+                const matchData = scoreMatch || pkSuffixMatch;
                 const mainScore = {
-                    our: parseInt(scoreMatch[1]),
-                    opp: parseInt(scoreMatch[2]),
-                    pk: scoreMatch[3] && scoreMatch[4] ? { our: parseInt(scoreMatch[3]), opp: parseInt(scoreMatch[4]) } : null
+                    our: parseInt(matchData[1]),
+                    opp: parseInt(matchData[2]),
+                    pk: matchData[3] && matchData[4] ? { our: parseInt(matchData[3]), opp: parseInt(matchData[4]) } : null
                 };
 
-                isWin = mainScore.our > mainScore.opp;
-                isDraw = mainScore.our === mainScore.opp;
-                isLoss = mainScore.our < mainScore.opp;
-
                 // PK Logic: If draw and PK score exists, flip result based on PK
-                if (isDraw && mainScore.pk) {
-                    if (mainScore.pk.our > mainScore.pk.opp) {
-                        isWin = true;
-                        isDraw = false;
-                        isLoss = false;
-                    } else if (mainScore.pk.our < mainScore.pk.opp) {
-                        isWin = false;
-                        isDraw = false;
-                        isLoss = true;
-                    }
+                const mainWin = mainScore.our > mainScore.opp;
+                const mainDraw = mainScore.our === mainScore.opp;
+                const mainLoss = mainScore.our < mainScore.opp;
+
+                if (mainDraw && mainScore.pk) {
+                    if (mainScore.pk.our > mainScore.pk.opp) isWin = true;
+                    else if (mainScore.pk.our < mainScore.pk.opp) isLoss = true;
+                    else isDraw = true;
+                } else {
+                    isWin = mainWin;
+                    isDraw = mainDraw;
+                    isLoss = mainLoss;
                 }
             }
         }
 
-        if (isWin) { s.wins++; s.total++; }
-        else if (isDraw) { s.draws++; s.total++; }
-        else if (isLoss) { s.losses++; s.total++; }
+        if (isWin) {
+            s.wins++;
+            s.total++;
+        } else if (isDraw) {
+            s.draws++;
+            s.total++;
+        } else if (isLoss) {
+            s.losses++;
+            s.total++;
+        }
 
-        // Goals For / Against calculation could be complex without explicit score in schedule.
-        // We can aggregate from records if needed, but for now W/D/L is primary request.
+        // Defensive: matches s.total to sum to avoid drift
+        s.total = s.wins + s.draws + s.losses;
+
+        s.gf += (myScore || 0);
+        s.ga += (oppScore || 0);
     });
+
+    console.log("Opponent Stats Calculated:", Object.values(stats).length);
 
     return Object.values(stats).sort((a, b) => b.wins - a.wins || b.total - a.total);
 }
@@ -227,13 +242,10 @@ function parsePlayersCSV(csvText) {
     const nameIdx = headers.indexOf('이름');
 
     // Identify season columns
-    // Strategy: Look for columns that end with '시즌' OR differ from '포지션'/'이름' and look like a year
     const seasonColumns = headers.map((h, i) => {
-        // 1. Explicit '시즌' suffix
         if (h.endsWith('시즌')) {
             return { index: i, year: h.replace('시즌', '').trim() };
         }
-        // 2. Just a year (e.g. '2024') - Simple regex check for 4 digits
         if (/^\d{4}$/.test(h)) {
             return { index: i, year: h };
         }
@@ -248,10 +260,8 @@ function parsePlayersCSV(csvText) {
 
         if (!name) return null;
 
-        // Determine active seasons for this player
         const activeSeasons = seasonColumns.filter(col => {
             const val = row[col.index];
-            // Check if cell has a valid participation marker
             const cleanVal = val ? val.trim().toUpperCase() : '';
             return ['O', '1', 'TRUE', 'Y', 'YES'].includes(cleanVal);
         }).map(col => col.year);
@@ -266,39 +276,35 @@ function parsePlayersCSV(csvText) {
 
 function parseScheduleCSV(csvText) {
     const rows = parseCSV(csvText);
-    // Header: 시즌(0), ID(1), 구분(2), 날짜(3), 시간(4), 구장(5), 상대(6), 결과(7)
     return rows.slice(1).map(row => {
         if (row.length < 3) return null;
         return {
             season: row[0].trim().replace('시즌', ''),
             matchId: row[1].trim(),
-            matchType: row[2].trim(), // Explicitly capture Type
-            round: row[2].trim(), // Keep round as is for backward compat in UI for now, or change to row[1] if desired? The user asked for "League/Cup" split. existing UI uses round. Row[2] is 'League'. Row[1] is '1R'.
-            // Actually, let's fix the confusion. If existing UI displays 'League' for round, that's fine.
+            matchType: row[2].trim(),
+            round: row[2].trim(),
             date: row[3].trim(),
             time: row[4].trim(),
             stadium: row[5].trim(),
             opponent: row[6].trim(),
-            // Combine col 7 and 8 to catch result if there's a score column inserted
             result: (row[7] || '') + ' ' + (row[8] || '')
         };
-    }).filter(m => m && m.matchId); // Filter by matchId as it is critical
+    }).filter(m => m && m.matchId);
 }
 
 function parseRecordsCSV(csvText) {
     const rows = parseCSV(csvText);
-    // Header: 시즌(0), ID(1), 매치타입(2), 선수명(3), 출전/선발(4), 득점(5), 도움(6), 경고(7), 퇴장(8)
     return rows.slice(1).map(row => {
         if (row.length < 4) return null;
         return {
             season: row[0].trim().replace('시즌', ''),
-            matchId: row[1].trim(), // e.g. '1R'
-            position: row[2].trim(), // e.g. 'MF', 'DF' (Changed from matchType based on screenshot)
+            matchId: row[1].trim(),
+            position: row[2].trim(),
             name: row[3].trim(),
-            appearanceType: row[4] ? row[4].trim() : '', // '선발', '교체'
+            appearanceType: row[4] ? row[4].trim() : '',
             goals: parseInt(row[5] ? row[5].trim() : 0) || 0,
             assists: parseInt(row[6] ? row[6].trim() : 0) || 0,
-            note: row[7] ? row[7].trim() : '', // Column 7: Note (비고)
+            note: row[7] ? row[7].trim() : '',
             yellowCards: parseInt(row[8] ? row[8].trim() : 0) || 0,
             redCards: parseInt(row[9] ? row[9].trim() : 0) || 0
         };
@@ -307,7 +313,6 @@ function parseRecordsCSV(csvText) {
 
 function parseStadiumCSV(csvText) {
     const rows = parseCSV(csvText);
-    // Header: ID,이름
     return rows.slice(1).map(row => {
         if (row.length < 2) return null;
         return {
@@ -318,7 +323,6 @@ function parseStadiumCSV(csvText) {
 }
 
 export function getAvailableSeasons() {
-    // Extract unique seasons from records, schedule AND players registry
     const seasons = new Set();
     scheduleData.forEach(m => {
         if (m.season) seasons.add(m.season);
@@ -326,7 +330,6 @@ export function getAvailableSeasons() {
     recordsData.forEach(r => {
         if (r.season) seasons.add(r.season);
     });
-    // Add seasons found in player registry (e.g. a future season with only roster but no matches)
     playersData.forEach(p => {
         if (p.seasons) {
             p.seasons.forEach(s => seasons.add(s));
@@ -341,7 +344,6 @@ export function getAvailableMatchTypes() {
     scheduleData.forEach(m => {
         if (m.matchType) types.add(m.matchType);
     });
-    // Sort? League first, then Cup, then others?
     return Array.from(types).sort();
 }
 
@@ -359,17 +361,11 @@ export function getSchedule(seasonFilter) {
 }
 
 export function getStats(seasonFilter, matchTypeFilter) {
-    // Initialize Player Stats Map
-
-
     const filter = String(seasonFilter);
     const typeFilter = matchTypeFilter === 'all' ? null : matchTypeFilter;
 
-    // 1. Build Match Type Map for filtering records
-    // key: {season}-{matchId} -> val: matchType
     const matchTypeMap = new Map();
     scheduleData.forEach(m => {
-        // Normalize keys
         const key = `${m.season}-${m.matchId}`;
         matchTypeMap.set(key, m.matchType);
     });
@@ -382,28 +378,17 @@ export function getStats(seasonFilter, matchTypeFilter) {
 
     const targetRecords = recordsData.filter(r => {
         const seasonMatch = (!seasonFilter || seasonFilter === 'all') ? true : String(r.season) === filter;
-
-        // Check Type
         const key = `${r.season}-${r.matchId}`;
         const mType = matchTypeMap.get(key);
-        // If match not found in schedule, include it? Or exclude? Safe to include or exclude. 
-        // If filtering by type, and type is unknown, exclude.
         const typeMatch = (!typeFilter) ? true : mType === typeFilter;
-
         return seasonMatch && typeMatch;
     });
 
     const statsMap = {};
 
-    // 1. Initialize with players valid for the filters
     playersData.forEach(player => {
-        // If seasonFilter is specific (e.g. '2024'), check if player has that season in their list
-        // If 'all', include everyone (or maybe everyone who has at least one season?)
-        // Let's include everyone for 'all'.
-        // Strict Type Check: Ensure both are strings for comparison
         const pSeasons = player.seasons.map(s => String(s));
         const filter = String(seasonFilter);
-
         const shouldInclude = filter === 'all' || pSeasons.includes(filter);
 
         if (shouldInclude) {
@@ -424,11 +409,8 @@ export function getStats(seasonFilter, matchTypeFilter) {
         }
     });
 
-    // 2. Update with records
     targetRecords.forEach(record => {
         if (!statsMap[record.name]) {
-            // Handle case where player is in records but not in player list (e.g. guest, new player)
-            // Or if strict roster check filtered them out but they have a record (shouldn't happen ideally)
             statsMap[record.name] = {
                 name: record.name,
                 position: record.position,
@@ -448,16 +430,7 @@ export function getStats(seasonFilter, matchTypeFilter) {
         const player = statsMap[record.name];
         player.appearances += 1;
 
-        // Count Starts vs Subs
         const type = record.appearanceType;
-        if (['선발', 'Start', 'start'].includes(type) || !type) {
-            // Default to start if empty? Or strict?
-            // "Play Time" column repurposed. If empty, assume played? 
-            // Let's assume '선발' if specific text matches, otherwise just appearance?
-            // User requested: "check for starter vs sub replacement".
-            // Let's count them if explicitly marked.
-        }
-
         if (['선발', 'Start', 'start', 'O', 'o'].includes(type)) {
             player.starts++;
         } else if (['교체', 'Sub', 'sub'].includes(type)) {
@@ -475,30 +448,17 @@ export function getStats(seasonFilter, matchTypeFilter) {
         player.redCards += record.redCards;
     });
 
-    // Calculate Clean Sheets
-    // Conditions: 
-    // 1. Match Result Against is 0
-    // 2. Player is GK or DF
-    // 3. Player played in that match (exists in records for that matchId)
-
     const cleanSheetMatches = new Set();
     targetSchedule.forEach(match => {
         if (!match.result) return;
-        // Assume result format "F:A" (e.g., "3:0") or just text.
-        // If it contains ':', split.
         if (match.result.includes(':')) {
             const parts = match.result.split(':');
             const against = parseInt(parts[1]);
             if (!isNaN(against) && against === 0) {
-                // We need to store Round+Season combination to be unique if seasonFilter is 'all'
-                // But simplified: since we iterate filtered records, we just need matchId uniqueness within context?
-                // Wait, if seasonFilter is 'all', '1R' exists in 2024 and 2025. 
-                // We need a unique key. 
                 const uniqueId = `${match.season}-${match.round}`;
                 cleanSheetMatches.add(uniqueId);
             }
         }
-        // If result is just text like "승", "무", we can't determine score, so ignore.
     });
 
     targetRecords.forEach(record => {
@@ -514,10 +474,8 @@ export function getStats(seasonFilter, matchTypeFilter) {
         }
     });
 
-    // Calculate Efficiency
     const playersArray = Object.values(statsMap);
 
-    // Sort: AttackPoints (Desc) > Goals (Desc) > Assists (Desc) > Appearances (Desc) > Name (Asc)
     playersArray.sort((a, b) => {
         if (b.attackPoints !== a.attackPoints) return b.attackPoints - a.attackPoints;
         if (b.goals !== a.goals) return b.goals - a.goals;
@@ -561,6 +519,7 @@ export function getTeamStats(seasonFilter, matchTypeFilter) {
     let wins = 0;
     let draws = 0;
     let losses = 0;
+    const now = new Date();
 
     const targetSchedule = scheduleData.filter(m => {
         const seasonMatch = (!seasonFilter || seasonFilter === 'all') ? true : m.season === seasonFilter;
@@ -574,50 +533,47 @@ export function getTeamStats(seasonFilter, matchTypeFilter) {
 
     targetSchedule.forEach(match => {
         if (!match.result) return;
-        let res = match.result;
+        const res = match.result.trim();
+        if (!res) return;
 
-        // Clean up PK info for stats calculation (stats are based on regular time)
-        // Format: "2:2 (4:3 PK)" -> "2:2"
-        const mainScoreMatch = res.match(/^(\d+:\d+)/);
-        if (mainScoreMatch) {
-            res = mainScoreMatch[1];
-        }
+        // Future match check
+        if (new Date(match.date) > now) return;
 
-        if (res.includes('승')) wins++;
-        else if (res.includes('무')) draws++;
-        else if (res.includes('패')) losses++;
-        else {
-            // Try to parse "N:M (PK N:M)"
-            const scoreMatch = match.result.match(/(\d+)\s*[:]\s*(\d+)(?:\s*\(PK\s*(\d+)\s*[:]\s*(\d+)\))?/i);
-            if (scoreMatch) {
+        let isWin = ['승', 'WIN', 'W', 'O'].some(k => res.includes(k));
+        let isDraw = ['무', 'DRAW', 'D', '△', '-'].some(k => res.includes(k));
+        let isLoss = ['패', 'LOSS', 'L', 'LOSE', 'X'].some(k => res.includes(k));
+
+        if (!isWin && !isDraw && !isLoss) {
+            const scoreMatch = res.match(/(\d+)\s*[:]\s*(\d+)(?:\s*\(PK\s*(\d+)\s*[:]\s*(\d+)\))?/i);
+            const pkSuffixMatch = res.match(/(\d+)\s*[:]\s*(\d+)\s*\(\s*(\d+)\s*[:]\s*(\d+)\s*PK\s*\)/i);
+
+            if (scoreMatch || pkSuffixMatch) {
+                const matchData = scoreMatch || pkSuffixMatch;
                 const mainScore = {
-                    our: parseInt(scoreMatch[1]),
-                    opp: parseInt(scoreMatch[2]),
-                    pk: scoreMatch[3] && scoreMatch[4] ? { our: parseInt(scoreMatch[3]), opp: parseInt(scoreMatch[4]) } : null
+                    our: parseInt(matchData[1]),
+                    opp: parseInt(matchData[2]),
+                    pk: matchData[3] && matchData[4] ? { our: parseInt(matchData[3]), opp: parseInt(matchData[4]) } : null
                 };
 
-                let isWin = mainScore.our > mainScore.opp;
-                let isDraw = mainScore.our === mainScore.opp;
-                let isLoss = mainScore.our < mainScore.opp;
+                const mainWin = mainScore.our > mainScore.opp;
+                const mainDraw = mainScore.our === mainScore.opp;
+                const mainLoss = mainScore.our < mainScore.opp;
 
-                // PK Logic
-                if (isDraw && mainScore.pk) {
-                    if (mainScore.pk.our > mainScore.pk.opp) {
-                        isWin = true;
-                        isDraw = false;
-                        isLoss = false;
-                    } else if (mainScore.pk.our < mainScore.pk.opp) {
-                        isWin = false;
-                        isDraw = false;
-                        isLoss = true;
-                    }
+                if (mainDraw && mainScore.pk) {
+                    if (mainScore.pk.our > mainScore.pk.opp) isWin = true;
+                    else if (mainScore.pk.our < mainScore.pk.opp) isLoss = true;
+                    else isDraw = true;
+                } else {
+                    isWin = mainWin;
+                    isDraw = mainDraw;
+                    isLoss = mainLoss;
                 }
-
-                if (isWin) wins++;
-                else if (isDraw) draws++;
-                else if (isLoss) losses++;
             }
         }
+
+        if (isWin) wins++;
+        else if (isDraw) draws++;
+        else if (isLoss) losses++;
     });
 
     const total = wins + draws + losses;
@@ -628,24 +584,24 @@ export function getTeamStats(seasonFilter, matchTypeFilter) {
 
 export function getStadiumStats(seasonFilter, matchTypeFilter) {
     const stats = {};
+    const now = new Date();
 
     const targetSchedule = scheduleData.filter(m => {
         const seasonMatch = (!seasonFilter || seasonFilter === 'all') ? true : m.season === seasonFilter;
-        // Match Type Filter: if 'all', include everything (maybe exclude practice? User said "Practice tab show no stats", but "All tab show stats". 
-        // User request 1: "구장 별 전적도 전체,리그,연습경기,컵,플레이오프 각 탭에 맞게 계산해서 보여주는데 연습경기 탭에서는 보여줄 필요 없어"
-        // So for calculation, just filter by matchType if provided and not 'all'.
+        // Match Type Filter
         const typeMatch = (!matchTypeFilter || matchTypeFilter === 'all') ? true : m.matchType === matchTypeFilter;
         return seasonMatch && typeMatch;
     });
 
     targetSchedule.forEach(match => {
         if (!match.result) return;
-        const stadiumName = getStadium(match.stadium); // getStadium returns null/undefined if not found? No, it returns name. 
-        // If unknown, let's check what getStadium returns or if match.stadium is empty.
-        // The original code had `|| 'Unknown'`. We want to exclude if it resolves to Unknown or is empty.
+        const res = match.result.trim();
+        if (!res) return;
 
-        // Strict Filter: Exclude if name is falsy, 'Unknown', or empty.
-        // Also check if the resulting name actually contains "Unknown" (case-insensitive) just in case.
+        // Future match check
+        if (new Date(match.date) > now) return;
+
+        const stadiumName = getStadium(match.stadium);
         if (!stadiumName ||
             stadiumName === 'Unknown' ||
             stadiumName.trim() === '' ||
@@ -656,44 +612,43 @@ export function getStadiumStats(seasonFilter, matchTypeFilter) {
         }
 
         const s = stats[stadiumName];
-        let res = match.result;
 
-        s.total++;
-        if (res.includes('승')) s.wins++;
-        else if (res.includes('무')) s.draws++;
-        else if (res.includes('패')) s.losses++;
-        else {
-            // Try to parse "N:M (PK N:M)"
-            const scoreMatch = match.result.match(/(\d+)\s*[:]\s*(\d+)(?:\s*\(PK\s*(\d+)\s*[:]\s*(\d+)\))?/i);
-            if (scoreMatch) {
+        let isWin = ['승', 'WIN', 'W', 'O'].some(k => res.includes(k));
+        let isDraw = ['무', 'DRAW', 'D', '△', '-'].some(k => res.includes(k));
+        let isLoss = ['패', 'LOSS', 'L', 'LOSE', 'X'].some(k => res.includes(k));
+
+        if (!isWin && !isDraw && !isLoss) {
+            const scoreMatch = res.match(/(\d+)\s*[:]\s*(\d+)(?:\s*\(PK\s*(\d+)\s*[:]\s*(\d+)\))?/i);
+            const pkSuffixMatch = res.match(/(\d+)\s*[:]\s*(\d+)\s*\(\s*(\d+)\s*[:]\s*(\d+)\s*PK\s*\)/i);
+
+            if (scoreMatch || pkSuffixMatch) {
+                const matchData = scoreMatch || pkSuffixMatch;
                 const mainScore = {
-                    our: parseInt(scoreMatch[1]),
-                    opp: parseInt(scoreMatch[2]),
-                    pk: scoreMatch[3] && scoreMatch[4] ? { our: parseInt(scoreMatch[3]), opp: parseInt(scoreMatch[4]) } : null
+                    our: parseInt(matchData[1]),
+                    opp: parseInt(matchData[2]),
+                    pk: matchData[3] && matchData[4] ? { our: parseInt(matchData[3]), opp: parseInt(matchData[4]) } : null
                 };
 
-                let isWin = mainScore.our > mainScore.opp;
-                let isDraw = mainScore.our === mainScore.opp;
-                let isLoss = mainScore.our < mainScore.opp;
+                const mainWin = mainScore.our > mainScore.opp;
+                const mainDraw = mainScore.our === mainScore.opp;
+                const mainLoss = mainScore.our < mainScore.opp;
 
-                // PK Logic
-                if (isDraw && mainScore.pk) {
-                    if (mainScore.pk.our > mainScore.pk.opp) {
-                        isWin = true;
-                        isDraw = false;
-                        isLoss = false;
-                    } else if (mainScore.pk.our < mainScore.pk.opp) {
-                        isWin = false;
-                        isDraw = false;
-                        isLoss = true;
-                    }
+                if (mainDraw && mainScore.pk) {
+                    if (mainScore.pk.our > mainScore.pk.opp) isWin = true;
+                    else if (mainScore.pk.our < mainScore.pk.opp) isLoss = true;
+                    else isDraw = true;
+                } else {
+                    isWin = mainWin;
+                    isDraw = mainDraw;
+                    isLoss = mainLoss;
                 }
-
-                if (isWin) s.wins++;
-                else if (isDraw) s.draws++;
-                else if (isLoss) s.losses++;
             }
         }
+
+        s.total++;
+        if (isWin) s.wins++;
+        else if (isDraw) s.draws++;
+        else if (isLoss) s.losses++;
     });
 
     return Object.values(stats).map(s => ({

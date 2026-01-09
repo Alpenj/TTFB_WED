@@ -886,33 +886,9 @@ function renderStats(container, currentSeason, currentMatchType) {
     let oppContainer = null;
     if (opponentStats.length > 0 && currentMatchType !== '연습경기') {
         oppContainer = document.createElement('div');
-        oppContainer.className = 'bg-gray-800 rounded-3xl border border-gray-700 w-full mb-6 overflow-hidden'; // Changed styling for collapsible
-
-        // Header with Toggle
-        const oppHeader = document.createElement('div');
-        oppHeader.className = 'p-6 flex items-center justify-between cursor-pointer hover:bg-gray-750 transition-colors';
-        oppHeader.onclick = () => {
-            const content = oppContainer.querySelector('.opp-content');
-            const icon = oppContainer.querySelector('.toggle-icon');
-            content.classList.toggle('hidden');
-            icon.style.transform = content.classList.contains('hidden') ? 'rotate(0deg)' : 'rotate(180deg)';
-        };
-
-        oppHeader.innerHTML = `
-            <div class="flex items-center">
-                <h3 class="text-lg font-bold text-white mr-2">상대 전적</h3>
-                <span class="text-xs text-gray-500 font-normal">(승/무/패)</span>
-            </div>
-            <svg xmlns="http://www.w3.org/2000/svg" class="h-5 w-5 text-gray-400 transform transition-transform duration-300 toggle-icon rotate-0" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 9l-7 7-7-7" />
-            </svg>
-        `;
-        oppContainer.appendChild(oppHeader);
-
-        // Content
-        const oppContent = document.createElement('div');
-        oppContent.className = 'opp-content px-6 pb-6 hidden'; // Collapsed by default
-        oppContent.innerHTML = `
+        oppContainer.className = 'bg-gray-800 p-4 rounded-2xl border border-gray-700 w-full mb-6';
+        oppContainer.innerHTML = `
+            <h3 class="text-sm text-gray-400 mb-3">상대 전적 <span class="text-xs text-gray-500 font-normal">(승/무/패)</span></h3>
              <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
                 ${opponentStats.map((o, i) => `
                     <div class="flex items-center justify-between border-b border-gray-700 pb-2 last:border-0 last:pb-0 bg-gray-700/30 p-2 rounded">
@@ -941,7 +917,6 @@ function renderStats(container, currentSeason, currentMatchType) {
                 `).join('')}
             </div>
         `;
-        oppContainer.appendChild(oppContent);
     }
 
     // 9. Table Section (With Title Inside and Collapsible)
@@ -959,14 +934,11 @@ function renderStats(container, currentSeason, currentMatchType) {
     };
 
     tableHeader.innerHTML = `
-        <div class="flex items-center space-x-4 w-full">
-            <div class="flex items-center flex-shrink-0">
-                <span class="mr-2">📊</span>
-                <h2 class="text-lg font-bold text-white">선수 개인 기록</h2>
-            </div>
-            <input type="text" placeholder="검색" class="bg-gray-700/50 text-white text-sm px-3 py-1 rounded-full border border-gray-600 focus:border-neonGreen outline-none transition-all w-48" onclick="event.stopPropagation()">
+        <div class="flex items-center">
+            <span class="mr-2">📊</span>
+            <h2 class="text-lg font-bold text-white">선수 개인 기록</h2>
         </div>
-        <svg xmlns="http://www.w3.org/2000/svg" class="h-5 w-5 text-gray-400 transform transition-transform duration-300 toggle-icon rotate-0 flex-shrink-0 ml-4" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+        <svg xmlns="http://www.w3.org/2000/svg" class="h-5 w-5 text-gray-400 transform transition-transform duration-300 toggle-icon rotate-0" fill="none" viewBox="0 0 24 24" stroke="currentColor">
             <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 9l-7 7-7-7" />
         </svg>
     `;
@@ -1007,19 +979,6 @@ function renderStats(container, currentSeason, currentMatchType) {
     // Pagination & Sort State
     let currentPage = 1;
     const itemsPerPage = 10;
-    let filteredPlayers = [...stats.players]; // Initialize with all players
-
-    // Header Search Input Logic
-    const searchInput = tableHeader.querySelector('input');
-    if (searchInput) {
-        searchInput.onclick = (e) => e.stopPropagation(); // Prevent collapse
-        searchInput.oninput = (e) => {
-            const query = e.target.value.toLowerCase().trim();
-            filteredPlayers = stats.players.filter(p => p.name.toLowerCase().includes(query));
-            currentPage = 1;
-            renderTablePage(currentPage);
-        };
-    }
 
     // Sort Helper
     const getSortIndicator = (key) => {
@@ -1029,7 +988,7 @@ function renderStats(container, currentSeason, currentMatchType) {
 
     const renderTablePage = (page) => {
         // Sort Data
-        filteredPlayers.sort((a, b) => {
+        stats.players.sort((a, b) => {
             let valA = a[sortState.key];
             let valB = b[sortState.key];
 
@@ -1043,12 +1002,12 @@ function renderStats(container, currentSeason, currentMatchType) {
             return sortState.order === 'asc' ? (valA > valB ? 1 : -1) : (valA < valB ? 1 : -1);
         });
 
-        const totalPages = Math.ceil(filteredPlayers.length / itemsPerPage) || 1;
+        const totalPages = Math.ceil(stats.players.length / itemsPerPage) || 1;
         if (page > totalPages) page = totalPages;
 
         const start = (page - 1) * itemsPerPage;
         const end = start + itemsPerPage;
-        const pageData = filteredPlayers.slice(start, end);
+        const pageData = stats.players.slice(start, end);
 
         const tableBody = tableWrapper.querySelector('tbody');
         if (!tableBody) return;
@@ -1378,7 +1337,7 @@ function showHistoryModal(playerName, eventType, events) {
                             <div class="flex items-center flex-col items-end">
                                 ${eventType === 'appearances'
                 ? `<span class="text-xs font-bold ${e.appearance === '교체' ? 'text-gray-400' : 'text-neonGreen'}">${e.appearance || '선발'}</span>`
-                : `<div class="flex items-center"><span class="text-lg font-bold text-white font-mono">+${e.count || 1}</span></div>`
+                : `<div class="flex items-center"><span class="text-lg font-bold text-white font-mono">+${eventType === 'goals' ? e.goals : (eventType === 'assists' ? e.assists : e.count || 1)}</span></div>`
             }
                                 ${linkedInfo}
                             </div>
@@ -1438,31 +1397,7 @@ function showPlayerProfileModal(playerName, seasonFilter) {
             
             <div class="overflow-y-auto pr-1 custom-scrollbar flex-1">
                 <div class="space-y-3">
-                    ${events.map(e => {
-        // Logic for Goal-Assist Linking (Duplicate from showHistoryModal, ideally refactor but easy enough to copy)
-        let linkedInfo = [];
-        if (e.note && (e.goals > 0 || e.assists > 0)) {
-            const tags = e.note.match(/[GA]\d+/gi);
-            if (tags) {
-                const matchRecords = getMatchRecords(e.season, e.matchId);
-                tags.forEach(tag => {
-                    const partners = matchRecords.filter(r =>
-                        r.name !== playerName &&
-                        r.note &&
-                        r.note.toUpperCase().includes(tag.toUpperCase())
-                    );
-                    partners.forEach(p => {
-                        if (e.goals > 0 && p.assists > 0) {
-                            linkedInfo.push(`도움: ${p.name}`);
-                        } else if (e.assists > 0 && p.goals > 0) {
-                            linkedInfo.push(`득점: ${p.name}`);
-                        }
-                    });
-                });
-            }
-        }
-
-        return `
+                    ${events.map(e => `
                         <div class="p-4 rounded-xl bg-gray-700/50 hover:bg-gray-700 transition-colors border border-gray-600/30">
                             <div class="flex justify-between items-center mb-2">
                                 <div class="flex items-center space-x-2">
@@ -1486,13 +1421,8 @@ function showPlayerProfileModal(playerName, seasonFilter) {
                                     ${e.goals === 0 && e.assists === 0 && e.yellowCards === 0 && e.redCards === 0 ? '<span class="text-gray-600">-</span>' : ''}
                                 </div>
                             </div>
-                            ${linkedInfo.length > 0 ? `
-                                <div class="mt-2 pt-2 border-t border-gray-600/30 text-[11px] text-gray-400 flex flex-wrap gap-2">
-                                    ${linkedInfo.map(info => `<span class="bg-gray-800/50 px-2 py-0.5 rounded text-gray-300">↳ ${info}</span>`).join('')}
-                                </div>
-                            ` : ''}
                         </div>
-                    `}).join('')}
+                    `).join('')}
                     ${events.length === 0 ? '<div class="text-center text-gray-500 py-10">경기 기록이 없습니다.</div>' : ''}
                 </div>
             </div>
