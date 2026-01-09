@@ -103,95 +103,7 @@ export function getPlayerEvents(currentSeason, currentMatchType, playerName, eve
     return events;
 }
 
-export function getOpponentStats(currentSeason, currentMatchType) {
-    const filter = String(currentSeason);
-    const typeFilter = currentMatchType === 'all' ? null : currentMatchType;
-    const now = new Date();
 
-    const stats = {};
-
-    scheduleData.forEach(match => {
-        // 1. Filter by Season
-        if (filter !== 'all' && String(match.season) !== filter) return;
-
-        // 2. Filter by Match Type
-        if (typeFilter && match.matchType !== typeFilter) return;
-
-        // 3. Exclude Practice Matches from "All" View (Global Rule)
-        if ((!typeFilter || typeFilter === 'all') && match.matchType === '연습경기') return;
-
-        // 4. Validate Result and Date
-        let res = match.result ? match.result.trim() : '';
-        if (!res) return; // Skip empty results
-
-        const matchDate = new Date(match.date);
-        if (matchDate > now) return; // Skip future matches
-
-        // 5. Filter Empty Opponents
-        const opponent = match.opponent ? match.opponent.trim() : '';
-        if (!opponent) return;
-
-        if (!stats[opponent]) {
-            stats[opponent] = { name: opponent, wins: 0, draws: 0, losses: 0, total: 0, gf: 0, ga: 0 };
-        }
-
-        const s = stats[opponent];
-
-        let isWin = ['승', 'WIN', 'W', 'O'].some(k => res.includes(k));
-        let isDraw = ['무', 'DRAW', 'D', '△', '-', 'SAME'].some(k => res.includes(k));
-        let isLoss = ['패', 'LOSS', 'L', 'LOSE', 'X'].some(k => res.includes(k));
-
-        if (!isWin && !isDraw && !isLoss) {
-            const scoreMatch = res.match(/(\d+)\s*[:]\s*(\d+)(?:\s*\(PK\s*(\d+)\s*[:]\s*(\d+)\))?/i);
-            const pkSuffixMatch = res.match(/(\d+)\s*[:]\s*(\d+)\s*\(\s*(\d+)\s*[:]\s*(\d+)\s*PK\s*\)/i);
-
-            if (scoreMatch || pkSuffixMatch) {
-                const matchData = scoreMatch || pkSuffixMatch;
-                const mainScore = {
-                    our: parseInt(matchData[1]),
-                    opp: parseInt(matchData[2]),
-                    pk: matchData[3] && matchData[4] ? { our: parseInt(matchData[3]), opp: parseInt(matchData[4]) } : null
-                };
-
-                // PK Logic: If draw and PK score exists, flip result based on PK
-                const mainWin = mainScore.our > mainScore.opp;
-                const mainDraw = mainScore.our === mainScore.opp;
-                const mainLoss = mainScore.our < mainScore.opp;
-
-                if (mainDraw && mainScore.pk) {
-                    if (mainScore.pk.our > mainScore.pk.opp) isWin = true;
-                    else if (mainScore.pk.our < mainScore.pk.opp) isLoss = true;
-                    else isDraw = true;
-                } else {
-                    isWin = mainWin;
-                    isDraw = mainDraw;
-                    isLoss = mainLoss;
-                }
-            }
-        }
-
-        if (isWin) {
-            s.wins++;
-            s.total++;
-        } else if (isDraw) {
-            s.draws++;
-            s.total++;
-        } else if (isLoss) {
-            s.losses++;
-            s.total++;
-        }
-
-        // Defensive: matches s.total to sum to avoid drift
-        s.total = s.wins + s.draws + s.losses;
-
-        s.gf += (myScore || 0);
-        s.ga += (oppScore || 0);
-    });
-
-    console.log("Opponent Stats Calculated:", Object.values(stats).length);
-
-    return Object.values(stats).sort((a, b) => b.wins - a.wins || b.total - a.total);
-}
 
 export function getPlayerMatchHistory(playerName, seasonFilter) {
     const filter = seasonFilter && seasonFilter !== 'all' ? String(seasonFilter) : null;
@@ -322,6 +234,17 @@ function parseStadiumCSV(csvText) {
     }).filter(s => s && s.id);
 }
 
+// Helper: Parse 'YYYY.MM.DD' to Date
+function parseDate(dateStr) {
+    if (!dateStr) return null;
+    const parts = dateStr.trim().split('.');
+    if (parts.length === 3) {
+        return new Date(parseInt(parts[0]), parseInt(parts[1]) - 1, parseInt(parts[2]));
+    }
+    return null;
+}
+
+
 export function getAvailableSeasons() {
     const seasons = new Set();
     scheduleData.forEach(m => {
@@ -363,25 +286,39 @@ export function getSchedule(seasonFilter) {
 export function getStats(seasonFilter, matchTypeFilter) {
     const filter = String(seasonFilter);
     const typeFilter = matchTypeFilter === 'all' ? null : matchTypeFilter;
-
-    const matchTypeMap = new Map();
-    scheduleData.forEach(m => {
-        const key = `${m.season}-${m.matchId}`;
-        matchTypeMap.set(key, m.matchType);
-    });
+    const now = new Date(); // Current time for comparison
 
     const targetSchedule = scheduleData.filter(m => {
         const seasonMatch = (!seasonFilter || seasonFilter === 'all') ? true : String(m.season) === filter;
         const typeMatch = (!typeFilter) ? true : m.matchType === typeFilter;
+
+        // Exclude Practice Matches from ALL view
+        if (!typeFilter && m.matchType === '연습경기') return false;
+
+        // Valid Result Check
+        if (!m.result || !m.result.trim()) return false;
+
+        // Robust Date Check
+        const matchDate = parseDate(m.date);
+        if (!matchDate) return false; // Skip if date is invalid
+
+        // Future Match Check (Standardize on start of day to avoid time issues)
+        const matchEndOfDay = new Date(matchDate);
+        matchEndOfDay.setHours(23, 59, 59, 999);
+        if (parseDate(m.date) > now) return false;
+        // Note: Using strict > now might exclude today's completed matches if time is not handled.
+        // But since CSV dates are YYYY.MM.DD without time (usually), new Date(y,m,d) is 00:00.
+        // If now is 20:00, 00:00 < 20:00. Past. Correct.
+        // If match is Tmrw, 00:00 (Tmrw) > 20:00 (Today). Future. Correct.
+
         return seasonMatch && typeMatch;
     });
 
+    const validMatchKeys = new Set(targetSchedule.map(m => `${m.season}-${m.matchId}`));
+
     const targetRecords = recordsData.filter(r => {
-        const seasonMatch = (!seasonFilter || seasonFilter === 'all') ? true : String(r.season) === filter;
         const key = `${r.season}-${r.matchId}`;
-        const mType = matchTypeMap.get(key);
-        const typeMatch = (!typeFilter) ? true : mType === typeFilter;
-        return seasonMatch && typeMatch;
+        return validMatchKeys.has(key);
     });
 
     const statsMap = {};
@@ -455,7 +392,7 @@ export function getStats(seasonFilter, matchTypeFilter) {
             const parts = match.result.split(':');
             const against = parseInt(parts[1]);
             if (!isNaN(against) && against === 0) {
-                const uniqueId = `${match.season}-${match.round}`;
+                const uniqueId = `${match.season}-${match.matchId}`; // Corrected from .round to .matchId
                 cleanSheetMatches.add(uniqueId);
             }
         }
@@ -524,10 +461,7 @@ export function getTeamStats(seasonFilter, matchTypeFilter) {
     const targetSchedule = scheduleData.filter(m => {
         const seasonMatch = (!seasonFilter || seasonFilter === 'all') ? true : m.season === seasonFilter;
         const typeMatch = (!matchTypeFilter || matchTypeFilter === 'all') ? true : m.matchType === matchTypeFilter;
-
-        // Exclude Practice Matches from "All" View
         if ((!matchTypeFilter || matchTypeFilter === 'all') && m.matchType === '연습경기') return false;
-
         return seasonMatch && typeMatch;
     });
 
@@ -536,8 +470,9 @@ export function getTeamStats(seasonFilter, matchTypeFilter) {
         const res = match.result.trim();
         if (!res) return;
 
-        // Future match check
-        if (new Date(match.date) > now) return;
+        // Date Check
+        const matchDate = parseDate(match.date);
+        if (!matchDate || matchDate > now) return;
 
         let isWin = ['승', 'WIN', 'W', 'O'].some(k => res.includes(k));
         let isDraw = ['무', 'DRAW', 'D', '△', '-'].some(k => res.includes(k));
@@ -588,8 +523,8 @@ export function getStadiumStats(seasonFilter, matchTypeFilter) {
 
     const targetSchedule = scheduleData.filter(m => {
         const seasonMatch = (!seasonFilter || seasonFilter === 'all') ? true : m.season === seasonFilter;
-        // Match Type Filter
         const typeMatch = (!matchTypeFilter || matchTypeFilter === 'all') ? true : m.matchType === matchTypeFilter;
+        if ((!matchTypeFilter || matchTypeFilter === 'all') && m.matchType === '연습경기') return false;
         return seasonMatch && typeMatch;
     });
 
@@ -598,65 +533,137 @@ export function getStadiumStats(seasonFilter, matchTypeFilter) {
         const res = match.result.trim();
         if (!res) return;
 
-        // Future match check
-        if (new Date(match.date) > now) return;
+        // Date Check
+        const matchDate = parseDate(match.date);
+        if (!matchDate || matchDate > now) return;
 
         const stadiumName = getStadium(match.stadium);
-        if (!stadiumName ||
-            stadiumName === 'Unknown' ||
-            stadiumName.trim() === '' ||
-            stadiumName.toLowerCase().includes('unknown')) return;
+        if (!stadiumName || stadiumName === 'Unknown' || stadiumName.trim() === '' || stadiumName.toLowerCase().includes('unknown')) return;
 
         if (!stats[stadiumName]) {
             stats[stadiumName] = { name: stadiumName, wins: 0, draws: 0, losses: 0, total: 0 };
         }
 
         const s = stats[stadiumName];
-
-        let isWin = ['승', 'WIN', 'W', 'O'].some(k => res.includes(k));
-        let isDraw = ['무', 'DRAW', 'D', '△', '-'].some(k => res.includes(k));
-        let isLoss = ['패', 'LOSS', 'L', 'LOSE', 'X'].some(k => res.includes(k));
-
-        if (!isWin && !isDraw && !isLoss) {
-            const scoreMatch = res.match(/(\d+)\s*[:]\s*(\d+)(?:\s*\(PK\s*(\d+)\s*[:]\s*(\d+)\))?/i);
-            const pkSuffixMatch = res.match(/(\d+)\s*[:]\s*(\d+)\s*\(\s*(\d+)\s*[:]\s*(\d+)\s*PK\s*\)/i);
-
-            if (scoreMatch || pkSuffixMatch) {
-                const matchData = scoreMatch || pkSuffixMatch;
-                const mainScore = {
-                    our: parseInt(matchData[1]),
-                    opp: parseInt(matchData[2]),
-                    pk: matchData[3] && matchData[4] ? { our: parseInt(matchData[3]), opp: parseInt(matchData[4]) } : null
-                };
-
-                const mainWin = mainScore.our > mainScore.opp;
-                const mainDraw = mainScore.our === mainScore.opp;
-                const mainLoss = mainScore.our < mainScore.opp;
-
-                if (mainDraw && mainScore.pk) {
-                    if (mainScore.pk.our > mainScore.pk.opp) isWin = true;
-                    else if (mainScore.pk.our < mainScore.pk.opp) isLoss = true;
-                    else isDraw = true;
-                } else {
-                    isWin = mainWin;
-                    isDraw = mainDraw;
-                    isLoss = mainLoss;
-                }
-            }
-        }
-
-        s.total++;
-        if (isWin) s.wins++;
-        else if (isDraw) s.draws++;
-        else if (isLoss) s.losses++;
+        updateWinLossStats(s, res); // Reuse logic if possible, or duplicate for now
     });
 
     return Object.values(stats).map(s => ({
         ...s,
         winRate: s.total > 0 ? Math.round((s.wins / s.total) * 100) : 0
-    })).sort((a, b) => b.total - a.total || b.wins - a.wins); // Sort by most played, then wins
+    })).sort((a, b) => b.total - a.total || b.wins - a.wins);
 }
+
+export function getOpponentStats(seasonFilter, matchTypeFilter) {
+    const stats = {};
+    const now = new Date();
+
+    const targetSchedule = scheduleData.filter(m => {
+        const seasonMatch = (!seasonFilter || seasonFilter === 'all') ? true : m.season === seasonFilter;
+        const typeMatch = (!matchTypeFilter || matchTypeFilter === 'all') ? true : m.matchType === matchTypeFilter;
+        if ((!matchTypeFilter || matchTypeFilter === 'all') && m.matchType === '연습경기') return false;
+        return seasonMatch && typeMatch;
+    });
+
+    targetSchedule.forEach(match => {
+        if (!match.result) return;
+        const res = match.result.trim();
+        if (!res) return;
+
+        // Date Check
+        const matchDate = parseDate(match.date);
+        if (!matchDate || matchDate > now) return;
+
+        const oppName = (match.opponent || '').trim();
+        if (!oppName) return;
+
+        if (!stats[oppName]) {
+            stats[oppName] = { name: oppName, wins: 0, draws: 0, losses: 0, total: 0 };
+        }
+
+        const s = stats[oppName];
+        updateWinLossStats(s, res);
+    });
+
+    return Object.values(stats).map(s => ({
+        ...s,
+        winRate: s.total > 0 ? Math.round((s.wins / s.total) * 100) : 0
+    })).sort((a, b) => b.total - a.total || b.wins - a.wins);
+}
+
+function updateWinLossStats(s, res) {
+    let isWin = ['승', 'WIN', 'W', 'O'].some(k => res.includes(k));
+    let isDraw = ['무', 'DRAW', 'D', '△', '-'].some(k => res.includes(k));
+    let isLoss = ['패', 'LOSS', 'L', 'LOSE', 'X'].some(k => res.includes(k));
+
+    if (!isWin && !isDraw && !isLoss) {
+        const scoreMatch = res.match(/(\d+)\s*[:]\s*(\d+)(?:\s*\(PK\s*(\d+)\s*[:]\s*(\d+)\))?/i);
+        const pkSuffixMatch = res.match(/(\d+)\s*[:]\s*(\d+)\s*\(\s*(\d+)\s*[:]\s*(\d+)\s*PK\s*\)/i);
+
+        if (scoreMatch || pkSuffixMatch) {
+            const matchData = scoreMatch || pkSuffixMatch;
+            const mainScore = {
+                our: parseInt(matchData[1]),
+                opp: parseInt(matchData[2]),
+                pk: matchData[3] && matchData[4] ? { our: parseInt(matchData[3]), opp: parseInt(matchData[4]) } : null
+            };
+
+            const mainWin = mainScore.our > mainScore.opp;
+            const mainDraw = mainScore.our === mainScore.opp;
+            const mainLoss = mainScore.our < mainScore.opp;
+
+            if (mainDraw && mainScore.pk) {
+                if (mainScore.pk.our > mainScore.pk.opp) isWin = true;
+                else if (mainScore.pk.our < mainScore.pk.opp) isLoss = true;
+                else isDraw = true;
+            } else {
+                isWin = mainWin;
+                isDraw = mainDraw;
+                isLoss = mainLoss;
+            }
+        }
+    }
+
+    s.total++;
+    if (isWin) s.wins++;
+    else if (isDraw) s.draws++;
+    else if (isLoss) s.losses++;
+}
+
+// [NEW] Helper for linking goals/assists based on G#/A# tags
+export function getLinkedMatchStats(season, matchId) {
+    const events = [];
+    const matchRecords = recordsData.filter(r => r.season === season && r.matchId === matchId);
+    const goalRecords = matchRecords.filter(r => r.goals > 0);
+
+    goalRecords.forEach(r => {
+        for (let i = 0; i < r.goals; i++) {
+            const gTags = (r.note || '').match(/G\d+/gi) || [];
+            let currentTag = gTags[i];
+            let assisterName = null;
+
+            if (currentTag) {
+                const partner = matchRecords.find(p =>
+                    p.name !== r.name &&
+                    p.note &&
+                    p.note.toUpperCase().includes(currentTag.toUpperCase())
+                );
+                if (partner) assisterName = partner.name;
+            }
+
+            events.push({
+                scorer: r.name,
+                assister: assisterName,
+                tag: currentTag
+            });
+        }
+    });
+
+    return events;
+}
+
 
 export function getMatchRecords(season, matchId) {
     return recordsData.filter(r => r.season === season && r.matchId === matchId);
 }
+
