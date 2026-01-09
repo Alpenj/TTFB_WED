@@ -1015,6 +1015,9 @@ function renderStats(container, currentSeason, currentMatchType) {
     tableWrapper.className = 'overflow-hidden flex flex-col'; // Removed bg/border since container has it
 
     tableWrapper.innerHTML = `
+        <div class="p-4 border-b border-gray-700">
+            <input type="text" id="player-search-input" placeholder="🔍 선수명 검색..." class="w-full bg-gray-700 text-white text-sm rounded-lg px-4 py-2 border border-gray-600 outline-none focus:border-neonGreen placeholder-gray-400" />
+        </div>
         <div class="overflow-x-auto max-h-[500px] overflow-y-auto relative custom-scrollbar">
             <table class="w-full relative border-collapse">
                 <thead class="bg-gray-900 border-b border-gray-700 sticky top-0 z-10 shadow-sm">
@@ -1026,6 +1029,7 @@ function renderStats(container, currentSeason, currentMatchType) {
                         <th class="cursor-pointer hover:bg-gray-800 p-3 text-center text-xs text-neonGreen font-bold select-none transition-colors group bg-gray-800/50 whitespace-nowrap" data-sort="attackPoints">공격포인트</th>
                         <th class="cursor-pointer hover:bg-gray-800 p-3 text-center text-xs text-gray-500 font-medium select-none transition-colors group whitespace-nowrap" data-sort="goals">득점</th>
                         <th class="cursor-pointer hover:bg-gray-800 p-3 text-center text-xs text-gray-500 font-medium select-none transition-colors group whitespace-nowrap" data-sort="assists">도움</th>
+                        <th class="cursor-pointer hover:bg-gray-800 p-3 text-center text-xs text-yellow-400 font-medium select-none transition-colors group whitespace-nowrap" data-sort="yellowCards">경고</th>
                         <th class="cursor-pointer hover:bg-gray-800 p-3 text-center text-xs text-red-400 font-medium select-none transition-colors group whitespace-nowrap" data-sort="ownGoals">자살골</th>
                     </tr>
                 </thead>
@@ -1041,6 +1045,7 @@ function renderStats(container, currentSeason, currentMatchType) {
     // Pagination & Sort State
     let currentPage = 1;
     const itemsPerPage = 10;
+    let searchQuery = ''; // Search filter state
 
     // Sort Helper
     const getSortIndicator = (key) => {
@@ -1049,8 +1054,14 @@ function renderStats(container, currentSeason, currentMatchType) {
     };
 
     const renderTablePage = (page) => {
+        // Filter players by search query
+        let filteredPlayers = stats.players;
+        if (searchQuery.trim()) {
+            filteredPlayers = stats.players.filter(p => p.name.toLowerCase().includes(searchQuery.toLowerCase()));
+        }
+
         // Sort Data
-        stats.players.sort((a, b) => {
+        filteredPlayers.sort((a, b) => {
             let valA = a[sortState.key];
             let valB = b[sortState.key];
 
@@ -1064,12 +1075,12 @@ function renderStats(container, currentSeason, currentMatchType) {
             return sortState.order === 'asc' ? (valA > valB ? 1 : -1) : (valA < valB ? 1 : -1);
         });
 
-        const totalPages = Math.ceil(stats.players.length / itemsPerPage) || 1;
+        const totalPages = Math.ceil(filteredPlayers.length / itemsPerPage) || 1;
         if (page > totalPages) page = totalPages;
 
         const start = (page - 1) * itemsPerPage;
         const end = start + itemsPerPage;
-        const pageData = stats.players.slice(start, end);
+        const pageData = filteredPlayers.slice(start, end);
 
         const tableBody = tableWrapper.querySelector('tbody');
         if (!tableBody) return;
@@ -1089,6 +1100,7 @@ function renderStats(container, currentSeason, currentMatchType) {
                 <td class="p-3 text-sm text-center text-neonGreen font-mono w-16 font-bold bg-gray-800/50">${p.attackPoints}</td>
                 <td class="p-3 text-sm text-center text-gray-300 font-mono w-16">${p.goals}</td>
                 <td class="p-3 text-sm text-center text-gray-400 font-mono w-16">${p.assists}</td>
+                <td class="p-3 text-sm text-center text-yellow-400 font-mono w-16">${p.yellowCards || 0}</td>
                 <td class="p-3 text-sm text-center text-red-400 font-mono w-16">${p.ownGoals}</td>
             </tr>
         `}).join('');
@@ -1157,6 +1169,16 @@ function renderStats(container, currentSeason, currentMatchType) {
     };
 
     attachHeaderListeners();
+
+    // Search Input Event Listener
+    const searchInput = tableWrapper.querySelector('#player-search-input');
+    if (searchInput) {
+        searchInput.addEventListener('input', (e) => {
+            searchQuery = e.target.value;
+            currentPage = 1; // Reset to first page when searching
+            renderTablePage(currentPage);
+        });
+    }
 
     // Append All to Main Container
     container.appendChild(chartsContainer);
