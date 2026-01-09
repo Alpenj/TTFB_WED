@@ -93,7 +93,10 @@ export function getPlayerEvents(currentSeason, currentMatchType, playerName, eve
                 opponent: match.opponent,
                 count: count,
                 type: eventType,
-                submissionType: r.appearanceType // For appearances (Start/Sub)
+                submissionType: r.appearanceType, // For appearances (Start/Sub)
+                goals: r.goals,
+                assists: r.assists,
+                note: r.note
             });
         }
     });

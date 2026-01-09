@@ -1337,7 +1337,7 @@ function showHistoryModal(playerName, eventType, events) {
                             <div class="flex items-center flex-col items-end">
                                 ${eventType === 'appearances'
                 ? `<span class="text-xs font-bold ${e.appearance === '교체' ? 'text-gray-400' : 'text-neonGreen'}">${e.appearance || '선발'}</span>`
-                : `<div class="flex items-center"><span class="text-lg font-bold text-white font-mono">+${eventType === 'goals' ? e.goals : (eventType === 'assists' ? e.assists : e.count || 1)}</span></div>`
+                : `<div class="flex items-center"><span class="text-lg font-bold text-white font-mono">+${e.count || 1}</span></div>`
             }
                                 ${linkedInfo}
                             </div>
