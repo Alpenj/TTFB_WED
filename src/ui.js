@@ -886,9 +886,33 @@ function renderStats(container, currentSeason, currentMatchType) {
     let oppContainer = null;
     if (opponentStats.length > 0 && currentMatchType !== '연습경기') {
         oppContainer = document.createElement('div');
-        oppContainer.className = 'bg-gray-800 p-4 rounded-2xl border border-gray-700 w-full mb-6';
-        oppContainer.innerHTML = `
-            <h3 class="text-sm text-gray-400 mb-3">상대 전적 <span class="text-xs text-gray-500 font-normal">(승/무/패)</span></h3>
+        oppContainer.className = 'bg-gray-800 rounded-3xl border border-gray-700 w-full mb-6 overflow-hidden'; // Changed styling for collapsible
+
+        // Header with Toggle
+        const oppHeader = document.createElement('div');
+        oppHeader.className = 'p-6 flex items-center justify-between cursor-pointer hover:bg-gray-750 transition-colors';
+        oppHeader.onclick = () => {
+            const content = oppContainer.querySelector('.opp-content');
+            const icon = oppContainer.querySelector('.toggle-icon');
+            content.classList.toggle('hidden');
+            icon.style.transform = content.classList.contains('hidden') ? 'rotate(0deg)' : 'rotate(180deg)';
+        };
+
+        oppHeader.innerHTML = `
+            <div class="flex items-center">
+                <h3 class="text-lg font-bold text-white mr-2">상대 전적</h3>
+                <span class="text-xs text-gray-500 font-normal">(승/무/패)</span>
+            </div>
+            <svg xmlns="http://www.w3.org/2000/svg" class="h-5 w-5 text-gray-400 transform transition-transform duration-300 toggle-icon rotate-0" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 9l-7 7-7-7" />
+            </svg>
+        `;
+        oppContainer.appendChild(oppHeader);
+
+        // Content
+        const oppContent = document.createElement('div');
+        oppContent.className = 'opp-content px-6 pb-6 hidden'; // Collapsed by default
+        oppContent.innerHTML = `
              <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
                 ${opponentStats.map((o, i) => `
                     <div class="flex items-center justify-between border-b border-gray-700 pb-2 last:border-0 last:pb-0 bg-gray-700/30 p-2 rounded">
@@ -917,6 +941,7 @@ function renderStats(container, currentSeason, currentMatchType) {
                 `).join('')}
             </div>
         `;
+        oppContainer.appendChild(oppContent);
     }
 
     // 9. Table Section (With Title Inside and Collapsible)
@@ -939,7 +964,7 @@ function renderStats(container, currentSeason, currentMatchType) {
                 <span class="mr-2">📊</span>
                 <h2 class="text-lg font-bold text-white">선수 개인 기록</h2>
             </div>
-            <input type="text" placeholder="선수명 검색..." class="bg-gray-700/50 text-white text-sm px-3 py-1 rounded-full border border-gray-600 focus:border-neonGreen outline-none transition-all w-48" onclick="event.stopPropagation()">
+            <input type="text" placeholder="검색" class="bg-gray-700/50 text-white text-sm px-3 py-1 rounded-full border border-gray-600 focus:border-neonGreen outline-none transition-all w-48" onclick="event.stopPropagation()">
         </div>
         <svg xmlns="http://www.w3.org/2000/svg" class="h-5 w-5 text-gray-400 transform transition-transform duration-300 toggle-icon rotate-0 flex-shrink-0 ml-4" fill="none" viewBox="0 0 24 24" stroke="currentColor">
             <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 9l-7 7-7-7" />
