@@ -1397,7 +1397,31 @@ function showPlayerProfileModal(playerName, seasonFilter) {
             
             <div class="overflow-y-auto pr-1 custom-scrollbar flex-1">
                 <div class="space-y-3">
-                    ${events.map(e => `
+                    ${events.map(e => {
+        // Logic for Goal-Assist Linking (Duplicate from showHistoryModal, ideally refactor but easy enough to copy)
+        let linkedInfo = [];
+        if (e.note && (e.goals > 0 || e.assists > 0)) {
+            const tags = e.note.match(/[GA]\d+/gi);
+            if (tags) {
+                const matchRecords = getMatchRecords(e.season, e.matchId);
+                tags.forEach(tag => {
+                    const partners = matchRecords.filter(r =>
+                        r.name !== playerName &&
+                        r.note &&
+                        r.note.toUpperCase().includes(tag.toUpperCase())
+                    );
+                    partners.forEach(p => {
+                        if (e.goals > 0 && p.assists > 0) {
+                            linkedInfo.push(`도움: ${p.name}`);
+                        } else if (e.assists > 0 && p.goals > 0) {
+                            linkedInfo.push(`득점: ${p.name}`);
+                        }
+                    });
+                });
+            }
+        }
+
+        return `
                         <div class="p-4 rounded-xl bg-gray-700/50 hover:bg-gray-700 transition-colors border border-gray-600/30">
                             <div class="flex justify-between items-center mb-2">
                                 <div class="flex items-center space-x-2">
@@ -1421,8 +1445,13 @@ function showPlayerProfileModal(playerName, seasonFilter) {
                                     ${e.goals === 0 && e.assists === 0 && e.yellowCards === 0 && e.redCards === 0 ? '<span class="text-gray-600">-</span>' : ''}
                                 </div>
                             </div>
+                            ${linkedInfo.length > 0 ? `
+                                <div class="mt-2 pt-2 border-t border-gray-600/30 text-[11px] text-gray-400 flex flex-wrap gap-2">
+                                    ${linkedInfo.map(info => `<span class="bg-gray-800/50 px-2 py-0.5 rounded text-gray-300">↳ ${info}</span>`).join('')}
+                                </div>
+                            ` : ''}
                         </div>
-                    `).join('')}
+                    `}).join('')}
                     ${events.length === 0 ? '<div class="text-center text-gray-500 py-10">경기 기록이 없습니다.</div>' : ''}
                 </div>
             </div>
