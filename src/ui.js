@@ -188,13 +188,15 @@ function renderHome(container, currentSeason, currentMatchType) {
 
     const today = new Date();
     // Parse '2026.01.18' format
-    const upcomingMatch = schedule.find(m => {
-        if (!m.date) return false;
-        const parts = m.date.split('.');
-        if (parts.length !== 3) return false;
-        const date = new Date(parts[0], parts[1] - 1, parts[2]);
-        return date >= today;
-    });
+    const upcomingMatch = schedule
+        .filter(m => currentMatchType === 'all' ? true : m.matchType === currentMatchType)
+        .find(m => {
+            if (!m.date) return false;
+            const parts = m.date.split('.');
+            if (parts.length !== 3) return false;
+            const date = new Date(parts[0], parts[1] - 1, parts[2]);
+            return date >= today;
+        });
 
     let dDayMarkup = '';
     if (upcomingMatch) {
