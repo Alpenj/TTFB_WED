@@ -18,8 +18,8 @@ export function SetupDashboard() {
             <h1 id="app-title" class="text-xl font-bold bg-gradient-to-r from-white to-gray-400 bg-clip-text text-transparent cursor-pointer hover:opacity-80 transition-opacity">TTFB_WED</h1>
             <div class="flex items-center space-x-2">
                  <select id="season-selector" class="bg-gray-800 text-white text-xs rounded-lg px-2 py-1 border border-gray-700 outline-none focus:border-neonGreen">
-                    ${seasons.map(s => `<option value="${s}">${s} 시즌</option>`).join('')}
                     <option value="all">통산 기록</option>
+                    ${seasons.map(s => `<option value="${s}">${s} 시즌</option>`).join('')}
                  </select>
             </div>
         </header>
@@ -458,6 +458,68 @@ function renderHome(container, currentSeason, currentMatchType) {
         `;
         container.appendChild(oppSection);
     }
+
+    // 5. Player Records Section (Collapsed by default - added per user request)
+    const playerRecordsSection = document.createElement('div');
+    playerRecordsSection.className = 'bg-gray-800 rounded-3xl p-6 border border-gray-700 shadow-lg mt-6';
+    playerRecordsSection.innerHTML = `
+        <div class="flex items-center justify-between mb-4 cursor-pointer" onclick="document.getElementById('home-player-records-content').classList.toggle('hidden'); document.getElementById('home-player-records-chevron').classList.toggle('rotate-180');">
+            <h3 class="text-xl font-bold text-white flex items-center gap-2">🏅 선수 기록</h3>
+            <svg id="home-player-records-chevron" xmlns="http://www.w3.org/2000/svg" class="h-6 w-6 text-gray-400 transform transition-transform duration-300" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 9l-7 7-7-7" />
+            </svg>
+        </div>
+        <div id="home-player-records-content" class="hidden">
+            <div class="grid grid-cols-1 md:grid-cols-3 gap-4">
+                <!-- Goals -->
+                <div class="bg-gray-700/50 rounded-xl p-4">
+                    <h4 class="text-sm font-bold text-white mb-3 flex items-center">⚽ 득점</h4>
+                    <div class="space-y-2">
+                        ${stats.topScorers.filter(p => p.goals > 0).slice(0, 5).map((p, i) => `
+                            <div class="flex items-center justify-between cursor-pointer hover:bg-gray-600/50 p-1 rounded" onclick="window.showHistoryModal('${p.name}', 'goals', window.getPlayerEvents('${currentSeason}', '${currentMatchType || 'all'}', '${p.name}', 'goals'))">
+                                <div class="flex items-center space-x-2">
+                                    <span class="text-xs font-mono ${i < 3 ? 'text-neonGreen' : 'text-gray-500'} w-3">${i + 1}</span>
+                                    <span class="text-sm text-gray-300">${p.name}</span>
+                                </div>
+                                <span class="text-sm font-bold text-white">${p.goals}</span>
+                            </div>
+                        `).join('') || '<div class="text-gray-500 text-xs text-center py-2">기록 없음</div>'}
+                    </div>
+                </div>
+                <!-- Assists -->
+                <div class="bg-gray-700/50 rounded-xl p-4">
+                    <h4 class="text-sm font-bold text-white mb-3 flex items-center">👟 도움</h4>
+                    <div class="space-y-2">
+                        ${stats.topAssists.filter(p => p.assists > 0).slice(0, 5).map((p, i) => `
+                            <div class="flex items-center justify-between cursor-pointer hover:bg-gray-600/50 p-1 rounded" onclick="window.showHistoryModal('${p.name}', 'assists', window.getPlayerEvents('${currentSeason}', '${currentMatchType || 'all'}', '${p.name}', 'assists'))">
+                                <div class="flex items-center space-x-2">
+                                    <span class="text-xs font-mono ${i < 3 ? 'text-blue-400' : 'text-gray-500'} w-3">${i + 1}</span>
+                                    <span class="text-sm text-gray-300">${p.name}</span>
+                                </div>
+                                <span class="text-sm font-bold text-white">${p.assists}</span>
+                            </div>
+                        `).join('') || '<div class="text-gray-500 text-xs text-center py-2">기록 없음</div>'}
+                    </div>
+                </div>
+                <!-- Appearances -->
+                <div class="bg-gray-700/50 rounded-xl p-4">
+                    <h4 class="text-sm font-bold text-white mb-3 flex items-center">🏃 출전</h4>
+                    <div class="space-y-2">
+                        ${stats.topAppearances.filter(p => p.appearances > 0).slice(0, 5).map((p, i) => `
+                            <div class="flex items-center justify-between cursor-pointer hover:bg-gray-600/50 p-1 rounded" onclick="window.showHistoryModal('${p.name}', 'appearances', window.getPlayerEvents('${currentSeason}', '${currentMatchType || 'all'}', '${p.name}', 'appearances'))">
+                                <div class="flex items-center space-x-2">
+                                    <span class="text-xs font-mono ${i < 3 ? 'text-purple-400' : 'text-gray-500'} w-3">${i + 1}</span>
+                                    <span class="text-sm text-gray-300">${p.name}</span>
+                                </div>
+                                <span class="text-sm font-bold text-white">${p.appearances}</span>
+                            </div>
+                        `).join('') || '<div class="text-gray-500 text-xs text-center py-2">기록 없음</div>'}
+                    </div>
+                </div>
+            </div>
+        </div>
+    `;
+    container.appendChild(playerRecordsSection);
 }
 
 function renderMatches(container, currentSeason, currentMatchType) {
