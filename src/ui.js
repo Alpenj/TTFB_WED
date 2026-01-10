@@ -261,13 +261,18 @@ function renderHome(container, currentSeason, currentMatchType) {
     container.innerHTML = `
         <h2 class="text-lg font-bold text-white mb-4">홈</h2>
         <!-- Team Stats Summary -->
-        <div class="grid grid-cols-2 gap-4">
+        <div class="grid grid-cols-2 md:grid-cols-3 gap-4">
+             <div class="bg-gradient-to-br from-gray-800 to-gray-900 p-4 rounded-3xl border border-gray-700 flex flex-col items-center justify-center shadow-lg relative overflow-hidden group cursor-pointer hover:border-white transition-colors">
+                <div class="absolute inset-0 bg-white/5 opacity-0 group-hover:opacity-100 transition-opacity"></div>
+                <span class="text-gray-400 text-xs font-mono z-10">경기 수 (Matches)</span>
+                <span class="text-3xl font-black text-white mt-1 z-10">${teamStats.wins + teamStats.draws + teamStats.losses}<span class="text-base font-normal text-gray-500 ml-1">전</span></span>
+            </div>
             <div class="bg-gradient-to-br from-gray-800 to-gray-900 p-4 rounded-3xl border border-gray-700 flex flex-col items-center justify-center shadow-lg relative overflow-hidden group cursor-pointer hover:border-neonGreen transition-colors" id="btn-stats-record">
                 <div class="absolute inset-0 bg-neonGreen/5 opacity-0 group-hover:opacity-100 transition-opacity"></div>
                 <span class="text-gray-400 text-xs font-mono z-10">승률 (Win Rate)</span>
                 <span class="text-3xl font-black text-white mt-1 z-10">${teamStats.winRate}<span class="text-base font-normal text-neonGreen">%</span></span>
             </div>
-             <div class="bg-gradient-to-br from-gray-800 to-gray-900 p-4 rounded-3xl border border-gray-700 flex flex-col items-center justify-center shadow-lg relative overflow-hidden group cursor-pointer hover:border-blue-500 transition-colors" id="btn-stats-summary">
+             <div class="bg-gradient-to-br from-gray-800 to-gray-900 p-4 rounded-3xl border border-gray-700 flex flex-col items-center justify-center shadow-lg relative overflow-hidden group cursor-pointer hover:border-blue-500 transition-colors col-span-2 md:col-span-1" id="btn-stats-summary">
                 <div class="absolute inset-0 bg-blue-500/5 opacity-0 group-hover:opacity-100 transition-opacity"></div>
                 <span class="text-gray-400 text-xs font-mono z-10">전적 (W-D-L)</span>
                 <div class="flex items-baseline space-x-1 mt-1 z-10">
@@ -1409,4 +1414,114 @@ function createPlayerStatsTable(players, currentSeason) {
 
     renderTablePage(currentPage);
     return tableContainer;
+}
+
+// --- Shared Helper Functions ---
+
+function createCollapsibleSection(title, icon, contentHtml) {
+    const container = document.createElement('div');
+    container.className = 'bg-gray-800 rounded-3xl border border-gray-700 hover:bg-gray-750 transition-colors mt-6 overflow-hidden';
+
+    // Header with Toggle
+    const header = document.createElement('div');
+    header.className = 'p-6 flex items-center justify-between cursor-pointer group select-none';
+    header.onclick = () => {
+        const content = container.querySelector('.section-content');
+        const arrow = container.querySelector('.toggle-icon');
+        content.classList.toggle('hidden');
+        arrow.style.transform = content.classList.contains('hidden') ? 'rotate(0deg)' : 'rotate(180deg)';
+    };
+
+    header.innerHTML = `
+        <div class="flex items-center">
+            <span class="mr-2 text-xl">${icon}</span>
+            <h2 class="text-lg font-bold text-white group-hover:text-neonGreen transition-colors">${title}</h2>
+        </div>
+        <svg xmlns="http://www.w3.org/2000/svg" class="h-6 w-6 text-gray-500 transform transition-transform duration-300 toggle-icon rotate-0 group-hover:text-white" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 9l-7 7-7-7" />
+        </svg>
+    `;
+
+    // Content
+    const content = document.createElement('div');
+    content.className = 'section-content px-6 pb-6 hidden animate-fade-in-down'; // Hidden by default
+    content.innerHTML = contentHtml;
+
+    container.appendChild(header);
+    container.appendChild(content);
+    return container;
+}
+
+function createOpponentStatsElement(currentSeason, currentMatchType) {
+    const opponentStats = getOpponentStats(currentSeason, currentMatchType || 'all');
+    // Check if there are any valid opponents with actual data
+    if (!opponentStats || opponentStats.length === 0) return null;
+
+    const validOpponents = opponentStats.filter(o => o.total > 0);
+    if (validOpponents.length === 0) return null;
+
+    const contentHtml = `
+        <h3 class="text-sm text-gray-400 mb-3 flex items-center">
+            전체 전적
+            <span class="text-xs text-gray-500 font-normal ml-2 bg-gray-700 px-2 py-0.5 rounded-full">${validOpponents.length}팀</span>
+        </h3>
+        <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
+            ${validOpponents.map((o, i) => `
+                <div class="flex items-center justify-between border-b border-gray-700 pb-2 last:border-0 last:pb-0 bg-gray-700/30 p-3 rounded-xl hover:bg-gray-700/50 transition-colors">
+                     <div class="flex items-center space-x-3 w-1/3">
+                        <span class="text-xs font-mono text-gray-500 w-4 flex-shrink-0 text-center">${i + 1}</span>
+                        <span class="text-sm text-white font-bold truncate">${o.name}</span>
+                    </div>
+                    <div class="flex items-center space-x-3 text-xs font-mono user-select-none">
+                        <div class="flex items-center space-x-1" title="승">
+                            <span class="w-2 h-2 rounded-full bg-neonGreen shadow-[0_0_5px_rgba(57,255,20,0.5)]"></span>
+                            <span class="text-white font-bold">${o.wins}</span>
+                        </div>
+                        <div class="flex items-center space-x-1" title="무">
+                            <span class="w-2 h-2 rounded-full bg-yellow-400"></span>
+                            <span class="text-white font-bold">${o.draws}</span>
+                        </div>
+                        <div class="flex items-center space-x-1" title="패">
+                            <span class="w-2 h-2 rounded-full bg-red-500"></span>
+                            <span class="text-gray-400 font-bold">${o.losses}</span>
+                        </div>
+                    </div>
+                    <div class="text-xs text-gray-400 font-mono w-10 text-right font-bold">
+                         ${Math.round((o.wins / o.total) * 100)}%
+                    </div>
+                </div>
+            `).join('')}
+        </div>
+     `;
+
+    return createCollapsibleSection('상대 전적', '⚔️', contentHtml);
+}
+
+function createStadiumStatsElement(currentSeason, currentMatchType) {
+    const stadiumStats = getStadiumStats(currentSeason, currentMatchType);
+    if (!stadiumStats || stadiumStats.length === 0) return null;
+
+    const contentHtml = `
+        <div class="space-y-3">
+             ${stadiumStats.map(s => `
+            <div class="flex items-center justify-between p-3 rounded-xl bg-gray-700/30 hover:bg-gray-700/50 transition-colors">
+                <span class="text-sm text-gray-200 font-bold flex items-center">
+                    <span class="mr-2 text-gray-500">📍</span> ${s.name}
+                </span>
+                <div class="flex items-center space-x-4">
+                     <span class="text-xs text-gray-400 flex items-center space-x-3">
+                        <span class="flex items-center space-x-1"><span class="text-neonGreen font-bold">${s.wins}승</span></span>
+                        <span class="flex items-center space-x-1"><span class="text-yellow-400 font-bold">${s.draws}무</span></span>
+                        <span class="flex items-center space-x-1"><span class="text-red-400 font-bold">${s.losses}패</span></span>
+                     </span>
+                     <span class="text-xs font-mono text-gray-400 w-12 text-right border-l border-gray-600 pl-3">
+                        <span class="text-white font-bold">${s.winRate}%</span>
+                     </span>
+                </div>
+            </div>
+        `).join('')}
+        </div>
+    `;
+
+    return createCollapsibleSection('구장 별 전적', '🏟️', contentHtml);
 }

@@ -25,6 +25,7 @@
     - **Styling**: Unified 'Draw' (무) indicator color to Yellow in Opponent/Stadium stats and **Home Page Summary**.
     - **Consistency**: Unified layout and collapse behavior for Opponent/Stadium Stats across Home and Records pages.
     - **Schedule**: Filtered out future placeholder matches (invalid dates) and sorted by Date Descending (Recent -> Past).
+    - **Dashboard**: Added "Total Matches" (경기 수) card to Home summary for clearer team activity overview.
 
 ## [v0.9_260110] - 2026-01-10 (Pre-release)
 ### Added
