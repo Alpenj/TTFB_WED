@@ -12,6 +12,9 @@
 - **Stadium Map**: Updated "Welfare Center" (복지관) map integration.
     - **Links**: Naver (Address: '하안동 740'), Kakao (Direct Link), TMAP (Direct Link).
     - **Modal Display**: Shows "Seoul Municipal Workers' Youth Welfare Center" (서울시립근로청소년복지관).
+- **UI Experience**:
+    - **Schedule**: Displays Season Year (e.g., "2024") above Match Type in "All Time" view for better context.
+    - **Intro**: Refined dashboard introduction with professional tone.
 - **Next Schedule**: Fixed filtering logic to respect the active match type tab.
 - **Repository**: Removed error log files and updated `.gitignore`.
 
