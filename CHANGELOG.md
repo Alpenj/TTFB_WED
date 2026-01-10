@@ -5,6 +5,15 @@
 > - **Minor**: Feature additions, improvements, or bug fixes.
 > - **Date**: Release date suffix (YYMMDD).
 
+## [v1.1_260110] - 2026-01-10
+### Added
+- **Schedule**: Added **Video Button** (Linked to Google Sheets Column I).
+    - **Blue**: Video URL exists.
+    - **Red**: No Video URL.
+- **Schedule Status**: Added "Scheduled" (진행 예정) label for matches without scores.
+### Fixed
+- **Data Parsing**: Improved robustness of `src/data.js` CSV parsing to handle missing columns safely.
+
 ## [v1.0_260110] - 2026-01-10
 ### Released
 - **Initial Major Release**: Established stable version v1.0.
@@ -24,17 +33,6 @@
     - **Terminology**: Renamed '자살골' to '자책골' (Own Goal).
     - **Styling**: Unified 'Draw' (무) indicator color to Yellow in Opponent/Stadium stats and **Home Page Summary**.
     - **Consistency**: Unified layout and collapse behavior for Opponent/Stadium Stats across Home and Records pages.
-    - **Schedule**: Filtered out future placeholder matches (invalid dates) and sorted by Date Descending (Recent -> Past).
-    - **Dashboard**: Added "Total Matches" (경기 수) card to Home summary for clearer team activity overview.
-
-## [v0.9_260110] - 2026-01-10 (Pre-release)
-### Added
-- **Linked Stats**: Implemented Scorer/Assister linking in Schedule view.
-- **Home Page**: Restored and enhanced "Opponent Stats" and "Stadium Stats" sections (Collapsible).
-- **Filtering**: Added "All Time" (통산) season filter as the default view.
-- **Player History**: 
-    - Sorted by Date Ascending (Past -> Recent).
-    - Fixed "+1" alignment.
-    - Suppressed linked info in "Appearances" modal.
-### Fixed
-- **Critical Bug**: Removed duplicate `getOpponentStats` function in `data.js` that caused blank page errors.
+    - **Schedule**: Filtered out future placeholder matches, sorted Descending, added (W/D/L) labels to scores, and applied Blue border for upcoming matches.
+    - **Dashboard**: Added "Total Matches" card, reordered summary cards (Matches -> Record -> Win Rate), and excluded Practice Matches from "Next/Recent" display in 'All' view.
+    - **Docs**: Updated `patch-notes.html` with latest changes.

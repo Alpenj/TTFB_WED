@@ -189,17 +189,22 @@ function parsePlayersCSV(csvText) {
 function parseScheduleCSV(csvText) {
     const rows = parseCSV(csvText);
     return rows.slice(1).map(row => {
-        if (row.length < 3) return null;
+        if (row.length < 2) return null; // Increased safety check, though we handle undefineds below
+
+        // Helper for safe access
+        const get = (idx) => (row[idx] || '').trim();
+
         return {
-            season: row[0].trim().replace('시즌', ''),
-            matchId: row[1].trim(),
-            matchType: row[2].trim(),
-            round: row[2].trim(),
-            date: row[3].trim(),
-            time: row[4].trim(),
-            stadium: row[5].trim(),
-            opponent: row[6].trim(),
-            result: (row[7] || '') + ' ' + (row[8] || '')
+            season: get(0).replace('시즌', ''),
+            matchId: get(1),
+            matchType: get(2),
+            round: get(2),
+            date: get(3),
+            time: get(4),
+            stadium: get(5),
+            opponent: get(6),
+            result: get(7),
+            videoUrl: get(8)
         };
     }).filter(m => m && m.matchId);
 }

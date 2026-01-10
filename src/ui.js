@@ -109,7 +109,7 @@ export function SetupDashboard() {
             e.currentTarget.classList.add('text-neonGreen');
 
             // Render content
-            renderView(target, currentSeason);
+            renderView(target, currentSeason, currentMatchType);
         });
     });
 
@@ -162,7 +162,7 @@ export function SetupDashboard() {
                 homeBtn.classList.remove('text-gray-500');
                 homeBtn.classList.add('text-neonGreen');
             }
-            renderView('home', currentSeason);
+            renderView('home', currentSeason, currentMatchType);
         });
     }
 
@@ -185,14 +185,22 @@ function renderView(view, currentSeason, currentMatchType) {
 }
 
 function renderHome(container, currentSeason, currentMatchType) {
-    const schedule = getSchedule(currentSeason);
+    const schedule = [...getSchedule(currentSeason)];
     const stats = getStats(currentSeason, currentMatchType);
     const teamStats = getTeamStats(currentSeason, currentMatchType);
 
     const today = new Date();
-    // Parse '2026.01.18' format
-    const upcomingMatch = schedule
-        .filter(m => currentMatchType === 'all' ? true : m.matchType === currentMatchType)
+    // Sort Ascending for reliable finding of 'Next Match'
+    const sortedSchedule = [...schedule].sort((a, b) => a.date.localeCompare(b.date));
+
+    // Filter for Home Page 'Next/Recent' logic
+    const homeFilter = (m) => {
+        if (currentMatchType === 'all') return m.matchType !== '연습경기';
+        return m.matchType === currentMatchType;
+    };
+
+    const upcomingMatch = sortedSchedule
+        .filter(homeFilter)
         .find(m => {
             if (!m.date) return false;
             const parts = m.date.split('.');
@@ -211,9 +219,9 @@ function renderHome(container, currentSeason, currentMatchType) {
         dDayMarkup = `<span class="bg-neonGreen text-black font-bold px-2 py-0.5 rounded text-xs animate-pulse">${dDay}</span>`;
     }
 
-    const lastMatch = currentMatchType === '연습경기' ? null : [...schedule]
-        .filter(m => currentMatchType === 'all' ? m.matchType !== '연습경기' : m.matchType === currentMatchType) // Filter by type if selected, otherwise exclude practice for 'all'
-        .reverse()
+    const lastMatch = [...schedule]
+        .filter(homeFilter)
+        .sort((a, b) => b.date.localeCompare(a.date)) // Sort Descending to find most recent
         .find(m => m.result && m.result.trim() !== '');
 
     let recentResultMarkup = '';
@@ -267,11 +275,6 @@ function renderHome(container, currentSeason, currentMatchType) {
                 <span class="text-gray-400 text-xs font-mono z-10">경기 수 (Matches)</span>
                 <span class="text-3xl font-black text-white mt-1 z-10">${teamStats.wins + teamStats.draws + teamStats.losses}<span class="text-base font-normal text-gray-500 ml-1">전</span></span>
             </div>
-            <div class="bg-gradient-to-br from-gray-800 to-gray-900 p-4 rounded-3xl border border-gray-700 flex flex-col items-center justify-center shadow-lg relative overflow-hidden group cursor-pointer hover:border-neonGreen transition-colors" id="btn-stats-record">
-                <div class="absolute inset-0 bg-neonGreen/5 opacity-0 group-hover:opacity-100 transition-opacity"></div>
-                <span class="text-gray-400 text-xs font-mono z-10">승률 (Win Rate)</span>
-                <span class="text-3xl font-black text-white mt-1 z-10">${teamStats.winRate}<span class="text-base font-normal text-neonGreen">%</span></span>
-            </div>
              <div class="bg-gradient-to-br from-gray-800 to-gray-900 p-4 rounded-3xl border border-gray-700 flex flex-col items-center justify-center shadow-lg relative overflow-hidden group cursor-pointer hover:border-blue-500 transition-colors col-span-2 md:col-span-1" id="btn-stats-summary">
                 <div class="absolute inset-0 bg-blue-500/5 opacity-0 group-hover:opacity-100 transition-opacity"></div>
                 <span class="text-gray-400 text-xs font-mono z-10">전적 (W-D-L)</span>
@@ -281,11 +284,15 @@ function renderHome(container, currentSeason, currentMatchType) {
                     <span class="text-xl font-bold text-white">${teamStats.losses}</span><span class="text-xs text-gray-500">패</span>
                 </div>
             </div>
+            <div class="bg-gradient-to-br from-gray-800 to-gray-900 p-4 rounded-3xl border border-gray-700 flex flex-col items-center justify-center shadow-lg relative overflow-hidden group cursor-pointer hover:border-neonGreen transition-colors" id="btn-stats-record">
+                <div class="absolute inset-0 bg-neonGreen/5 opacity-0 group-hover:opacity-100 transition-opacity"></div>
+                <span class="text-gray-400 text-xs font-mono z-10">승률 (Win Rate)</span>
+                <span class="text-3xl font-black text-white mt-1 z-10">${teamStats.winRate}<span class="text-base font-normal text-neonGreen">%</span></span>
+            </div>
         </div>
 
         <!--Next Match Card-->
         <div class="bg-gradient-to-r from-gray-900 to-gray-800 rounded-3xl p-6 border-l-4 border-neonGreen shadow-2xl relative overflow-hidden cursor-pointer hover:bg-gray-800 transition-colors" id="btn-next-match">
-            <!-- <div class="absolute -right-4 -top-4 text-9xl text-white/5 font-black rotate-12 pointer-events-none">NEXT</div> -->
             <div class="flex justify-between items-start mb-4 relative z-10">
                 <div class="flex items-center space-x-2">
                     <span class="text-neonGreen font-mono text-xl font-bold">${upcomingMatch ? upcomingMatch.round : 'Next'}</span>
@@ -434,8 +441,6 @@ function renderHome(container, currentSeason, currentMatchType) {
     const stadiumEl = createStadiumStatsElement(currentSeason, currentMatchType);
     if (stadiumEl) container.appendChild(stadiumEl);
 
-
-
     // Add Player Stats Table (Collapsed by default)
     const tableEl = createPlayerStatsTable(stats.players, currentSeason);
     tableEl.classList.add('mt-6');
@@ -447,7 +452,7 @@ function renderMatches(container, currentSeason, currentMatchType) {
     // But this view has its own tabs. We can filter the INITIAL list or just let the tabs handle it.
     // However, if Global is 'League', having tabs for 'Cup' seems weird if it shows nothing.
     // Let's filter the source schedule first if currentMatchType !='all'
-    let schedule = getSchedule(currentSeason);
+    let schedule = [...getSchedule(currentSeason)];
 
     // 1. Filter by valid date first to hide placeholder/future unset matches
     schedule = schedule.filter(m => m.date && m.date.match(/^\d{4}\.\d{2}\.\d{2}$/));
@@ -455,6 +460,9 @@ function renderMatches(container, currentSeason, currentMatchType) {
     // 2. Filter by Match Type
     if (currentMatchType && currentMatchType !== 'all') {
         schedule = schedule.filter(m => m.matchType === currentMatchType);
+    } else if (currentMatchType === 'all') {
+        // Exclude Practice Matches from "All" Tab
+        schedule = schedule.filter(m => m.matchType !== '연습경기');
     }
 
     // 3. Sort by Date Descending (Recent -> Past)
@@ -502,10 +510,16 @@ function renderMatches(container, currentSeason, currentMatchType) {
         }
 
         pageItems.forEach(match => {
-            let statusColor = 'border-gray-700';
+            let statusColor = 'border-blue-500';
             let resultText = '';
 
-            if (match.result) {
+            // Strict check: Result must be non-empty and contain either a score or result keyword
+            const validResult = match.result && match.result.trim().length > 0 && (
+                /\d+:\d+/.test(match.result) ||
+                /[승무패WDL]/.test(match.result.toUpperCase())
+            );
+
+            if (validResult) {
                 // Parse Result: "2:2 (4:3 PK)"
                 const mainMatch = match.result.match(/^(\d+:\d+)/);
                 const pkMatch = match.result.match(/\((\d+:\d+)\s*(PK|승부차기)\)/i);
@@ -538,15 +552,28 @@ function renderMatches(container, currentSeason, currentMatchType) {
                 else statusColor = 'border-red-500';
 
                 const textColor = isWin ? 'text-neonGreen' : (isDraw ? 'text-yellow-400' : 'text-red-400');
+                const resultLabel = isWin ? '(승)' : (isDraw ? '(무)' : '(패)');
 
-                let displayScore = `<span class="font-bold ml-auto ${textColor}">${mainResult}</span>`;
+                let displayScore = `<span class="font-bold ml-auto ${textColor}">${mainResult} <span class="text-xs font-normal ml-1">${resultLabel}</span></span>`;
                 if (pkScore) {
                     displayScore += `<span class="text-[10px] text-gray-400 ml-1 block text-right font-mono">(${pkScore} PK)</span>`;
                 }
 
-                resultText = `<div class="flex flex-col items-end">${displayScore}</div>`;
+                resultText = `<div class="flex flex-col items-end gap-1">
+                                ${displayScore}
+                                <a href="${match.videoUrl || '#'}" target="${match.videoUrl ? '_blank' : '_self'}" 
+                                   class="text-[10px] px-2 py-0.5 rounded border ${match.videoUrl ? 'bg-blue-900/30 border-blue-500 text-blue-400 hover:bg-blue-800/50' : 'bg-red-900/30 border-red-500 text-red-500 opacity-70 cursor-not-allowed'} transition-colors no-underline">
+                                   영상
+                                </a>
+                              </div>`;
             } else {
-                resultText = `<span class="bg-gray-700 text-gray-300 text-xs px-2 py-1 rounded ml-auto">예정</span>`;
+                resultText = `<div class="flex flex-col items-end gap-1">
+                                <span class="bg-gray-700 text-gray-300 text-xs px-2 py-1 rounded ml-auto">진행 예정</span>
+                                <a href="${match.videoUrl || '#'}" target="${match.videoUrl ? '_blank' : '_self'}" 
+                                   class="text-[10px] px-2 py-0.5 rounded border ${match.videoUrl ? 'bg-blue-900/30 border-blue-500 text-blue-400 hover:bg-blue-800/50' : 'bg-red-900/30 border-red-500 text-red-500 opacity-70 cursor-not-allowed'} transition-colors no-underline">
+                                   영상
+                                </a>
+                              </div>`;
             }
 
             // Link Scorer/Assister Logic

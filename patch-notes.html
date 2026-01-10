@@ -37,7 +37,7 @@
         <!-- Header -->
         <header class="mb-12 text-center">
             <h1 class="text-3xl md:text-4xl font-black text-white mb-4">TTFB WED <span
-                    class="text-neonGreen">v1.0</span> Update</h1>
+                    class="text-neonGreen">v1.1</span> Update</h1>
             <p class="text-gray-400">데이터 대시보드 정식 릴리즈 안내</p>
         </header>
 
@@ -68,9 +68,11 @@
                 <div class="space-y-4 text-sm md:text-base text-gray-300">
                     <p>팀의 현재 상황을 한눈에 파악하세요.</p>
                     <ul class="space-y-2 list-disc list-inside ml-2 text-gray-400">
-                        <li><strong class="text-gray-200">팀 전적 요약</strong>: 승률 카드 및 다음 경기(D-Day) 카운트다운.</li>
+                        <li><strong class="text-gray-200">요약 카드 개편</strong>: 경기 수(Matches) -> 전적(W-D-L) -> 승률 순으로 배치 변경.
+                        </li>
+                        <li><strong class="text-gray-200">다음 경기 & 최근 결과</strong>: '연습경기'는 제외하고 리그/컵 공식 경기 위주로 표시 (전체 보기
+                            시).</li>
                         <li><strong class="text-gray-200">경기장 지도</strong>: 🏟️ 아이콘 클릭 시 네이버/카카오/TMAP 연동.</li>
-                        <li><strong class="text-gray-200">주요 랭킹</strong>: 공격포인트, 출전 Top 5 요약.</li>
                         <li><strong class="text-gray-200">전적 분석</strong>: 상대 팀별 / 구장별 승률 데이터 (접기/펼치기 가능).</li>
                     </ul>
                 </div>
@@ -87,9 +89,16 @@
                 <div class="space-y-4 text-sm md:text-base text-gray-300">
                     <p>직관적인 리스트로 지난 경기와 예정된 일정을 확인하세요.</p>
                     <ul class="space-y-2 list-disc list-inside ml-2 text-gray-400">
-                        <li><strong class="text-gray-200">필터링</strong>: 리그, 컵, 친선 경기 등 유형별 모아보기.</li>
-                        <li><strong class="text-gray-200">상세 결과</strong>: 스코어는 기본, 승부차기(PK) 결과와 득점/도움 선수 실명 표기.</li>
-                        <li><strong class="text-gray-200">승패 색상</strong>: 승(초록), 무(노랑), 패(빨강)으로 직관적 구분.</li>
+                        <li><strong class="text-gray-200">필터링 개선</strong>: '전체' 탭에서는 연습경기를 제외하고 공식 일정만 표시합니다.</li>
+                        <li><strong class="text-gray-200">스코어 표기</strong>: 점수 옆에 <span
+                                class="text-neonGreen">(승)</span>, <span class="text-yellow-400">(무)</span>, <span
+                                class="text-red-400">(패)</span> 라벨 추가.</li>
+                        <li><strong class="text-gray-200">상태 색상</strong>: 예정된 경기는 <span class="text-blue-500">파란색</span>
+                            라인으로 구분.</li>
+                        <li><strong class="text-gray-200">상세 결과</strong>: 승부차기(PK) 결과와 득점/도움 선수 실명 표기.</li>
+                        <li><strong class="text-gray-200">경기 영상</strong>: <span
+                                class="text-blue-400 border border-blue-500 rounded px-1 text-[10px]">영상</span> 버튼 추가
+                            (파란색: 시청 가능, 빨간색: 미등록).</li>
                     </ul>
                 </div>
             </div>
@@ -106,8 +115,8 @@
                     <p>데이터 분석의 핵심 페이지입니다.</p>
                     <ul class="space-y-2 list-disc list-inside ml-2 text-gray-400">
                         <li><strong class="text-gray-200">부문별 랭킹</strong>: 득점, 도움, 출전, 경고, 퇴장, 자책골(Own Goal) 순위.</li>
-                        <li><strong class="text-gray-200">개인 히스토리 팝업</strong>: <span class="text-neonGreen">New!
-                                ✨</span> 선수 이름을 클릭하면 언제, 누구를 상대로 기록했는지 팝업으로 상세히 보여줍니다.</li>
+                        <li><strong class="text-gray-200">개인 히스토리 팝업</strong>: <span class="text-neonGreen"></span> 선수
+                            이름을 클릭하면 언제, 누구를 상대로 기록했는지 팝업으로 상세히 보여줍니다.</li>
                         <li><strong class="text-gray-200">종합 스탯 테이블</strong>:
                             <ul class="list-none ml-6 mt-1 space-y-1 text-gray-500">
                                 <li>- 모든 항목 정렬(Sorting) 지원.</li>
@@ -116,6 +125,40 @@
                             </ul>
                         </li>
                     </ul>
+                </div>
+            </div>
+        </section>
+
+        <!-- Section 5: User Guide -->
+        <section class="mb-12">
+            <div class="bg-gray-800 rounded-3xl p-6 md:p-8 border border-gray-600 shadow-lg relative overflow-hidden">
+                <div class="absolute top-0 right-0 -mt-4 -mr-4 w-24 h-24 bg-neonGreen opacity-10 rounded-full blur-xl">
+                </div>
+                <div class="flex items-center mb-6 relative z-10">
+                    <span class="text-2xl mr-3">📝</span>
+                    <h2 class="text-xl font-bold text-white">데이터 관리 가이드 (매니저 필독)</h2>
+                </div>
+                <div class="space-y-4 text-sm md:text-base text-gray-300 relative z-10">
+                    <p>구글 스프레드시트의 <strong>[경기 일정]</strong> 시트를 수정하면 대시보드에 즉시 반영됩니다.</p>
+
+                    <div class="bg-gray-900 rounded-xl p-4 border border-gray-700 mt-4">
+                        <h3 class="text-neonGreen font-bold mb-2">1. 경기 결과 및 상태 설정 (H열)</h3>
+                        <ul class="space-y-2 text-gray-400 text-sm">
+                            <li><strong class="text-white">경기 완료</strong>: H열에 스코어를 <code>2:1</code> 형식으로 입력하세요. (승/패 구분
+                                자동)</li>
+                            <li><strong class="text-white">진행 예정</strong>: H열을 <span class="text-red-400">비워두면</span>
+                                자동으로 '진행 예정' 상태가 되며, 파란색 테두리로 표시됩니다.</li>
+                        </ul>
+                    </div>
+
+                    <div class="bg-gray-900 rounded-xl p-4 border border-gray-700">
+                        <h3 class="text-neonGreen font-bold mb-2">2. 경기 영상 버튼 설정 (I열)</h3>
+                        <ul class="space-y-2 text-gray-400 text-sm">
+                            <li><strong class="text-white">영상 없음 (빨간 버튼)</strong>: I열을 비워두면 됩니다.</li>
+                            <li><strong class="text-white">영상 있음 (파란 버튼)</strong>: I열에 유튜브 등 영상 URL을 입력하면 자동으로 파란색 버튼으로
+                                변경됩니다.</li>
+                        </ul>
+                    </div>
                 </div>
             </div>
         </section>
