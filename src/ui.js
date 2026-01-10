@@ -701,7 +701,7 @@ function renderMatches(container, currentSeason, currentMatchType) {
             el.innerHTML = `
                 <div class="flex flex-col mr-4 w-16">
                     <span class="text-xs text-gray-500 font-mono text-center leading-tight">
-                        ${window.currentSeason === 'all' && match.season ? `<span class="block text-[10px] text-gray-500 mb-0.5">${match.season}</span>` : ''}
+                        ${window.currentSeason === 'all' && match.season ? `<span class="block text-[11px] text-neonGreen font-bold mb-0.5">${match.season}</span>` : ''}
                         <span class="font-bold block">${match.matchType}</span>
                         <span class="text-[10px] block">${match.matchId}</span>
                     </span>
