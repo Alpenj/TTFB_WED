@@ -4,8 +4,9 @@
 ### Released
 - **Initial Major Release**: Established stable version v1.0.
 ### Fixed
-- **Next Schedule**: Fixed filtering logic to respect the active match type tab (e.g., Practice Match tab now shows "No Schedule" instead of leaking League matches).
-- **Repository**: Removed error log files (`build.log`, `error.log`) and updated `.gitignore`.
+- **Stadium Map**: Updated "Welfare Center" (복지관) map links to search for "Seoul Municipal Workers' Youth Welfare Center" (서울시립근로청소년복지관) instead of the raw address, ensuring correct location results.
+- **Next Schedule**: Fixed filtering logic to respect the active match type tab.
+- **Repository**: Removed error log files and updated `.gitignore`.
 
 ## [v0.9_260110] - 2026-01-10 (Pre-release)
 ### Added
