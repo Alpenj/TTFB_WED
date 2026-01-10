@@ -1,11 +1,13 @@
 # Changelog
 
-## [ver.260110.2] - 2026-01-10 (Current)
+## [v1.0_260110] - 2026-01-10
+### Released
+- **Initial Major Release**: Established stable version v1.0.
 ### Fixed
 - **Next Schedule**: Fixed filtering logic to respect the active match type tab (e.g., Practice Match tab now shows "No Schedule" instead of leaking League matches).
 - **Repository**: Removed error log files (`build.log`, `error.log`) and updated `.gitignore`.
 
-## [ver.260110] - 2026-01-10
+## [v0.9_260110] - 2026-01-10 (Pre-release)
 ### Added
 - **Linked Stats**: Implemented Scorer/Assister linking in Schedule view.
 - **Home Page**: Restored and enhanced "Opponent Stats" and "Stadium Stats" sections (Collapsible).
