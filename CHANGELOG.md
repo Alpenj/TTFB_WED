@@ -5,8 +5,9 @@
 - **Initial Major Release**: Established stable version v1.0.
 ### Fixed
 - **Stadium Map**: Updated "Welfare Center" (복지관) map integration.
-    - **Display**: Shows "Seoul Municipal Workers' Youth Welfare Center" (서울시립근로청소년복지관) in the modal for clarity.
-    - **Search**: Map buttons explicitly search for the address "784, Ori-ro, Gwangmyeong-si" (경기도 광명시 오리로 784) to ensure correct location results.
+    - **Kabao Map**: Searches for "Municipal Workers' Youth Welfare Center Soccer Field" (시립근로청소년복지관 축구장).
+    - **Naver/TMAP**: Searches for Address (경기도 광명시 오리로 784) for best results.
+    - **Modal Display**: Shows "Seoul Municipal Workers' Youth Welfare Center" (서울시립근로청소년복지관).
 - **Next Schedule**: Fixed filtering logic to respect the active match type tab.
 - **Repository**: Removed error log files and updated `.gitignore`.
 

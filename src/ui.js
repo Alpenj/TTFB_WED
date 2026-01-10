@@ -1133,12 +1133,19 @@ function showMapModal(shortName) {
     if (existingModal) existingModal.remove();
 
     // Search Query Override (e.g., Address -> Place Name)
-    let searchQuery = fullName;
     let displayName = fullName;
+    let naverQuery = fullName;
+    let kakaoQuery = fullName;
+    let tmapQuery = fullName;
 
     if (shortName === '복지관' || fullName.includes('오리로 784')) {
         displayName = '서울시립근로청소년복지관';
-        searchQuery = '경기도 광명시 오리로 784';
+        // Naver: Name often shows "Closed" or unrelated results -> Use Address
+        naverQuery = '경기도 광명시 오리로 784';
+        // Kakao: User confirmed "시립근로청소년복지관 축구장" works well
+        kakaoQuery = '시립근로청소년복지관 축구장';
+        // TMAP: Fallback to Address
+        tmapQuery = '경기도 광명시 오리로 784';
     }
 
     const modal = document.createElement('div');
@@ -1156,13 +1163,13 @@ function showMapModal(shortName) {
             <p class="text-sm text-neonGreen mb-6 font-medium">${displayName}</p>
             
             <div class="grid grid-cols-1 gap-3">
-                <a href="https://map.naver.com/p/search/${encodeURIComponent(searchQuery)}" target="_blank" class="flex items-center justify-center p-4 rounded-2xl bg-[#03C75A] text-white font-bold hover:brightness-110 transition-all shadow-lg">
+                <a href="https://map.naver.com/p/search/${encodeURIComponent(naverQuery)}" target="_blank" class="flex items-center justify-center p-4 rounded-2xl bg-[#03C75A] text-white font-bold hover:brightness-110 transition-all shadow-lg">
                    <span class="mr-2">N</span> 네이버 지도
                 </a>
-                <a href="https://map.kakao.com/link/search/${encodeURIComponent(searchQuery)}" target="_blank" class="flex items-center justify-center p-4 rounded-2xl bg-[#FEE500] text-black font-bold hover:brightness-110 transition-all shadow-lg">
+                <a href="https://map.kakao.com/link/search/${encodeURIComponent(kakaoQuery)}" target="_blank" class="flex items-center justify-center p-4 rounded-2xl bg-[#FEE500] text-black font-bold hover:brightness-110 transition-all shadow-lg">
                    <span class="mr-2">K</span> 카카오맵
                 </a>
-                <a href="tmap://search?name=${encodeURIComponent(searchQuery)}" class="flex items-center justify-center p-4 rounded-2xl bg-gradient-to-r from-[#E6002D] to-[#FF004D] text-white font-bold hover:brightness-110 transition-all shadow-lg">
+                <a href="tmap://search?name=${encodeURIComponent(tmapQuery)}" class="flex items-center justify-center p-4 rounded-2xl bg-gradient-to-r from-[#E6002D] to-[#FF004D] text-white font-bold hover:brightness-110 transition-all shadow-lg">
                    <span class="mr-2">T</span> TMAP (앱 실행)
                 </a>
                  <div class="text-[10px] text-gray-500 mt-2">* TMAP은 앱이 설치된 모바일 기기에서만 작동합니다.</div>
