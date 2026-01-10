@@ -23,6 +23,8 @@
     - **Records**: Split "Appearances" into sortable "Starts" (선발) and "Subs" (교체) columns.
     - **Terminology**: Renamed '자살골' to '자책골' (Own Goal).
     - **Styling**: Unified 'Draw' (무) indicator color to Yellow in Opponent/Stadium stats and **Home Page Summary**.
+    - **Consistency**: Unified layout and collapse behavior for Opponent/Stadium Stats across Home and Records pages.
+    - **Schedule**: Filtered out future placeholder matches (invalid dates) and sorted by Date Descending (Recent -> Past).
 
 ## [v0.9_260110] - 2026-01-10 (Pre-release)
 ### Added

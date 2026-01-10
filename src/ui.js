@@ -421,114 +421,13 @@ function renderHome(container, currentSeason, currentMatchType) {
         }
     });
 
-    // 4. Opponent Stats (Collapsible)
-    const opponentStats = getOpponentStats(currentSeason, currentMatchType);
-    const validOpponents = opponentStats.filter(o => o.name);
+    // 4. Opponent Stats (Collapsible) - Unified
+    const oppEl = createOpponentStatsElement(currentSeason, currentMatchType);
+    if (oppEl) container.appendChild(oppEl);
 
-    if (validOpponents.length > 0) {
-        const oppContainer = document.createElement('div');
-        oppContainer.className = 'bg-gray-800 rounded-3xl border border-gray-700 hover:bg-gray-750 transition-colors mt-6 overflow-hidden';
-
-        const header = document.createElement('div');
-        header.className = 'p-6 flex items-center justify-between cursor-pointer';
-        header.onclick = () => {
-            const content = oppContainer.querySelector('.opp-list');
-            const icon = oppContainer.querySelector('.toggle-icon');
-            content.classList.toggle('hidden');
-            icon.style.transform = content.classList.contains('hidden') ? 'rotate(0deg)' : 'rotate(180deg)';
-        };
-
-        header.innerHTML = `
-            <div class="flex items-center">
-                <span class="mr-2">⚔️</span>
-                <h2 class="text-lg font-bold text-white">상대 전적</h2>
-                <span class="text-xs text-gray-500 ml-2 font-normal">(승/무/패)</span>
-            </div>
-            <svg xmlns="http://www.w3.org/2000/svg" class="h-5 w-5 text-gray-400 transform transition-transform duration-300 toggle-icon rotate-0" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 9l-7 7-7-7" />
-            </svg>
-        `;
-
-        const content = document.createElement('div');
-        content.className = 'opp-list px-6 pb-6 space-y-3 hidden';
-        content.innerHTML = `<div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
-            ${validOpponents.map((o, i) => `
-                <div class="flex items-center justify-between border-b border-gray-700 pb-2 last:border-0 last:pb-0 bg-gray-700/30 p-2 rounded">
-                        <div class="flex items-center space-x-2 w-1/3">
-                        <span class="text-xs font-mono text-gray-500 w-3 flex-shrink-0">${i + 1}</span>
-                        <span class="text-sm text-white font-bold truncate">${o.name}</span>
-                    </div>
-                    <div class="flex items-center space-x-2 text-xs font-mono user-select-none">
-                        <div class="flex items-center space-x-1" title="승">
-                            <span class="w-1.5 h-1.5 rounded-full bg-neonGreen"></span>
-                            <span class="text-white">${o.wins}</span>
-                        </div>
-                        <div class="flex items-center space-x-1" title="무">
-                            <span class="w-1.5 h-1.5 rounded-full bg-gray-400"></span>
-                            <span class="text-gray-300">${o.draws}</span>
-                        </div>
-                        <div class="flex items-center space-x-1" title="패">
-                            <span class="w-1.5 h-1.5 rounded-full bg-red-500"></span>
-                            <span class="text-gray-400">${o.losses}</span>
-                        </div>
-                    </div>
-                    <div class="text-[10px] text-gray-500 font-mono w-8 text-right">
-                            ${Math.round((o.wins / o.total) * 100)}%
-                    </div>
-                </div>
-            `).join('')}
-        </div>`;
-
-        oppContainer.appendChild(header);
-        oppContainer.appendChild(content);
-        container.appendChild(oppContainer);
-    }
-
-    // 5. Stadium Stats (Collapsible)
-    const stadiumStats = getStadiumStats(currentSeason, currentMatchType);
-    if (stadiumStats.length > 0) {
-        const stadiumContainer = document.createElement('div');
-        stadiumContainer.className = 'bg-gray-800 rounded-3xl border border-gray-700 hover:bg-gray-750 transition-colors mt-6 overflow-hidden';
-
-        const header = document.createElement('div');
-        header.className = 'p-6 flex items-center justify-between cursor-pointer';
-        header.onclick = () => {
-            const content = stadiumContainer.querySelector('.stadium-list');
-            const icon = stadiumContainer.querySelector('.toggle-icon');
-            content.classList.toggle('hidden');
-            icon.style.transform = content.classList.contains('hidden') ? 'rotate(0deg)' : 'rotate(180deg)';
-        };
-
-        header.innerHTML = `
-            <div class="flex items-center">
-                <span class="mr-2">🏟️</span>
-                <h2 class="text-lg font-bold text-white">구장 별 전적</h2>
-            </div>
-            <svg xmlns="http://www.w3.org/2000/svg" class="h-5 w-5 text-gray-400 transform transition-transform duration-300 toggle-icon rotate-0" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 9l-7 7-7-7" />
-            </svg>
-        `;
-
-        const content = document.createElement('div');
-        content.className = 'stadium-list px-6 pb-6 space-y-3 hidden';
-        content.innerHTML = stadiumStats.map(s => `
-            <div class="flex items-center justify-between p-3 rounded-lg bg-gray-700/30">
-                <span class="text-sm text-gray-200 font-bold">${s.name}</span>
-                <div class="flex items-center space-x-4">
-                        <span class="text-xs text-gray-400">
-                        <span class="text-neonGreen font-bold">${s.wins}승</span> 
-                        <span class="text-gray-300 font-bold">${s.draws}무</span> 
-                        <span class="text-red-400 font-bold">${s.losses}패</span>
-                        </span>
-                        <span class="text-xs font-mono text-gray-500 w-12 text-right">${s.winRate}%</span>
-                </div>
-            </div>
-        `).join('');
-
-        stadiumContainer.appendChild(header);
-        stadiumContainer.appendChild(content);
-        container.appendChild(stadiumContainer);
-    }
+    // 5. Stadium Stats (Collapsible) - Unified
+    const stadiumEl = createStadiumStatsElement(currentSeason, currentMatchType);
+    if (stadiumEl) container.appendChild(stadiumEl);
 
 
 
@@ -544,9 +443,19 @@ function renderMatches(container, currentSeason, currentMatchType) {
     // However, if Global is 'League', having tabs for 'Cup' seems weird if it shows nothing.
     // Let's filter the source schedule first if currentMatchType !='all'
     let schedule = getSchedule(currentSeason);
+
+    // 1. Filter by valid date first to hide placeholder/future unset matches
+    schedule = schedule.filter(m => m.date && m.date.match(/^\d{4}\.\d{2}\.\d{2}$/));
+
+    // 2. Filter by Match Type
     if (currentMatchType && currentMatchType !== 'all') {
         schedule = schedule.filter(m => m.matchType === currentMatchType);
     }
+
+    // 3. Sort by Date Descending (Recent -> Past)
+    // Date format is YYYY.MM.DD, so string comparison works for sorting
+    schedule.sort((a, b) => b.date.localeCompare(a.date));
+
 
     // State
     let currentFilter = 'all'; // 'all', 'league', 'cup'
@@ -905,98 +814,47 @@ function renderStats(container, currentSeason, currentMatchType) {
     `;
     chartsContainer.appendChild(ogContainer);
 
-    // 7. Stadium Stats (New Section)
-    const stadiumStats = getStadiumStats(currentSeason, currentMatchType);
-    if (currentMatchType !== '연습경기') {
-        const stadiumContainer = document.createElement('div');
-        stadiumContainer.className = 'col-span-1 md:col-span-2 lg:col-span-3 bg-gray-800 rounded-3xl border border-gray-700 hover:bg-gray-750 transition-colors mt-6 overflow-hidden';
-
-        // Header with Toggle
-        const header = document.createElement('div');
-        header.className = 'p-6 flex items-center justify-between cursor-pointer';
-        header.onclick = () => {
-            const content = stadiumContainer.querySelector('.stadium-list');
-            const icon = stadiumContainer.querySelector('.toggle-icon');
-            content.classList.toggle('hidden');
-            icon.style.transform = content.classList.contains('hidden') ? 'rotate(0deg)' : 'rotate(180deg)';
-        };
-
-        header.innerHTML = `
-        <div class="flex items-center">
-                <span class="mr-2">🏟️</span>
-                <h2 class="text-lg font-bold text-white">구장 별 전적</h2>
-            </div>
-        <svg xmlns="http://www.w3.org/2000/svg" class="h-5 w-5 text-gray-400 transform transition-transform duration-300 toggle-icon rotate-0" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 9l-7 7-7-7" />
-        </svg>
-    `;
-
-        // Content (Collapsed by default, "hidden")
-        const content = document.createElement('div');
-        content.className = 'stadium-list px-6 pb-6 space-y-3 hidden'; // Hidden by default
-        content.innerHTML = stadiumStats.length > 0 ? stadiumStats.map(s => `
-        <div class="flex items-center justify-between p-3 rounded-lg bg-gray-700/30">
-                <span class="text-sm text-gray-200 font-bold">${s.name}</span>
-                <div class="flex items-center space-x-4">
-                     <span class="text-xs text-gray-400">
-                        <span class="text-neonGreen font-bold">${s.wins}승</span> 
-                        <span class="text-yellow-400 font-bold">${s.draws}무</span> 
-                        <span class="text-red-400 font-bold">${s.losses}패</span>
-                     </span>
-                     <span class="text-xs font-mono text-gray-500 w-12 text-right">${s.winRate}%</span>
-                </div>
-            </div>
-        `).join('') : '<div class="text-center text-gray-500 text-xs py-4">기록 없음</div>';
-
-        stadiumContainer.appendChild(header);
-        stadiumContainer.appendChild(content);
-        chartsContainer.appendChild(stadiumContainer);
-    }
-
-    // 8. Opponent Stats
-    const opponentStats = getOpponentStats(currentSeason, currentMatchType || 'all');
-    let oppContainer = null;
-    if (opponentStats.length > 0 && currentMatchType !== '연습경기') {
-        oppContainer = document.createElement('div');
-        oppContainer.className = 'bg-gray-800 p-4 rounded-2xl border border-gray-700 w-full mb-6';
-        oppContainer.innerHTML = `
-        <h3 class="text-sm text-gray-400 mb-3"> 상대 전적 <span class="text-xs text-gray-500 font-normal"> (승 / 무 / 패)</span></h3>
-            <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
-                ${opponentStats.map((o, i) => `
-                    <div class="flex items-center justify-between border-b border-gray-700 pb-2 last:border-0 last:pb-0 bg-gray-700/30 p-2 rounded">
-                         <div class="flex items-center space-x-2 w-1/3">
-                            <span class="text-xs font-mono text-gray-500 w-3 flex-shrink-0">${i + 1}</span>
-                            <span class="text-sm text-white font-bold truncate">${o.name}</span>
-                        </div>
-                        <div class="flex items-center space-x-2 text-xs font-mono user-select-none">
-                            <div class="flex items-center space-x-1" title="승">
-                                <span class="w-1.5 h-1.5 rounded-full bg-neonGreen"></span>
-                                <span class="text-white">${o.wins}</span>
-                            </div>
-                            <div class="flex items-center space-x-1" title="무">
-                                <span class="w-1.5 h-1.5 rounded-full bg-yellow-400"></span>
-                                <span class="text-white">${o.draws}</span>
-                            </div>
-                            <div class="flex items-center space-x-1" title="패">
-                                <span class="w-1.5 h-1.5 rounded-full bg-red-500"></span>
-                                <span class="text-gray-400">${o.losses}</span>
-                            </div>
-                        </div>
-                        <div class="text-[10px] text-gray-500 font-mono w-8 text-right">
-                             ${Math.round((o.wins / o.total) * 100)}%
-                        </div>
-                    </div>
-                `).join('')}
-            </div>
-    `;
-    }
-
-    // 9. Table Section (With Title Inside and Collapsible)
-    // Append Charts and Opponent Stats
+    // Append All Components in Order
     container.appendChild(chartsContainer);
-    if (oppContainer) {
-        container.appendChild(oppContainer);
-    }
+
+    // 7. Opponent Stats (Unified & Reordered)
+    const oppEl = createOpponentStatsElement(currentSeason, currentMatchType);
+    if (oppEl) container.appendChild(oppEl);
+
+    // 8. Stadium Stats (Unified & Reordered)
+    const stadiumEl = createStadiumStatsElement(currentSeason, currentMatchType);
+    if (stadiumEl) container.appendChild(stadiumEl);
+
+    // 9. Table - Created by shared function below but appended here?
+    // Wait, createPlayerStatsTable is duplicated logic? No, it's defined globally.
+    // renderStats just calls it. 
+    // Checking renderStats structure... it calls createPlayerStatsTable at the END.
+    // Let's make sure we don't duplicate appendChilds.
+    // The snippet I'm replacing covers the old creation of stadiumStats and opponentStats inline.
+    // I need to be careful not to break that or double append.
+    // ORIGINAL lines 996: container.appendChild(chartsContainer);
+    // ORIGINAL lines 997-999: if (oppContainer) container.appendChild(oppContainer);
+    //
+    // The snippet I am targeting (909-992) contains the CREATION of stadiumContainer and oppContainer.
+    // BUT line 952 says `chartsContainer.appendChild(stadiumContainer)` ??? in the old code?
+    // Wait, looking at Step 4774 lines 952-953: `chartsContainer.appendChild(stadiumContainer)`.
+    // That means Stadium Stats was INSIDE the grid in Records? 
+    // And Opponent Stats (line 960) was a separate div `oppContainer`.
+    // And line 996 appends `chartsContainer`, line 997 appends `oppContainer`.
+    //
+    // User wants: "Home and Records table order same" -> Top 5 (Charts) -> Opponent -> Stadium -> Player.
+    // So Stadium should NOT be in chartsContainer.
+    // Opponent should be separate.
+    // Stadium should be separate.
+    //
+    // So my replacement content above handles creation and appending to `container` directly, NOT `chartsContainer`.
+    // And I should remove the old code that appended to `chartsContainer`.
+    //
+    // However, I need to make sure I don't leave valid code dangling. 
+    // The target chunk ends at 992.
+    // The lines 994-1000 handle appending.
+    // I will include lines 994-1000 in the target to overwrite the appending logic too.
+
 
     // Append Table using helper
     const tableEl = createPlayerStatsTable(stats.players, currentSeason);
@@ -1005,8 +863,6 @@ function renderStats(container, currentSeason, currentMatchType) {
 
     // Expose modal function to window
     window.showPlayerProfileModal = showPlayerProfileModal;
-
-    renderTablePage(currentPage);
 
 
 
@@ -1405,16 +1261,16 @@ function createPlayerStatsTable(players, currentSeason) {
                 <thead class="bg-gray-900 border-b border-gray-700 sticky top-0 z-10 shadow-sm">
                     <tr>
                          <th class="p-3 text-center text-xs text-gray-500 font-medium w-12">순위</th>
-                        <th class="cursor-pointer hover:bg-gray-800 p-3 text-center text-xs text-gray-500 font-medium select-none transition-colors group" data-sort="position">포지션</th>
-                        <th class="cursor-pointer hover:bg-gray-800 p-3 text-left text-xs text-gray-500 font-medium select-none transition-colors group" data-sort="name">선수명</th>
-                        <th class="cursor-pointer hover:bg-gray-800 p-3 text-center text-xs text-gray-500 font-medium select-none transition-colors group whitespace-nowrap" data-sort="appearances">출전</th>
-                        <th class="cursor-pointer hover:bg-gray-800 p-3 text-center text-xs text-neonGreen font-medium select-none transition-colors group whitespace-nowrap" data-sort="starts">선발</th>
-                        <th class="cursor-pointer hover:bg-gray-800 p-3 text-center text-xs text-gray-400 font-medium select-none transition-colors group whitespace-nowrap" data-sort="substitutes">교체</th>
-                        <th class="cursor-pointer hover:bg-gray-800 p-3 text-center text-xs text-neonGreen font-bold select-none transition-colors group bg-gray-800/50 whitespace-nowrap" data-sort="attackPoints">공격포인트</th>
-                        <th class="cursor-pointer hover:bg-gray-800 p-3 text-center text-xs text-gray-500 font-medium select-none transition-colors group whitespace-nowrap" data-sort="goals">득점</th>
-                        <th class="cursor-pointer hover:bg-gray-800 p-3 text-center text-xs text-gray-500 font-medium select-none transition-colors group whitespace-nowrap" data-sort="assists">도움</th>
-                        <th class="cursor-pointer hover:bg-gray-800 p-3 text-center text-xs text-yellow-400 font-medium select-none transition-colors group whitespace-nowrap" data-sort="yellowCards">경고</th>
-                        <th class="cursor-pointer hover:bg-gray-800 p-3 text-center text-xs text-red-400 font-medium select-none transition-colors group whitespace-nowrap" data-sort="ownGoals">자책골</th>
+                        <th class="cursor-pointer hover:bg-gray-800 p-3 text-center text-xs text-gray-500 font-medium select-none transition-colors group" data-sort="position">포지션 <span class="text-gray-600 ml-1 text-[10px]">⇅</span></th>
+                        <th class="cursor-pointer hover:bg-gray-800 p-3 text-left text-xs text-gray-500 font-medium select-none transition-colors group" data-sort="name">선수명 <span class="text-gray-600 ml-1 text-[10px]">⇅</span></th>
+                        <th class="cursor-pointer hover:bg-gray-800 p-3 text-center text-xs text-gray-500 font-medium select-none transition-colors group whitespace-nowrap" data-sort="appearances">출전 <span class="text-gray-600 ml-1 text-[10px]">⇅</span></th>
+                        <th class="cursor-pointer hover:bg-gray-800 p-3 text-center text-xs text-neonGreen font-medium select-none transition-colors group whitespace-nowrap" data-sort="starts">선발 <span class="text-gray-600 ml-1 text-[10px]">⇅</span></th>
+                        <th class="cursor-pointer hover:bg-gray-800 p-3 text-center text-xs text-gray-400 font-medium select-none transition-colors group whitespace-nowrap" data-sort="substitutes">교체 <span class="text-gray-600 ml-1 text-[10px]">⇅</span></th>
+                        <th class="cursor-pointer hover:bg-gray-800 p-3 text-center text-xs text-neonGreen font-bold select-none transition-colors group bg-gray-800/50 whitespace-nowrap" data-sort="attackPoints">공격포인트 <span class="text-neonGreen ml-1 text-[10px]">▼</span></th>
+                        <th class="cursor-pointer hover:bg-gray-800 p-3 text-center text-xs text-gray-500 font-medium select-none transition-colors group whitespace-nowrap" data-sort="goals">득점 <span class="text-gray-600 ml-1 text-[10px]">⇅</span></th>
+                        <th class="cursor-pointer hover:bg-gray-800 p-3 text-center text-xs text-gray-500 font-medium select-none transition-colors group whitespace-nowrap" data-sort="assists">도움 <span class="text-gray-600 ml-1 text-[10px]">⇅</span></th>
+                        <th class="cursor-pointer hover:bg-gray-800 p-3 text-center text-xs text-yellow-400 font-medium select-none transition-colors group whitespace-nowrap" data-sort="yellowCards">경고 <span class="text-gray-600 ml-1 text-[10px]">⇅</span></th>
+                        <th class="cursor-pointer hover:bg-gray-800 p-3 text-center text-xs text-red-400 font-medium select-none transition-colors group whitespace-nowrap" data-sort="ownGoals">자책골 <span class="text-gray-600 ml-1 text-[10px]">⇅</span></th>
                     </tr>
                 </thead>
                 <tbody class="divide-y divide-gray-700/50"></tbody>
@@ -1481,26 +1337,37 @@ function createPlayerStatsTable(players, currentSeason) {
 
         tableBody.innerHTML = rowsHtml || '<tr><td colspan="11" class="text-center py-10 text-gray-500">기록 없음</td></tr>';
 
-        const paginationEl = tableWrapper.querySelector('.pagination-controls');
-        if (paginationEl) {
-            paginationEl.innerHTML = `
-                <button ${page === 1 ? 'disabled' : ''} class="prev-btn px-3 py-1 bg-gray-700 rounded text-xs ${page === 1 ? 'opacity-50 cursor-not-allowed' : 'hover:bg-gray-600 border border-gray-600'} text-gray-300">이전</button>
-                <span class="text-xs text-gray-400 font-mono">${page} / ${totalPages}</span>
-                <button ${page === totalPages ? 'disabled' : ''} class="next-btn px-3 py-1 bg-gray-700 rounded text-xs ${page === totalPages ? 'opacity-50 cursor-not-allowed' : 'hover:bg-gray-600 border border-gray-600'} text-gray-300">다음</button>
-            `;
-            paginationEl.querySelector('.prev-btn').onclick = () => {
-                if (currentPage > 1) { currentPage--; renderTablePage(currentPage); }
-            };
-            paginationEl.querySelector('.next-btn').onclick = () => {
-                if (currentPage < totalPages) { currentPage++; renderTablePage(currentPage); }
-            };
+        // Render Pagination
+        const paginationContainer = tableWrapper.querySelector('.pagination-controls');
+        if (paginationContainer) {
+            paginationContainer.innerHTML = '';
+            // Prev
+            const prevBtn = document.createElement('button');
+            prevBtn.className = `px-3 py-1 text-xs rounded bg-gray-700 text-white hover:bg-gray-600 disabled:opacity-50 disabled:cursor-not-allowed`;
+            prevBtn.textContent = '이전';
+            prevBtn.disabled = page === 1;
+            prevBtn.onclick = () => { if (page > 1) { currentPage--; renderTablePage(currentPage); } };
+
+            // Next
+            const nextBtn = document.createElement('button');
+            nextBtn.className = `px-3 py-1 text-xs rounded bg-gray-700 text-white hover:bg-gray-600 disabled:opacity-50 disabled:cursor-not-allowed`;
+            nextBtn.textContent = '다음';
+            nextBtn.disabled = page >= totalPages;
+            nextBtn.onclick = () => { if (page < totalPages) { currentPage++; renderTablePage(currentPage); } };
+
+            const info = document.createElement('span');
+            info.className = 'text-xs text-gray-400 font-mono';
+            info.textContent = `${page} / ${totalPages}`;
+
+            paginationContainer.appendChild(prevBtn);
+            paginationContainer.appendChild(info);
+            paginationContainer.appendChild(nextBtn);
         }
 
         const thead = tableWrapper.querySelector('thead');
         if (thead) {
             thead.querySelectorAll('th[data-sort]').forEach(th => {
                 const key = th.dataset.sort;
-                if (!th.querySelector('span')) th.innerHTML += ' <span></span>';
                 const indicatorSpan = th.querySelector('span');
                 if (indicatorSpan) {
                     if (sortState.key !== key) {
