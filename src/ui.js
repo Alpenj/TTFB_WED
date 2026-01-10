@@ -272,7 +272,7 @@ function renderHome(container, currentSeason, currentMatchType) {
                 <span class="text-gray-400 text-xs font-mono z-10">전적 (W-D-L)</span>
                 <div class="flex items-baseline space-x-1 mt-1 z-10">
                     <span class="text-xl font-bold text-white">${teamStats.wins}</span><span class="text-xs text-gray-500">승</span>
-                    <span class="text-xl font-bold text-white">${teamStats.draws}</span><span class="text-xs text-gray-500">무</span>
+                    <span class="text-xl font-bold text-yellow-400">${teamStats.draws}</span><span class="text-xs text-gray-500">무</span>
                     <span class="text-xl font-bold text-white">${teamStats.losses}</span><span class="text-xs text-gray-500">패</span>
                 </div>
             </div>

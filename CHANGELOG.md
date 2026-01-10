@@ -22,7 +22,7 @@
     - **Bug Fixes**: Resolved critical HTML tag rendering issues (raw HTML strings in UI).
     - **Records**: Split "Appearances" into sortable "Starts" (선발) and "Subs" (교체) columns.
     - **Terminology**: Renamed '자살골' to '자책골' (Own Goal).
-    - **Styling**: Unified 'Draw' (무) indicator color to Yellow in Opponent/Stadium stats.
+    - **Styling**: Unified 'Draw' (무) indicator color to Yellow in Opponent/Stadium stats and **Home Page Summary**.
 
 ## [v0.9_260110] - 2026-01-10 (Pre-release)
 ### Added
