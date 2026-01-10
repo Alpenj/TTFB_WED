@@ -270,23 +270,23 @@ function renderHome(container, currentSeason, currentMatchType) {
         <h2 class="text-lg font-bold text-white mb-4">홈</h2>
         <!-- Team Stats Summary -->
         <div class="grid grid-cols-2 md:grid-cols-3 gap-4">
-             <div class="bg-gradient-to-br from-gray-800 to-gray-900 p-4 rounded-3xl border border-gray-700 flex flex-col items-center justify-center shadow-lg relative overflow-hidden group cursor-pointer hover:border-white transition-colors">
-                <div class="absolute inset-0 bg-white/5 opacity-0 group-hover:opacity-100 transition-opacity"></div>
-                <span class="text-gray-400 text-xs font-mono z-10">경기 수 (Matches)</span>
-                <span class="text-3xl font-black text-white mt-1 z-10">${teamStats.wins + teamStats.draws + teamStats.losses}<span class="text-base font-normal text-gray-500 ml-1">전</span></span>
-            </div>
+                 <div class="bg-gradient-to-br from-gray-800 to-gray-900 p-4 rounded-3xl border border-gray-700 flex flex-col items-center justify-center shadow-lg relative overflow-hidden group cursor-pointer hover:border-white transition-colors" onclick="document.querySelector('button[data-target=\'matches\']').click()">
+                    <div class="absolute inset-0 bg-white/5 opacity-0 group-hover:opacity-100 transition-opacity"></div>
+                    <span class="text-gray-400 text-xs font-mono z-10">경기 수</span>
+                    <span class="text-3xl font-black text-white mt-1 z-10">${teamStats.wins + teamStats.draws + teamStats.losses}<span class="text-base font-normal text-gray-500 ml-1">전</span></span>
+                </div>
              <div class="bg-gradient-to-br from-gray-800 to-gray-900 p-4 rounded-3xl border border-gray-700 flex flex-col items-center justify-center shadow-lg relative overflow-hidden group cursor-pointer hover:border-blue-500 transition-colors col-span-2 md:col-span-1" id="btn-stats-summary">
-                <div class="absolute inset-0 bg-blue-500/5 opacity-0 group-hover:opacity-100 transition-opacity"></div>
-                <span class="text-gray-400 text-xs font-mono z-10">전적 (W-D-L)</span>
+                 <div class="absolute inset-0 bg-blue-500/5 opacity-0 group-hover:opacity-100 transition-opacity"></div>
+                <span class="text-gray-400 text-xs font-mono z-10">전적 (승-무-패)</span>
                 <div class="flex items-baseline space-x-1 mt-1 z-10">
-                    <span class="text-xl font-bold text-white">${teamStats.wins}</span><span class="text-xs text-gray-500">승</span>
+                    <span class="text-xl font-bold text-neonGreen">${teamStats.wins}</span><span class="text-xs text-gray-500">승</span>
                     <span class="text-xl font-bold text-yellow-400">${teamStats.draws}</span><span class="text-xs text-gray-500">무</span>
-                    <span class="text-xl font-bold text-white">${teamStats.losses}</span><span class="text-xs text-gray-500">패</span>
+                    <span class="text-xl font-bold text-red-500">${teamStats.losses}</span><span class="text-xs text-gray-500">패</span>
                 </div>
             </div>
             <div class="bg-gradient-to-br from-gray-800 to-gray-900 p-4 rounded-3xl border border-gray-700 flex flex-col items-center justify-center shadow-lg relative overflow-hidden group cursor-pointer hover:border-neonGreen transition-colors" id="btn-stats-record">
                 <div class="absolute inset-0 bg-neonGreen/5 opacity-0 group-hover:opacity-100 transition-opacity"></div>
-                <span class="text-gray-400 text-xs font-mono z-10">승률 (Win Rate)</span>
+                <span class="text-gray-400 text-xs font-mono z-10">승률</span>
                 <span class="text-3xl font-black text-white mt-1 z-10">${teamStats.winRate}<span class="text-base font-normal text-neonGreen">%</span></span>
             </div>
         </div>
@@ -1500,18 +1500,9 @@ function createOpponentStatsElement(currentSeason, currentMatchType) {
                         <span class="text-sm text-white font-bold truncate">${o.name}</span>
                     </div>
                     <div class="flex items-center space-x-3 text-xs font-mono user-select-none">
-                        <div class="flex items-center space-x-1" title="승">
-                            <span class="w-2 h-2 rounded-full bg-neonGreen shadow-[0_0_5px_rgba(57,255,20,0.5)]"></span>
-                            <span class="text-white font-bold">${o.wins}</span>
-                        </div>
-                        <div class="flex items-center space-x-1" title="무">
-                            <span class="w-2 h-2 rounded-full bg-yellow-400"></span>
-                            <span class="text-white font-bold">${o.draws}</span>
-                        </div>
-                        <div class="flex items-center space-x-1" title="패">
-                            <span class="w-2 h-2 rounded-full bg-red-500"></span>
-                            <span class="text-gray-400 font-bold">${o.losses}</span>
-                        </div>
+                        <span class="text-neonGreen font-bold">${o.wins}승</span>
+                        <span class="text-yellow-400 font-bold">${o.draws}무</span>
+                        <span class="text-red-500 font-bold">${o.losses}패</span>
                     </div>
                     <div class="text-xs text-gray-400 font-mono w-10 text-right font-bold">
                          ${Math.round((o.wins / o.total) * 100)}%
