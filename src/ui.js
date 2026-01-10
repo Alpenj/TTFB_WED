@@ -1134,8 +1134,11 @@ function showMapModal(shortName) {
 
     // Search Query Override (e.g., Address -> Place Name)
     let searchQuery = fullName;
+    let displayName = fullName;
+
     if (shortName === '복지관' || fullName.includes('오리로 784')) {
-        searchQuery = '서울시립근로청소년복지관';
+        displayName = '서울시립근로청소년복지관';
+        searchQuery = '경기도 광명시 오리로 784';
     }
 
     const modal = document.createElement('div');
@@ -1150,7 +1153,7 @@ function showMapModal(shortName) {
             </button>
             
             <h3 class="text-xl font-bold text-white mb-1">🏟️ 경기장 안내</h3>
-            <p class="text-sm text-neonGreen mb-6 font-medium">${fullName}</p>
+            <p class="text-sm text-neonGreen mb-6 font-medium">${displayName}</p>
             
             <div class="grid grid-cols-1 gap-3">
                 <a href="https://map.naver.com/p/search/${encodeURIComponent(searchQuery)}" target="_blank" class="flex items-center justify-center p-4 rounded-2xl bg-[#03C75A] text-white font-bold hover:brightness-110 transition-all shadow-lg">
