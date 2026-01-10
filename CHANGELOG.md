@@ -17,6 +17,12 @@
     - **Intro**: Refined dashboard introduction with professional tone.
 - **Next Schedule**: Fixed filtering logic to respect the active match type tab.
 - **Repository**: Removed error log files and updated `.gitignore`.
+- **UI Refinement**:
+    - **Global Layout**: Consolidated Match Type filters into the tab bar and standardized page headers.
+    - **Bug Fixes**: Resolved critical HTML tag rendering issues (raw HTML strings in UI).
+    - **Records**: Split "Appearances" into sortable "Starts" (선발) and "Subs" (교체) columns.
+    - **Terminology**: Renamed '자살골' to '자책골' (Own Goal).
+    - **Styling**: Unified 'Draw' (무) indicator color to Yellow in Opponent/Stadium stats.
 
 ## [v0.9_260110] - 2026-01-10 (Pre-release)
 ### Added

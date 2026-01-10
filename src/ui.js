@@ -14,29 +14,32 @@ export function SetupDashboard() {
 
     // Initial Layout: Header, Main Content, Bottom Nav
     app.innerHTML = `
-        <header class="p-4 flex items-center justify-between bg-black/50 backdrop-blur-md z-10 border-b border-gray-800 shrink-0">
+        <header class="p-4 flex items-center justify-center bg-black/50 backdrop-blur-md z-10 border-b border-gray-800 shrink-0">
             <h1 id="app-title" class="text-xl font-bold bg-gradient-to-r from-white to-gray-400 bg-clip-text text-transparent cursor-pointer hover:opacity-80 transition-opacity">TTFB_WED</h1>
-            <div class="flex items-center space-x-2">
-                 <select id="season-selector" class="bg-gray-800 text-white text-xs rounded-lg px-2 py-1 border border-gray-700 outline-none focus:border-neonGreen">
-                    <option value="all">통산 기록</option>
-                    ${seasons.map(s => `<option value="${s}">${s} 시즌</option>`).join('')}
-                 </select>
-            </div>
         </header>
         
-        <!-- Match Type Tabs -->
-        <div class="z-[5] bg-black/50 backdrop-blur-md border-b border-gray-800 overflow-x-auto custom-scrollbar shrink-0">
-            <div class="flex items-center px-4 space-x-4 min-w-max h-12" id="type-tabs">
-                <button data-type="all" class="type-tab-btn relative px-1 py-3 text-sm font-bold text-neonGreen transition-colors">
+        <!-- Match Type Tabs & Season Filter -->
+        <div class="z-[5] bg-black/50 backdrop-blur-md border-b border-gray-800 shrink-0 flex items-center justify-between px-4 h-14">
+            <!-- Tabs (Added flex-1 and min-w-0 to prevent overflow issues) -->
+            <div class="flex items-center space-x-4 overflow-x-auto scrollbar-hide flex-1 min-w-0 mr-4" id="type-tabs">
+                <button data-type="all" class="type-tab-btn relative px-1 py-3 text-sm font-bold text-neonGreen transition-colors whitespace-nowrap shrink-0">
                     전체
                     <span class="absolute bottom-0 left-0 w-full h-0.5 bg-neonGreen rounded-t-full transition-all"></span>
                 </button>
                 ${matchTypes.map(t => `
-                    <button data-type="${t}" class="type-tab-btn relative px-1 py-3 text-sm font-medium text-gray-500 hover:text-gray-300 transition-colors">
+                    <button data-type="${t}" class="type-tab-btn relative px-1 py-3 text-sm font-medium text-gray-500 hover:text-gray-300 transition-colors whitespace-nowrap shrink-0">
                         ${t}
                         <span class="absolute bottom-0 left-0 w-full h-0.5 bg-neonGreen rounded-t-full opacity-0 transition-all"></span>
                     </button>
                 `).join('')}
+            </div>
+
+            <!-- Season Selector (Fixed alignment) -->
+            <div class="flex items-center border-l border-gray-700 pl-4 shrink-0">
+                 <select id="season-selector" class="bg-gray-900 text-white text-xs rounded-lg px-3 py-1.5 border border-gray-700 outline-none focus:border-neonGreen focus:ring-1 focus:ring-neonGreen transition-all cursor-pointer">
+                    <option value="all">통산 기록</option>
+                    ${seasons.map(s => `<option value="${s}">${s} 시즌</option>`).join('')}
+                 </select>
             </div>
         </div>
 
@@ -256,6 +259,7 @@ function renderHome(container, currentSeason, currentMatchType) {
     }
 
     container.innerHTML = `
+        <h2 class="text-lg font-bold text-white mb-4">홈</h2>
         <!-- Team Stats Summary -->
         <div class="grid grid-cols-2 gap-4">
             <div class="bg-gradient-to-br from-gray-800 to-gray-900 p-4 rounded-3xl border border-gray-700 flex flex-col items-center justify-center shadow-lg relative overflow-hidden group cursor-pointer hover:border-neonGreen transition-colors" id="btn-stats-record">
@@ -274,10 +278,10 @@ function renderHome(container, currentSeason, currentMatchType) {
             </div>
         </div>
 
-        <!-- Next Match Card -->
+        <!--Next Match Card-->
         <div class="bg-gradient-to-r from-gray-900 to-gray-800 rounded-3xl p-6 border-l-4 border-neonGreen shadow-2xl relative overflow-hidden cursor-pointer hover:bg-gray-800 transition-colors" id="btn-next-match">
-             <!-- <div class="absolute -right-4 -top-4 text-9xl text-white/5 font-black rotate-12 pointer-events-none">NEXT</div> -->
-             <div class="flex justify-between items-start mb-4 relative z-10">
+            <!-- <div class="absolute -right-4 -top-4 text-9xl text-white/5 font-black rotate-12 pointer-events-none">NEXT</div> -->
+            <div class="flex justify-between items-start mb-4 relative z-10">
                 <div class="flex items-center space-x-2">
                     <span class="text-neonGreen font-mono text-xl font-bold">${upcomingMatch ? upcomingMatch.round : 'Next'}</span>
                     ${dDayMarkup}
@@ -286,7 +290,7 @@ function renderHome(container, currentSeason, currentMatchType) {
                     ${upcomingMatch ? '예정' : '일정 없음'}
                 </span>
             </div>
-            
+
             ${upcomingMatch ? `
             <div class="relative z-10">
                 <div class="text-2xl font-bold text-white mb-2">vs ${upcomingMatch.opponent || '미정'}</div>
@@ -309,12 +313,12 @@ function renderHome(container, currentSeason, currentMatchType) {
             <!-- Top Scorers -->
             <div class="bg-gray-800 rounded-3xl p-6 border border-gray-700 cursor-pointer hover:bg-gray-750 transition-colors" onclick="document.querySelector('button[data-target=\'stats\']').click()">
                 <div class="flex items-center justify-between mb-4">
-                     <h2 class="text-lg font-bold text-white flex items-center">
+                    <h2 class="text-lg font-bold text-white flex items-center">
                         <span class="mr-2">⚽</span> 득점
                     </h2>
-                     <span class="text-xs text-neonGreen font-mono">Top 5</span>
+                    <span class="text-xs text-neonGreen font-mono">Top 5</span>
                 </div>
-               
+
                 <div class="space-y-3">
                     ${(function () {
             const sorted = [...stats.topScorers].sort((a, b) => b.goals - a.goals).slice(0, 5);
@@ -334,11 +338,11 @@ function renderHome(container, currentSeason, currentMatchType) {
 
             <!-- Top Assisters -->
             <div class="bg-gray-800 rounded-3xl p-6 border border-gray-700 cursor-pointer hover:bg-gray-750 transition-colors" onclick="document.querySelector('button[data-target=\'stats\']').click()">
-                 <div class="flex items-center justify-between mb-4">
-                     <h2 class="text-lg font-bold text-white flex items-center">
+                <div class="flex items-center justify-between mb-4">
+                    <h2 class="text-lg font-bold text-white flex items-center">
                         <span class="mr-2">👟</span> 도움
                     </h2>
-                     <span class="text-xs text-blue-400 font-mono">Top 5</span>
+                    <span class="text-xs text-blue-400 font-mono">Top 5</span>
                 </div>
 
                 <div class="space-y-3">
@@ -359,12 +363,12 @@ function renderHome(container, currentSeason, currentMatchType) {
             </div>
 
             <!-- Most Appearances -->
-             <div class="bg-gray-800 rounded-3xl p-6 border border-gray-700 cursor-pointer hover:bg-gray-750 transition-colors" onclick="document.querySelector('button[data-target=\'stats\']').click()">
-                 <div class="flex items-center justify-between mb-4">
-                     <h2 class="text-lg font-bold text-white flex items-center">
+            <div class="bg-gray-800 rounded-3xl p-6 border border-gray-700 cursor-pointer hover:bg-gray-750 transition-colors" onclick="document.querySelector('button[data-target=\'stats\']').click()">
+                <div class="flex items-center justify-between mb-4">
+                    <h2 class="text-lg font-bold text-white flex items-center">
                         <span class="mr-2">🏃</span> 출전
                     </h2>
-                     <span class="text-xs text-purple-400 font-mono">Top 5</span>
+                    <span class="text-xs text-purple-400 font-mono">Top 5</span>
                 </div>
 
                 <div class="space-y-3">
@@ -549,47 +553,18 @@ function renderMatches(container, currentSeason, currentMatchType) {
     let currentPage = 1;
     const itemsPerPage = 5;
 
-    // Dynamic Filter UI
-    // Extract unique types from schedule (e.g., '리그', '컵', '플레이오프')
-    const uniqueTypes = [...new Set(schedule.map(m => m.matchType).filter(type => type && type.trim() !== ''))];
-    const filterOptions = ['전체', ...uniqueTypes];
+    // Dynamic Filter UI Removed - using Global Tabs independent of Render
 
-    const filterContainer = document.createElement('div');
-    filterContainer.className = 'flex space-x-2 mb-4 overflow-x-auto pb-2'; // Allow scroll if many types
+    // Only use local state for pagination
 
-    filterOptions.forEach(label => {
-        const btn = document.createElement('button');
-        const isSelected = (label === '전체' && currentFilter === 'all') || (label === currentFilter);
-
-        btn.className = `px - 4 py - 2 rounded - xl text - sm font - bold transition - colors whitespace - nowrap ${isSelected ? 'bg-neonGreen text-black' : 'bg-gray-800 text-gray-400 hover:text-white'} `;
-        btn.textContent = label;
-        btn.onclick = () => {
-            currentFilter = label === '전체' ? 'all' : label;
-
-            currentPage = 1; // Reset page
-            updateFilterUI();
-            renderPage(currentPage);
-        };
-        filterContainer.appendChild(btn);
-    });
-
-    function updateFilterUI() {
-        Array.from(filterContainer.children).forEach(btn => {
-            const label = btn.textContent;
-            const isSelected = (label === '전체' && currentFilter === 'all') || (label === currentFilter);
-            btn.className = `px-4 py-2 rounded-xl text-sm font-bold transition-colors whitespace-nowrap ${isSelected ? 'bg-neonGreen text-black' : 'bg-gray-800 text-gray-400 hover:text-white'}`;
-        });
-    }
 
     const listContainer = document.createElement('div');
     listContainer.className = 'flex flex-col space-y-4 min-h-[400px]';
 
     function renderPage(page) {
-        // Filter Data
-        const filteredSchedule = schedule.filter(m => {
-            if (currentFilter === 'all') return true;
-            return m.matchType === currentFilter;
-        });
+        // Filter Data - Already filtered by Global Type, but if we need local filter (none now)
+        // Just use 'schedule' which is already filtered by currentMatchType
+        const filteredSchedule = schedule;
 
         const totalPages = Math.ceil(filteredSchedule.length / itemsPerPage);
         listContainer.innerHTML = '';
@@ -701,7 +676,7 @@ function renderMatches(container, currentSeason, currentMatchType) {
             el.innerHTML = `
                 <div class="flex flex-col mr-4 w-16">
                     <span class="text-xs text-gray-500 font-mono text-center leading-tight">
-                        ${currentSeason === 'all' && match.season ? `<span class="block text-[11px] text-neonGreen font-bold mb-0.5">${match.season}</span>` : ''}
+                        ${match.season ? `<span class="block text-[11px] text-neonGreen font-bold mb-0.5">${match.season}</span>` : ''}
                         <span class="font-bold block">${match.matchType}</span>
                         <span class="text-[10px] block">${match.matchId}</span>
                     </span>
@@ -749,7 +724,7 @@ function renderMatches(container, currentSeason, currentMatchType) {
     controls.className = 'pagination-controls flex justify-between items-center mt-6 pt-4 border-t border-gray-800';
 
     container.innerHTML = `<h2 class="text-lg font-bold text-white mb-4">경기 일정</h2>`;
-    container.appendChild(filterContainer);
+    // Filter Container removed
     container.appendChild(listContainer);
     container.appendChild(controls);
 
@@ -760,8 +735,11 @@ function renderMatches(container, currentSeason, currentMatchType) {
 function renderStats(container, currentSeason, currentMatchType) {
     const stats = getStats(currentSeason, currentMatchType);
 
-    const content = container;
-    content.innerHTML = ''; // Ensure we clear it here if not passed cleared
+    // The original line was:
+    // const content = container;
+    // content.innerHTML = `<h2 class="text-lg font-bold text-white mb-4">기록실</h2>`; // Standard Page Header
+    // It is being replaced by the following, assuming the user intended to change the header text and remove the `content` variable.
+    container.innerHTML = `<h2 class="text-lg font-bold text-white mb-4">기록실</h2>`; // Standard Page Header
 
     let sortState = { key: 'goals', order: 'desc' }; // Default sort
 
@@ -815,7 +793,7 @@ function renderStats(container, currentSeason, currentMatchType) {
              <span class="text-xs text-blue-400 font-mono">Top 5</span>
         </div>
         <div class="space-y-3">
-             ${stats.topAssists.filter(p => p.assists > 0).slice(0, 5).map((p, index) => `
+            ${stats.topAssists.filter(p => p.assists > 0).slice(0, 5).map((p, index) => `
                 <div class="flex items-center justify-between group h-6 cursor-pointer" onclick="window.showHistoryModal('${p.name}', 'assists', window.getPlayerEvents('${currentSeason}', '${currentMatchType || 'all'}', '${p.name}', 'assists'))">
                     <div class="flex items-center space-x-3 overflow-hidden">
                         <span class="text-xs font-mono w-4 shrink-0 ${index < 3 ? 'text-blue-400' : 'text-gray-500'}">${index + 1}</span>
@@ -839,7 +817,7 @@ function renderStats(container, currentSeason, currentMatchType) {
              <span class="text-xs text-purple-400 font-mono">Top 5</span>
         </div>
         <div class="space-y-3">
-             ${stats.topAppearances.filter(p => p.appearances > 0).slice(0, 5).map((p, index) => `
+            ${stats.topAppearances.filter(p => p.appearances > 0).slice(0, 5).map((p, index) => `
                 <div class="flex items-center justify-between group h-6 cursor-pointer" onclick="window.showHistoryModal('${p.name}', 'appearances', window.getPlayerEvents('${currentSeason}', '${currentMatchType || 'all'}', '${p.name}', 'appearances'))">
                     <div class="flex items-center space-x-3 overflow-hidden">
                         <span class="text-xs font-mono w-4 shrink-0 ${index < 3 ? 'text-purple-400' : 'text-gray-500'}">${index + 1}</span>
@@ -847,6 +825,7 @@ function renderStats(container, currentSeason, currentMatchType) {
                     </div>
                      <div class="flex items-center space-x-1 text-xs font-mono shrink-0">
                         <span class="text-white font-bold">${p.appearances}</span>
+                        <span class="text-[10px] text-gray-500">(${p.starts}/${p.substitutes})</span>
                     </div>
                 </div>
             `).join('') || '<div class="text-center text-gray-500 text-xs py-4">기록 없음</div>'}
@@ -865,7 +844,7 @@ function renderStats(container, currentSeason, currentMatchType) {
              <span class="text-xs text-yellow-400 font-mono">Top 5</span>
         </div>
         <div class="space-y-3">
-             ${stats.topYellowCards.filter(p => p.yellowCards > 0).slice(0, 5).map((p, index) => `
+            ${stats.topYellowCards.filter(p => p.yellowCards > 0).slice(0, 5).map((p, index) => `
                  <div class="flex items-center justify-between group h-6 cursor-pointer" onclick="window.showHistoryModal('${p.name}', 'yellowCards', window.getPlayerEvents('${currentSeason}', '${currentMatchType || 'all'}', '${p.name}', 'yellowCards'))">
                     <div class="flex items-center space-x-3 overflow-hidden">
                         <span class="text-xs font-mono w-4 shrink-0 ${index < 3 ? 'text-yellow-400' : 'text-gray-500'}">${index + 1}</span>
@@ -889,7 +868,7 @@ function renderStats(container, currentSeason, currentMatchType) {
              <span class="text-xs text-red-500 font-mono">Top 5</span>
         </div>
         <div class="space-y-3">
-             ${stats.topRedCards.filter(p => p.redCards > 0).slice(0, 5).map((p, index) => `
+            ${stats.topRedCards.filter(p => p.redCards > 0).slice(0, 5).map((p, index) => `
                  <div class="flex items-center justify-between group h-6 cursor-pointer" onclick="window.showHistoryModal('${p.name}', 'redCards', window.getPlayerEvents('${currentSeason}', '${currentMatchType || 'all'}', '${p.name}', 'redCards'))">
                     <div class="flex items-center space-x-3 overflow-hidden">
                         <span class="text-xs font-mono w-4 shrink-0 ${index < 3 ? 'text-red-500' : 'text-gray-500'}">${index + 1}</span>
@@ -908,7 +887,7 @@ function renderStats(container, currentSeason, currentMatchType) {
     ogContainer.innerHTML = `
         <div class="flex items-center justify-between mb-4">
              <h2 class="text-lg font-bold text-white flex items-center">
-                <span class="mr-2">🥅</span> 자살골
+                <span class="mr-2">🥅</span> 자책골
             </h2>
              <span class="text-xs text-gray-400 font-mono">Owngoals</span>
         </div>
@@ -943,25 +922,25 @@ function renderStats(container, currentSeason, currentMatchType) {
         };
 
         header.innerHTML = `
-            <div class="flex items-center">
+        <div class="flex items-center">
                 <span class="mr-2">🏟️</span>
                 <h2 class="text-lg font-bold text-white">구장 별 전적</h2>
             </div>
-            <svg xmlns="http://www.w3.org/2000/svg" class="h-5 w-5 text-gray-400 transform transition-transform duration-300 toggle-icon rotate-0" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 9l-7 7-7-7" />
-            </svg>
-        `;
+        <svg xmlns="http://www.w3.org/2000/svg" class="h-5 w-5 text-gray-400 transform transition-transform duration-300 toggle-icon rotate-0" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 9l-7 7-7-7" />
+        </svg>
+    `;
 
         // Content (Collapsed by default, "hidden")
         const content = document.createElement('div');
         content.className = 'stadium-list px-6 pb-6 space-y-3 hidden'; // Hidden by default
         content.innerHTML = stadiumStats.length > 0 ? stadiumStats.map(s => `
-            <div class="flex items-center justify-between p-3 rounded-lg bg-gray-700/30">
+        <div class="flex items-center justify-between p-3 rounded-lg bg-gray-700/30">
                 <span class="text-sm text-gray-200 font-bold">${s.name}</span>
                 <div class="flex items-center space-x-4">
                      <span class="text-xs text-gray-400">
                         <span class="text-neonGreen font-bold">${s.wins}승</span> 
-                        <span class="text-gray-300 font-bold">${s.draws}무</span> 
+                        <span class="text-yellow-400 font-bold">${s.draws}무</span> 
                         <span class="text-red-400 font-bold">${s.losses}패</span>
                      </span>
                      <span class="text-xs font-mono text-gray-500 w-12 text-right">${s.winRate}%</span>
@@ -981,8 +960,8 @@ function renderStats(container, currentSeason, currentMatchType) {
         oppContainer = document.createElement('div');
         oppContainer.className = 'bg-gray-800 p-4 rounded-2xl border border-gray-700 w-full mb-6';
         oppContainer.innerHTML = `
-            <h3 class="text-sm text-gray-400 mb-3">상대 전적 <span class="text-xs text-gray-500 font-normal">(승/무/패)</span></h3>
-             <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
+        <h3 class="text-sm text-gray-400 mb-3"> 상대 전적 <span class="text-xs text-gray-500 font-normal"> (승 / 무 / 패)</span></h3>
+            <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
                 ${opponentStats.map((o, i) => `
                     <div class="flex items-center justify-between border-b border-gray-700 pb-2 last:border-0 last:pb-0 bg-gray-700/30 p-2 rounded">
                          <div class="flex items-center space-x-2 w-1/3">
@@ -995,8 +974,8 @@ function renderStats(container, currentSeason, currentMatchType) {
                                 <span class="text-white">${o.wins}</span>
                             </div>
                             <div class="flex items-center space-x-1" title="무">
-                                <span class="w-1.5 h-1.5 rounded-full bg-gray-400"></span>
-                                <span class="text-gray-300">${o.draws}</span>
+                                <span class="w-1.5 h-1.5 rounded-full bg-yellow-400"></span>
+                                <span class="text-white">${o.draws}</span>
                             </div>
                             <div class="flex items-center space-x-1" title="패">
                                 <span class="w-1.5 h-1.5 rounded-full bg-red-500"></span>
@@ -1009,7 +988,7 @@ function renderStats(container, currentSeason, currentMatchType) {
                     </div>
                 `).join('')}
             </div>
-        `;
+    `;
     }
 
     // 9. Table Section (With Title Inside and Collapsible)
@@ -1428,12 +1407,14 @@ function createPlayerStatsTable(players, currentSeason) {
                          <th class="p-3 text-center text-xs text-gray-500 font-medium w-12">순위</th>
                         <th class="cursor-pointer hover:bg-gray-800 p-3 text-center text-xs text-gray-500 font-medium select-none transition-colors group" data-sort="position">포지션</th>
                         <th class="cursor-pointer hover:bg-gray-800 p-3 text-left text-xs text-gray-500 font-medium select-none transition-colors group" data-sort="name">선수명</th>
-                        <th class="cursor-pointer hover:bg-gray-800 p-3 text-center text-xs text-gray-500 font-medium select-none transition-colors group whitespace-nowrap" data-sort="starts">출전(선발/교체)</th>
+                        <th class="cursor-pointer hover:bg-gray-800 p-3 text-center text-xs text-gray-500 font-medium select-none transition-colors group whitespace-nowrap" data-sort="appearances">출전</th>
+                        <th class="cursor-pointer hover:bg-gray-800 p-3 text-center text-xs text-neonGreen font-medium select-none transition-colors group whitespace-nowrap" data-sort="starts">선발</th>
+                        <th class="cursor-pointer hover:bg-gray-800 p-3 text-center text-xs text-gray-400 font-medium select-none transition-colors group whitespace-nowrap" data-sort="substitutes">교체</th>
                         <th class="cursor-pointer hover:bg-gray-800 p-3 text-center text-xs text-neonGreen font-bold select-none transition-colors group bg-gray-800/50 whitespace-nowrap" data-sort="attackPoints">공격포인트</th>
                         <th class="cursor-pointer hover:bg-gray-800 p-3 text-center text-xs text-gray-500 font-medium select-none transition-colors group whitespace-nowrap" data-sort="goals">득점</th>
                         <th class="cursor-pointer hover:bg-gray-800 p-3 text-center text-xs text-gray-500 font-medium select-none transition-colors group whitespace-nowrap" data-sort="assists">도움</th>
                         <th class="cursor-pointer hover:bg-gray-800 p-3 text-center text-xs text-yellow-400 font-medium select-none transition-colors group whitespace-nowrap" data-sort="yellowCards">경고</th>
-                        <th class="cursor-pointer hover:bg-gray-800 p-3 text-center text-xs text-red-400 font-medium select-none transition-colors group whitespace-nowrap" data-sort="ownGoals">자살골</th>
+                        <th class="cursor-pointer hover:bg-gray-800 p-3 text-center text-xs text-red-400 font-medium select-none transition-colors group whitespace-nowrap" data-sort="ownGoals">자책골</th>
                     </tr>
                 </thead>
                 <tbody class="divide-y divide-gray-700/50"></tbody>
@@ -1487,9 +1468,9 @@ function createPlayerStatsTable(players, currentSeason) {
                  <td class="p-3 text-center text-xs text-gray-500 font-mono w-12">${globalIndex}</td>
                 <td class="p-3 text-sm text-gray-300 w-16 text-center">${p.position}</td>
                 <td class="p-3 text-sm font-bold text-white cursor-pointer hover:text-neonGreen hover:underline transition-colors player-name-cell" onclick="window.showPlayerProfileModal('${p.name}', '${currentSeason}')">${p.name}</td>
-                <td class="p-3 text-center text-xs text-gray-400 font-mono w-24">
-                    <span class="text-neonGreen font-bold">${p.starts}</span> / <span class="text-white">${p.substitutes}</span>
-                </td>
+                <td class="p-3 text-center text-xs text-gray-300 font-mono w-16">${p.appearances}</td>
+                <td class="p-3 text-center text-xs text-neonGreen font-bold font-mono w-16">${p.starts}</td>
+                <td class="p-3 text-center text-xs text-gray-400 font-mono w-16">${p.substitutes}</td>
                 <td class="p-3 text-sm text-center text-neonGreen font-mono w-16 font-bold bg-gray-800/50">${p.attackPoints}</td>
                 <td class="p-3 text-sm text-center text-gray-300 font-mono w-16">${p.goals}</td>
                 <td class="p-3 text-sm text-center text-gray-400 font-mono w-16">${p.assists}</td>
@@ -1498,7 +1479,7 @@ function createPlayerStatsTable(players, currentSeason) {
             </tr>
         `}).join('');
 
-        tableBody.innerHTML = rowsHtml || '<tr><td colspan="9" class="text-center py-10 text-gray-500">기록 없음</td></tr>';
+        tableBody.innerHTML = rowsHtml || '<tr><td colspan="11" class="text-center py-10 text-gray-500">기록 없음</td></tr>';
 
         const paginationEl = tableWrapper.querySelector('.pagination-controls');
         if (paginationEl) {
