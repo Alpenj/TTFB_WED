@@ -1,0 +1,130 @@
+<!DOCTYPE html>
+<html lang="ko">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>TTFB WED Dashboard v1.0 Update</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+    <script>
+        tailwind.config = {
+            theme: {
+                extend: {
+                    colors: {
+                        gray: {
+                            750: '#2d3748',
+                            800: '#1f2937',
+                            900: '#111827',
+                        },
+                        neonGreen: '#39ff14',
+                    }
+                }
+            }
+        }
+    </script>
+    <style>
+        @import url('https://fonts.googleapis.com/css2?family=Noto+Sans+KR:wght@300;400;500;700&display=swap');
+
+        body {
+            font-family: 'Noto Sans KR', sans-serif;
+        }
+    </style>
+</head>
+
+<body class="bg-gray-900 text-gray-200 min-h-screen p-6 md:p-12">
+
+    <div class="max-w-3xl mx-auto">
+        <!-- Header -->
+        <header class="mb-12 text-center">
+            <h1 class="text-3xl md:text-4xl font-black text-white mb-4">TTFB WED <span
+                    class="text-neonGreen">v1.0</span> Update</h1>
+            <p class="text-gray-400">데이터 대시보드 정식 릴리즈 안내</p>
+        </header>
+
+        <!-- Section 1 -->
+        <section class="mb-12 animate-fade-in-up">
+            <div class="bg-gray-800 rounded-3xl p-6 md:p-8 border border-gray-700 shadow-lg">
+                <div class="flex items-center mb-6">
+                    <span class="text-2xl mr-3">🧭</span>
+                    <h2 class="text-xl font-bold text-white">공통 기능 (Global)</h2>
+                </div>
+                <ul class="space-y-3 text-sm md:text-base text-gray-300">
+                    <li class="flex items-start">
+                        <span class="text-neonGreen mr-2 font-bold">✓</span>
+                        <span><strong>시즌 필터</strong>: 상단 탭에서 2024 / 2025 / Total(통산) 시즌을 자유롭게 넘나들며 데이터를 확인할 수
+                            있습니다.</span>
+                    </li>
+                </ul>
+            </div>
+        </section>
+
+        <!-- Section 2 -->
+        <section class="mb-12">
+            <div class="bg-gray-800 rounded-3xl p-6 md:p-8 border border-gray-700 shadow-lg">
+                <div class="flex items-center mb-6">
+                    <span class="text-2xl mr-3">🏠</span>
+                    <h2 class="text-xl font-bold text-white">홈 (Home)</h2>
+                </div>
+                <div class="space-y-4 text-sm md:text-base text-gray-300">
+                    <p>팀의 현재 상황을 한눈에 파악하세요.</p>
+                    <ul class="space-y-2 list-disc list-inside ml-2 text-gray-400">
+                        <li><strong class="text-gray-200">팀 전적 요약</strong>: 승률 카드 및 다음 경기(D-Day) 카운트다운.</li>
+                        <li><strong class="text-gray-200">경기장 지도</strong>: 🏟️ 아이콘 클릭 시 네이버/카카오/TMAP 연동.</li>
+                        <li><strong class="text-gray-200">주요 랭킹</strong>: 공격포인트, 출전 Top 5 요약.</li>
+                        <li><strong class="text-gray-200">전적 분석</strong>: 상대 팀별 / 구장별 승률 데이터 (접기/펼치기 가능).</li>
+                    </ul>
+                </div>
+            </div>
+        </section>
+
+        <!-- Section 3 -->
+        <section class="mb-12">
+            <div class="bg-gray-800 rounded-3xl p-6 md:p-8 border border-gray-700 shadow-lg">
+                <div class="flex items-center mb-6">
+                    <span class="text-2xl mr-3">📅</span>
+                    <h2 class="text-xl font-bold text-white">경기 일정 (Schedule)</h2>
+                </div>
+                <div class="space-y-4 text-sm md:text-base text-gray-300">
+                    <p>직관적인 리스트로 지난 경기와 예정된 일정을 확인하세요.</p>
+                    <ul class="space-y-2 list-disc list-inside ml-2 text-gray-400">
+                        <li><strong class="text-gray-200">필터링</strong>: 리그, 컵, 친선 경기 등 유형별 모아보기.</li>
+                        <li><strong class="text-gray-200">상세 결과</strong>: 스코어는 기본, 승부차기(PK) 결과와 득점/도움 선수 실명 표기.</li>
+                        <li><strong class="text-gray-200">승패 색상</strong>: 승(초록), 무(노랑), 패(빨강)으로 직관적 구분.</li>
+                    </ul>
+                </div>
+            </div>
+        </section>
+
+        <!-- Section 4 -->
+        <section class="mb-12">
+            <div class="bg-gray-800 rounded-3xl p-6 md:p-8 border border-gray-700 shadow-lg">
+                <div class="flex items-center mb-6">
+                    <span class="text-2xl mr-3">📊</span>
+                    <h2 class="text-xl font-bold text-white">기록실 (Records)</h2>
+                </div>
+                <div class="space-y-4 text-sm md:text-base text-gray-300">
+                    <p>데이터 분석의 핵심 페이지입니다.</p>
+                    <ul class="space-y-2 list-disc list-inside ml-2 text-gray-400">
+                        <li><strong class="text-gray-200">부문별 랭킹</strong>: 득점, 도움, 출전, 경고, 퇴장, 자책골(Own Goal) 순위.</li>
+                        <li><strong class="text-gray-200">개인 히스토리 팝업</strong>: <span class="text-neonGreen">New!
+                                ✨</span> 선수 이름을 클릭하면 언제, 누구를 상대로 기록했는지 팝업으로 상세히 보여줍니다.</li>
+                        <li><strong class="text-gray-200">종합 스탯 테이블</strong>:
+                            <ul class="list-none ml-6 mt-1 space-y-1 text-gray-500">
+                                <li>- 모든 항목 정렬(Sorting) 지원.</li>
+                                <li>- <span class="text-neonGreen">Update!</span> <strong>출전 기록 세분화</strong>: 선발(Starts)
+                                    / 교체(Subs) 분리 표기.</li>
+                            </ul>
+                        </li>
+                    </ul>
+                </div>
+            </div>
+        </section>
+
+        <footer class="text-center text-gray-600 text-xs mt-16 pb-8">
+            &copy; 2026 TTFB WED Data Team. All rights reserved.
+        </footer>
+    </div>
+
+</body>
+
+</html>
