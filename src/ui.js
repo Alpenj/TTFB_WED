@@ -1141,8 +1141,8 @@ function showMapModal(shortName) {
     if (shortName === '복지관' || fullName.includes('오리로 784')) {
         displayName = '서울시립근로청소년복지관';
 
-        // Naver: User's provided link was generic (0,0 coords), so we keep the working Address search.
-        naverUrl = `https://map.naver.com/p/search/${encodeURIComponent('경기도 광명시 오리로 784')}`;
+        // Naver: User requested specific address '하안동 740'
+        naverUrl = `https://map.naver.com/p/search/${encodeURIComponent('하안동 740')}`;
 
         // Kakao: User provided specific share link
         kakaoUrl = 'https://kko.to/Ywi5JvLOXa';

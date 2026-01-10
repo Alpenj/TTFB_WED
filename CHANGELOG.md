@@ -1,11 +1,16 @@
 # Changelog
 
+> **Versioning Policy**: `v<Major>.<Minor>_<YYMMDD>`
+> - **Major**: Significant updates, design overhauls, or breaking changes.
+> - **Minor**: Feature additions, improvements, or bug fixes.
+> - **Date**: Release date suffix (YYMMDD).
+
 ## [v1.0_260110] - 2026-01-10
 ### Released
 - **Initial Major Release**: Established stable version v1.0.
 ### Fixed
 - **Stadium Map**: Updated "Welfare Center" (복지관) map integration.
-    - **Links**: Uses direct short links for Kakao/TMAP and Address Search for Naver to ensure accurate location.
+    - **Links**: Naver (Address: '하안동 740'), Kakao (Direct Link), TMAP (Direct Link).
     - **Modal Display**: Shows "Seoul Municipal Workers' Youth Welfare Center" (서울시립근로청소년복지관).
 - **Next Schedule**: Fixed filtering logic to respect the active match type tab.
 - **Repository**: Removed error log files and updated `.gitignore`.
