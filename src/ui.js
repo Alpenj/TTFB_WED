@@ -190,6 +190,7 @@ function renderHome(container, currentSeason, currentMatchType) {
     const teamStats = getTeamStats(currentSeason, currentMatchType);
 
     const today = new Date();
+    today.setHours(0, 0, 0, 0);
     // Sort Ascending for reliable finding of 'Next Match'
     const sortedSchedule = [...schedule].sort((a, b) => a.date.localeCompare(b.date));
 
@@ -215,7 +216,7 @@ function renderHome(container, currentSeason, currentMatchType) {
         const matchDate = new Date(parts[0], parts[1] - 1, parts[2]);
         const diffTime = matchDate - today;
         const diffDays = Math.ceil(diffTime / (1000 * 60 * 60 * 24));
-        const dDay = diffDays <= 0 ? 'D-Day' : `D-${diffDays}`;
+        const dDay = diffDays === 0 ? '경기 당일' : `D-${diffDays}`;
         dDayMarkup = `<span class="bg-neonGreen text-black font-bold px-2 py-0.5 rounded text-xs animate-pulse">${dDay}</span>`;
     }
 
