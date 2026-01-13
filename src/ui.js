@@ -1406,7 +1406,7 @@ function createPlayerStatsTable(players, currentSeason) {
 
     // Header with Toggle
     const tableHeader = document.createElement('div');
-    tableHeader.className = 'p-5 flex items-center justify-between cursor-pointer hover:bg-gray-750 transition-colors';
+    tableHeader.className = 'p-6 flex items-center justify-between cursor-pointer hover:bg-gray-750 transition-colors group select-none';
     tableHeader.onclick = () => {
         const content = tableContainer.querySelector('.table-content');
         const icon = tableContainer.querySelector('.toggle-icon');
@@ -1416,10 +1416,10 @@ function createPlayerStatsTable(players, currentSeason) {
 
     tableHeader.innerHTML = `
         <div class="flex items-center">
-            <span class="mr-2">📊</span>
-            <h2 class="text-base font-bold text-white">선수 개인 기록</h2>
+            <span class="mr-2 text-xl">📊</span>
+            <h2 class="text-lg font-bold text-white group-hover:text-neonGreen transition-colors">선수 개인 기록</h2>
         </div>
-        <svg xmlns="http://www.w3.org/2000/svg" class="h-5 w-5 text-gray-400 transform transition-transform duration-300 toggle-icon rotate-0" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+        <svg xmlns="http://www.w3.org/2000/svg" class="h-6 w-6 text-gray-400 transform transition-transform duration-300 toggle-icon rotate-0 group-hover:text-white" fill="none" viewBox="0 0 24 24" stroke="currentColor">
             <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 9l-7 7-7-7" />
         </svg>
     `;
