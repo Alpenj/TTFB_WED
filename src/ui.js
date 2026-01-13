@@ -15,7 +15,7 @@ export function SetupDashboard() {
     // Initial Layout: Header, Main Content, Bottom Nav
     app.innerHTML = `
         <header class="p-4 flex items-center justify-center bg-black/50 backdrop-blur-md z-10 border-b border-gray-800 shrink-0">
-            <h1 id="app-title" class="text-xl font-bold bg-gradient-to-r from-white to-gray-400 bg-clip-text text-transparent cursor-pointer hover:opacity-80 transition-opacity">TTFB_WED</h1>
+            <h1 id="app-title" class="text-xl font-bold text-white cursor-pointer hover:opacity-80 transition-opacity">TTFB_WED</h1>
         </header>
         
         <!-- Match Type Tabs & Season Filter -->
@@ -1716,16 +1716,55 @@ function showMatchLineupModal(season, matchId, opponent) {
     const starters = records.filter(r => r.appearance === '선발');
     const subs = records.filter(r => r.appearance === '교체');
 
+    // Pre-process to map tags (G1, G2...) to player names for Assist linking
+    const tagMap = {};
+    records.forEach(r => {
+        if (r.note) {
+            r.note.split(',').forEach(tag => {
+                const cleanTag = tag.trim();
+                // Store who is associated with this tag. 
+                if (cleanTag) {
+                    if (!tagMap[cleanTag]) tagMap[cleanTag] = [];
+                    tagMap[cleanTag].push(r.name);
+                }
+            });
+        }
+    });
+
     const renderPlayerRow = (p) => {
         let statsIcons = '';
         if (p.goals > 0) statsIcons += `<span class="ml-1 text-neonGreen text-xs">⚽${p.goals > 1 ? p.goals : ''}</span>`;
+
+        // Assist Info Generation
+        let assistText = '';
+        if (p.goals > 0 && p.note) {
+            const tags = p.note.split(',').map(t => t.trim());
+            const assisters = [];
+            tags.forEach(tag => {
+                if (tagMap[tag]) {
+                    // Find name that is NOT me
+                    const partners = tagMap[tag].filter(name => name !== p.name);
+                    partners.forEach(partner => assisters.push(partner));
+                }
+            });
+
+            if (assisters.length > 0) {
+                const uniqueAssisters = [...new Set(assisters)];
+                assistText = `<span class="text-[10px] text-gray-500 font-normal ml-1">(도움: ${uniqueAssisters.join(', ')})</span>`;
+            }
+        }
+        // Append assist text immediately after goal icon if exists
+        statsIcons += assistText;
+
         if (p.assists > 0) statsIcons += `<span class="ml-1 text-blue-400 text-xs">👟${p.assists > 1 ? p.assists : ''}</span>`;
         if (p.yellowCards > 0) statsIcons += `<span class="ml-1 text-yellow-400 text-xs">🟨</span>`;
         if (p.redCards > 0) statsIcons += `<span class="ml-1 text-red-500 text-xs">🟥</span>`;
 
         return `
             <div class="flex items-center justify-between p-2 rounded-lg bg-gray-700/30">
-                <span class="text-sm text-white font-medium">${p.name} ${statsIcons}</span>
+                <span class="text-sm text-white font-medium flex items-center flex-wrap">
+                    ${p.name} ${statsIcons}
+                </span>
                 <span class="text-xs text-gray-500">${p.appearance || '선발'}</span>
             </div>
         `;
