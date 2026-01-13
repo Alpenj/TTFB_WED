@@ -1000,7 +1000,7 @@ function renderStats(container, currentSeason, currentMatchType) {
         </div>
         <div class="space-y-3">
            ${(stats.topCleanSheets || []).filter(p => p.cleanSheets > 0).slice(0, 5).map((p, index) => `
-                 <div class="flex items-center justify-between group h-6 cursor-pointer" onclick="window.showPlayerProfileModal('${p.name}')"> <!-- Simple profile link as we don't track explicit CS events yet -->
+                 <div class="flex items-center justify-between group h-6 cursor-pointer" onclick="window.showHistoryModal('${p.name}', 'cleanSheets', window.getPlayerEvents('${currentSeason}', '${currentMatchType || 'all'}', '${p.name}', 'cleanSheets'))">
                     <div class="flex items-center space-x-3 overflow-hidden">
                         <span class="text-xs font-mono w-4 shrink-0 ${index < 3 ? 'text-emerald-400' : 'text-gray-500'}">${index + 1}</span>
                         <span class="text-xs text-gray-300 group-hover:text-white transition-colors truncate">${p.name} ${(p.position && p.position !== 'undefined') ? `<span class="text-gray-500 font-normal">| ${p.position}</span>` : ''}</span>

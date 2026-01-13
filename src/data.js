@@ -79,6 +79,16 @@ export function getPlayerEvents(currentSeason, currentMatchType, playerName, eve
         else if (eventType === 'redCards') count = r.redCards;
         else if (eventType === 'ownGoals') count = r.goals < 0 ? Math.abs(r.goals) : 0;
         else if (eventType === 'appearances') count = 1; // Used for "Apps" list
+        else if (eventType === 'cleanSheets') {
+            // Check if match result exists and indicates 0 goals conceded
+            if (match.result && match.result.includes(':')) {
+                const parts = match.result.split(':');
+                const against = parseInt(parts[1]);
+                if (!isNaN(against) && against === 0) {
+                    count = 1;
+                }
+            }
+        }
 
         if (count > 0) {
             events.push({
