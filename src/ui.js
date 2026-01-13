@@ -706,20 +706,36 @@ function renderMatches(container, currentSeason, currentMatchType) {
                     displayScore += `<span class="text-[10px] text-gray-400 ml-1 block text-right font-mono">(${pkScore} PK)</span>`;
                 }
 
+                const lineupBtn = `<button onclick="window.showMatchLineupModal('${match.season}', '${match.matchId}', '${match.opponent}')" 
+                                   class="text-[10px] px-2 py-0.5 rounded border border-gray-600 text-gray-400 hover:bg-gray-700 hover:text-white transition-colors">
+                                   명단
+                                   </button>`;
+
                 resultText = `<div class="flex flex-col items-end gap-1">
                                 ${displayScore}
-                                <a href="${match.videoUrl || '#'}" target="${match.videoUrl ? '_blank' : '_self'}" 
-                                   class="text-[10px] px-2 py-0.5 rounded border ${match.videoUrl ? 'bg-blue-900/30 border-blue-500 text-blue-400 hover:bg-blue-800/50' : 'bg-red-900/30 border-red-500 text-red-500 opacity-70 cursor-not-allowed'} transition-colors no-underline">
-                                   영상
-                                </a>
+                                <div class="flex items-center space-x-1">
+                                    ${lineupBtn}
+                                    <a href="${match.videoUrl || '#'}" target="${match.videoUrl ? '_blank' : '_self'}" 
+                                       class="text-[10px] px-2 py-0.5 rounded border ${match.videoUrl ? 'bg-blue-900/30 border-blue-500 text-blue-400 hover:bg-blue-800/50' : 'bg-red-900/30 border-red-500 text-red-500 opacity-70 cursor-not-allowed'} transition-colors no-underline">
+                                       영상
+                                    </a>
+                                </div>
                               </div>`;
             } else {
+                const lineupBtn = `<button onclick="window.showMatchLineupModal('${match.season}', '${match.matchId}', '${match.opponent}')" 
+                                   class="text-[10px] px-2 py-0.5 rounded border border-gray-600 text-gray-400 hover:bg-gray-700 hover:text-white transition-colors">
+                                   명단
+                                   </button>`;
+
                 resultText = `<div class="flex flex-col items-end gap-1">
                                 <span class="bg-gray-700 text-gray-300 text-xs px-2 py-1 rounded ml-auto">진행 예정</span>
-                                <a href="${match.videoUrl || '#'}" target="${match.videoUrl ? '_blank' : '_self'}" 
-                                   class="text-[10px] px-2 py-0.5 rounded border ${match.videoUrl ? 'bg-blue-900/30 border-blue-500 text-blue-400 hover:bg-blue-800/50' : 'bg-red-900/30 border-red-500 text-red-500 opacity-70 cursor-not-allowed'} transition-colors no-underline">
-                                   영상
-                                </a>
+                                <div class="flex items-center space-x-1">
+                                    ${lineupBtn}
+                                    <a href="${match.videoUrl || '#'}" target="${match.videoUrl ? '_blank' : '_self'}" 
+                                       class="text-[10px] px-2 py-0.5 rounded border ${match.videoUrl ? 'bg-blue-900/30 border-blue-500 text-blue-400 hover:bg-blue-800/50' : 'bg-red-900/30 border-red-500 text-red-500 opacity-70 cursor-not-allowed'} transition-colors no-underline">
+                                       영상
+                                    </a>
+                                </div>
                               </div>`;
             }
 
@@ -1690,3 +1706,71 @@ function createStadiumStatsElement(currentSeason, currentMatchType) {
 
     return createCollapsibleSection('구장 별 전적', '🏟️', contentHtml);
 }
+
+// Match Lineup Modal
+function showMatchLineupModal(season, matchId, opponent) {
+    const records = getMatchRecords(season, matchId);
+
+    // Sort: Starters first, then Substitutes
+    // Within groups: GK -> DF -> MF -> FW (if position available? data doesn't have position in match record usually, only in player dict? 
+    // Actually match records are just list. Let's just separate Starters and Subs.
+    const starters = records.filter(r => r.appearance !== '교체');
+    const subs = records.filter(r => r.appearance === '교체');
+
+    const renderPlayerRow = (p) => {
+        let statsIcons = '';
+        if (p.goals > 0) statsIcons += `<span class="ml-1 text-neonGreen text-xs">⚽${p.goals > 1 ? p.goals : ''}</span>`;
+        if (p.assists > 0) statsIcons += `<span class="ml-1 text-blue-400 text-xs">👟${p.assists > 1 ? p.assists : ''}</span>`;
+        if (p.yellowCards > 0) statsIcons += `<span class="ml-1 text-yellow-400 text-xs">🟨</span>`;
+        if (p.redCards > 0) statsIcons += `<span class="ml-1 text-red-500 text-xs">🟥</span>`;
+
+        return `
+            <div class="flex items-center justify-between p-2 rounded-lg bg-gray-700/30">
+                <span class="text-sm text-white font-medium">${p.name} ${statsIcons}</span>
+                <span class="text-xs text-gray-500">${p.appearance || '선발'}</span>
+            </div>
+        `;
+    };
+
+    const modal = document.createElement('div');
+    modal.id = 'lineup-modal';
+    modal.className = 'fixed inset-0 z-50 flex items-center justify-center p-4 bg-black/80 backdrop-blur-sm animate-fade-in';
+    modal.innerHTML = `
+        <div class="bg-gray-800 rounded-3xl p-6 w-full max-w-sm border border-gray-700 shadow-2xl relative flex flex-col max-h-[80vh]">
+            <div class="flex justify-between items-center mb-4">
+                <div>
+                    <h3 class="text-xl font-bold text-white">출전 명단</h3>
+                    <span class="text-sm text-gray-400">vs ${opponent}</span>
+                </div>
+                <button class="text-gray-500 hover:text-white" onclick="document.querySelector('#lineup-modal').remove()">
+                    <svg xmlns="http://www.w3.org/2000/svg" class="h-6 w-6" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M6 18L18 6M6 6l12 12" />
+                    </svg>
+                </button>
+            </div>
+            
+            <div class="overflow-y-auto pr-1 custom-scrollbar flex-1 space-y-4">
+                <div>
+                    <h4 class="text-sm font-bold text-neonGreen mb-2 border-b border-gray-700 pb-1">선발 (${starters.length})</h4>
+                    <div class="space-y-1">
+                        ${starters.length ? starters.map(renderPlayerRow).join('') : '<div class="text-xs text-gray-500">기록 없음</div>'}
+                    </div>
+                </div>
+                <div>
+                    <h4 class="text-sm font-bold text-gray-400 mb-2 border-b border-gray-700 pb-1">교체 (${subs.length})</h4>
+                    <div class="space-y-1">
+                        ${subs.length ? subs.map(renderPlayerRow).join('') : '<div class="text-xs text-gray-500">-</div>'}
+                    </div>
+                </div>
+            </div>
+        </div>
+    `;
+
+    // Close on click outside
+    modal.addEventListener('click', (e) => {
+        if (e.target === modal) modal.remove();
+    });
+
+    document.body.appendChild(modal);
+}
+window.showMatchLineupModal = showMatchLineupModal;
