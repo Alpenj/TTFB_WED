@@ -74,6 +74,14 @@ export function SetupDashboard() {
                     </button>
                 </li>
                 <li>
+                    <button id="btn-guide" class="flex flex-col items-center p-2 text-gray-500 hover:text-white transition-colors">
+                        <svg xmlns="http://www.w3.org/2000/svg" class="h-6 w-6" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M8.228 9c.549-1.165 2.03-2 3.772-2 2.21 0 4 1.343 4 3 0 1.4-1.278 2.575-3.006 2.907-.542.104-.994.54-.994 1.093m0 3h.01M21 12a9 9 0 11-18 0 9 9 0 0118 0z" />
+                        </svg>
+                        <span class="text-xs mt-1">가이드</span>
+                    </button>
+                </li>
+                <li>
                     <a href="https://docs.google.com/spreadsheets/d/1zGMli5RMTM83TTRwZz-EiA_oXkJX6-IehnHZy6v0Phg/edit#gid=426357573" target="_blank" class="flex flex-col items-center p-2 text-gray-500 hover:text-white transition-colors">
                          <svg xmlns="http://www.w3.org/2000/svg" class="h-6 w-6" fill="none" viewBox="0 0 24 24" stroke="currentColor">
                             <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M10.325 4.317c.426-1.756 2.924-1.756 3.35 0a1.724 1.724 0 002.573 1.066c1.543-.94 3.31.826 2.37 2.37a1.724 1.724 0 001.065 2.572c1.756.426 1.756 2.924 0 3.35a1.724 1.724 0 00-1.066 2.573c.94 1.543-.826 3.31-2.37 2.37a1.724 1.724 0 00-2.572 1.065c-.426 1.756-2.924 1.756-3.35 0a1.724 1.724 0 00-2.573-1.066c-1.543.94-3.31-.826-2.37-2.37a1.724 1.724 0 00-1.065-2.572c-1.756-.426-1.756-2.924 0-3.35a1.724 1.724 0 001.066-2.573c-.94-1.543.826-3.31 2.37-2.37.996.608 2.296.07 2.572-1.065z" />
@@ -84,6 +92,87 @@ export function SetupDashboard() {
                 </li>
             </ul>
         </nav>
+
+        <!-- Guide Modal -->
+        <div id="guide-modal" class="fixed inset-0 bg-black/80 backdrop-blur-sm z-50 flex items-center justify-center opacity-0 pointer-events-none transition-opacity duration-300">
+            <div class="bg-gray-800 w-full max-w-lg mx-4 rounded-3xl border border-gray-700 shadow-2xl flex flex-col max-h-[85vh] overflow-hidden transform scale-95 transition-transform duration-300" id="guide-content-box">
+                <!-- Modal Header -->
+                <div class="p-4 border-b border-gray-700 flex justify-between items-center shrink-0">
+                    <h2 class="text-lg font-bold text-white flex items-center">
+                        <span class="mr-2">📘</span> 사용 가이드
+                    </h2>
+                    <button id="guide-close" class="text-gray-400 hover:text-white transition-colors">
+                        <svg xmlns="http://www.w3.org/2000/svg" class="h-6 w-6" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M6 18L18 6M6 6l12 12" />
+                        </svg>
+                    </button>
+                </div>
+                
+                <!-- Modal Tabs -->
+                <div class="flex border-b border-gray-700 shrink-0">
+                    <button class="flex-1 py-3 text-sm font-bold text-neonGreen border-b-2 border-neonGreen transition-colors" data-tab="guide-usage">화면 설명</button>
+                    <button class="flex-1 py-3 text-sm font-medium text-gray-500 hover:text-gray-300 transition-colors" data-tab="guide-data">데이터 관리</button>
+                </div>
+
+                <!-- Modal Body -->
+                <div class="p-6 overflow-y-auto flex-1 scrollbar-hide">
+                    <!-- Tab: Usage -->
+                    <div id="guide-usage" class="space-y-6">
+                        <div>
+                            <h3 class="text-white font-bold mb-2 flex items-center"><span class="bg-gray-700 text-xs px-2 py-0.5 rounded mr-2">TIP</span> 대시보드 활용</h3>
+                            <ul class="text-sm text-gray-400 space-y-2 list-disc list-inside">
+                                <li><strong>시즌 변경</strong>: 상단 연도(2025 등)를 눌러 지난 기록을 볼 수 있습니다.</li>
+                                <li><strong>경기 기록</strong>: 경기 일정 카드를 누르면 상세 기록이 팝업으로 뜹니다.</li>
+                                <li><strong>선수 상세</strong>: 기록실에서 선수 이름을 누르면 해당 선수의 모든 골/도움 장면 목록을 볼 수 있습니다.</li>
+                            </ul>
+                        </div>
+                    </div>
+
+                    <!-- Tab: Data Management -->
+                    <div id="guide-data" class="hidden space-y-6">
+                         <div class="bg-gray-900/50 p-4 rounded-xl border border-gray-700">
+                            <h3 class="text-neonGreen font-bold mb-2 text-sm">✅ 경기 결과 입력 (H열)</h3>
+                            <p class="text-xs text-gray-400 mb-2">구글 시트 [Schedule] 탭의 H열을 수정하세요.</p>
+                            <ul class="text-xs text-gray-300 space-y-1">
+                                <li>- <strong>2:1</strong> (스코어만 입력, 승패 자동 판별)</li>
+                                <li>- <strong>빈칸</strong> (진행 예정 상태로 표시됨)</li>
+                            </ul>
+                        </div>
+
+                         <div class="bg-gray-900/50 p-4 rounded-xl border border-gray-700">
+                            <h3 class="text-neonGreen font-bold mb-2 text-sm">🔗 득점-도움 연결 (비고란)</h3>
+                            <p class="text-xs text-gray-400 mb-2">득점자와 도움 선수의 [Note/비고] 란에 같은 태그를 넣으세요.</p>
+                            <div class="bg-black/40 p-3 rounded-lg border border-gray-700 font-mono text-xs">
+                                <div class="flex justify-between mb-1">
+                                    <span class="text-white">손흥민 (득점)</span>
+                                    <span class="text-yellow-400">G1</span>
+                                </div>
+                                <div class="flex justify-between">
+                                    <span class="text-white">케인 (도움)</span>
+                                    <span class="text-yellow-400">G1</span>
+                                </div>
+                            </div>
+                            <p class="text-[10px] text-gray-500 mt-2">→ 결과: "손흥민 (도움: 케인)"으로 표시됨</p>
+                        </div>
+                        
+                         <div class="bg-gray-900/50 p-4 rounded-xl border border-gray-700">
+                            <h3 class="text-neonGreen font-bold mb-2 text-sm">⚠️ 경기 ID 일치</h3>
+                            <p class="text-xs text-gray-400">
+                                [Schedule] 시트와 [Records] 시트의 
+                                <span class="text-white font-bold">경기 ID</span>(Match ID)는  
+                                <span class="text-red-400 underline">반드시 정확히 일치</span>해야 합니다.<br>
+                                (예: 'Round1'과 'round1'은 다른 경기로 인식)
+                            </p>
+                        </div>
+                    </div>
+                </div>
+                
+                <!-- Footer -->
+                <div class="p-4 border-t border-gray-700 bg-gray-900/50 text-center shrink-0">
+                    <p class="text-[10px] text-gray-500">데이터가 반영되지 않으면 새로고침을 해주세요.</p>
+                </div>
+            </div>
+        </div>
     `;
 
     const seasonSelector = document.getElementById('season-selector');
@@ -163,6 +252,54 @@ export function SetupDashboard() {
                 homeBtn.classList.add('text-neonGreen');
             }
             renderView('home', currentSeason, currentMatchType);
+        });
+    }
+
+    // Guide Modal Logic
+    const guideBtn = document.getElementById('btn-guide');
+    const guideModal = document.getElementById('guide-modal');
+    const guideClose = document.getElementById('guide-close');
+    const guideContentBox = document.getElementById('guide-content-box');
+    const guideTabs = document.querySelectorAll('#guide-modal button[data-tab]');
+
+    if (guideBtn && guideModal && guideClose) {
+        // Open
+        guideBtn.addEventListener('click', () => {
+            guideModal.classList.remove('opacity-0', 'pointer-events-none');
+            guideContentBox.classList.remove('scale-95');
+            guideContentBox.classList.add('scale-100');
+        });
+
+        // Close
+        const closeModal = () => {
+            guideModal.classList.add('opacity-0', 'pointer-events-none');
+            guideContentBox.classList.remove('scale-100');
+            guideContentBox.classList.add('scale-95');
+        };
+        guideClose.addEventListener('click', closeModal);
+        guideModal.addEventListener('click', (e) => {
+            if (e.target === guideModal) closeModal();
+        });
+
+        // Tab Switching
+        guideTabs.forEach(tab => {
+            tab.addEventListener('click', (e) => {
+                const targetId = e.target.dataset.tab;
+
+                // Update Tab Styles
+                guideTabs.forEach(t => {
+                    t.classList.remove('text-neonGreen', 'border-neonGreen', 'font-bold');
+                    t.classList.add('text-gray-500', 'font-medium');
+                    if (t.classList.contains('border-b-2')) t.classList.remove('border-b-2');
+                });
+                e.target.classList.remove('text-gray-500', 'font-medium');
+                e.target.classList.add('text-neonGreen', 'border-b-2', 'border-neonGreen', 'font-bold');
+
+                // Update Content
+                document.getElementById('guide-usage').classList.add('hidden');
+                document.getElementById('guide-data').classList.add('hidden');
+                document.getElementById(targetId).classList.remove('hidden');
+            });
         });
     }
 
