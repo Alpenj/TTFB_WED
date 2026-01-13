@@ -1469,6 +1469,7 @@ function createPlayerStatsTable(players, currentSeason) {
                         <th class="cursor-pointer hover:bg-gray-800 p-3 text-center text-xs text-neonGreen font-bold select-none transition-colors group bg-gray-800/50 whitespace-nowrap" data-sort="attackPoints">공격포인트 <span class="text-neonGreen ml-1 text-[10px]">▼</span></th>
                         <th class="cursor-pointer hover:bg-gray-800 p-3 text-center text-xs text-gray-500 font-medium select-none transition-colors group whitespace-nowrap" data-sort="goals">득점 <span class="text-gray-600 ml-1 text-[10px]">⇅</span></th>
                         <th class="cursor-pointer hover:bg-gray-800 p-3 text-center text-xs text-gray-500 font-medium select-none transition-colors group whitespace-nowrap" data-sort="assists">도움 <span class="text-gray-600 ml-1 text-[10px]">⇅</span></th>
+                        <th class="cursor-pointer hover:bg-gray-800 p-3 text-center text-xs text-emerald-400 font-medium select-none transition-colors group whitespace-nowrap" data-sort="cleanSheets">무실점 <span class="text-gray-600 ml-1 text-[10px]">⇅</span></th>
                         <th class="cursor-pointer hover:bg-gray-800 p-3 text-center text-xs text-yellow-400 font-medium select-none transition-colors group whitespace-nowrap" data-sort="yellowCards">경고 <span class="text-gray-600 ml-1 text-[10px]">⇅</span></th>
                         <th class="cursor-pointer hover:bg-gray-800 p-3 text-center text-xs text-red-400 font-medium select-none transition-colors group whitespace-nowrap" data-sort="ownGoals">자책골 <span class="text-gray-600 ml-1 text-[10px]">⇅</span></th>
                     </tr>
@@ -1530,6 +1531,7 @@ function createPlayerStatsTable(players, currentSeason) {
                 <td class="p-3 text-sm text-center text-neonGreen font-mono w-16 font-bold bg-gray-800/50">${p.attackPoints}</td>
                 <td class="p-3 text-sm text-center text-gray-300 font-mono w-16">${p.goals}</td>
                 <td class="p-3 text-sm text-center text-gray-400 font-mono w-16">${p.assists}</td>
+                <td class="p-3 text-sm text-center text-emerald-400 font-mono w-16">${p.cleanSheets}</td>
                 <td class="p-3 text-sm text-center text-yellow-400 font-mono w-16">${p.yellowCards || 0}</td>
                 <td class="p-3 text-sm text-center text-red-400 font-mono w-16">${p.ownGoals}</td>
             </tr>

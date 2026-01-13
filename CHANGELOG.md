@@ -5,6 +5,11 @@
 > - **Minor**: Feature additions, improvements, or bug fixes.
 > - **Date**: Release date suffix (YYMMDD).
 
+## [v1.2_260113] - 2026-01-13
+### Added
+- **Stats Table**: Added "Clean Sheets" (무실점) column to the Player Stats Table with sorting capability.
+- **Clean Sheets**: Updated "Clean Sheets" (무실점) card label to "Top 5" for consistency.
+
 ## [v1.1_260113] - 2026-01-13
 ### Added
 - **Match Lineup (Roster)**: Added "명단" (Lineup) button to match cards in Schedule.
