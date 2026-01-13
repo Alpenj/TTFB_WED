@@ -141,7 +141,7 @@ export function SetupDashboard() {
 
                          <div class="bg-gray-900/50 p-4 rounded-xl border border-gray-700">
                             <h3 class="text-neonGreen font-bold mb-2 text-sm">🔗 득점-도움 연결 (비고란)</h3>
-                            <p class="text-xs text-gray-400 mb-2">득점자와 도움 선수의 [비고] 란에 같은 태그를 넣으세요.</p>
+                            <p class="text-xs text-gray-400 mb-2">득점자와 도움 선수의 <strong>[기록원장]</strong> 시트 <strong>[비고]</strong> 란에 같은 태그를 넣으세요.</p>
                             <div class="bg-black/40 p-3 rounded-lg border border-gray-700 font-mono text-xs">
                                 <div class="flex justify-between mb-1">
                                     <span class="text-white">김승용 (득점)</span>
