@@ -996,7 +996,7 @@ function renderStats(container, currentSeason, currentMatchType) {
              <h2 class="text-lg font-bold text-white flex items-center">
                 <span class="mr-2">🛡️</span> 무실점
             </h2>
-             <span class="text-xs text-emerald-400 font-mono">Clean Sheets</span>
+             <span class="text-xs text-emerald-400 font-mono">Top 5</span>
         </div>
         <div class="space-y-3">
            ${(stats.topCleanSheets || []).filter(p => p.cleanSheets > 0).slice(0, 5).map((p, index) => `
