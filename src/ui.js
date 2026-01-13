@@ -413,6 +413,11 @@ function renderHome(container, currentSeason, currentMatchType) {
                     <span class="text-gray-400 text-xs font-mono z-10">경기 수</span>
                     <span class="text-3xl font-black text-white mt-1 z-10">${teamStats.wins + teamStats.draws + teamStats.losses}<span class="text-base font-normal text-gray-500 ml-1">전</span></span>
                 </div>
+             <div class="bg-gradient-to-br from-gray-800 to-gray-900 p-4 rounded-3xl border border-gray-700 flex flex-col items-center justify-center shadow-lg relative overflow-hidden group cursor-pointer hover:border-neonGreen transition-colors" id="btn-stats-efficiency">
+                <div class="absolute inset-0 bg-neonGreen/5 opacity-0 group-hover:opacity-100 transition-opacity"></div>
+                <span class="text-gray-400 text-xs font-mono z-10">승률</span>
+                <span class="text-3xl font-black text-white mt-1 z-10">${teamStats.winRate}<span class="text-base font-normal text-neonGreen">%</span></span>
+            </div>
              <div class="bg-gradient-to-br from-gray-800 to-gray-900 p-4 rounded-3xl border border-gray-700 flex flex-col items-center justify-center shadow-lg relative overflow-hidden group cursor-pointer hover:border-blue-500 transition-colors col-span-2 md:col-span-1" id="btn-stats-summary">
                  <div class="absolute inset-0 bg-blue-500/5 opacity-0 group-hover:opacity-100 transition-opacity"></div>
                 <span class="text-gray-400 text-xs font-mono z-10">전적 (승-무-패)</span>
@@ -421,11 +426,6 @@ function renderHome(container, currentSeason, currentMatchType) {
                     <span class="text-xl font-bold text-yellow-400">${teamStats.draws}</span><span class="text-xs text-gray-500">무</span>
                     <span class="text-xl font-bold text-red-500">${teamStats.losses}</span><span class="text-xs text-gray-500">패</span>
                 </div>
-            </div>
-            <div class="bg-gradient-to-br from-gray-800 to-gray-900 p-4 rounded-3xl border border-gray-700 flex flex-col items-center justify-center shadow-lg relative overflow-hidden group cursor-pointer hover:border-neonGreen transition-colors" id="btn-stats-record">
-                <div class="absolute inset-0 bg-neonGreen/5 opacity-0 group-hover:opacity-100 transition-opacity"></div>
-                <span class="text-gray-400 text-xs font-mono z-10">승률</span>
-                <span class="text-3xl font-black text-white mt-1 z-10">${teamStats.winRate}<span class="text-base font-normal text-neonGreen">%</span></span>
             </div>
         </div>
 
