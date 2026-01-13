@@ -372,7 +372,7 @@ export function getStats(seasonFilter, matchTypeFilter) {
         const player = statsMap[record.name];
         player.appearances += 1;
 
-        const type = record.appearanceType;
+        const type = record.appearance;
         if (['선발', 'Start', 'start', 'O', 'o'].includes(type)) {
             player.starts++;
         } else if (['교체', 'Sub', 'sub'].includes(type)) {

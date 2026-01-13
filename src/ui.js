@@ -540,7 +540,10 @@ function renderHome(container, currentSeason, currentMatchType) {
                                     <span class="text-xs font-mono w-4 shrink-0 ${index < 3 ? 'text-purple-400' : 'text-gray-500'}">${index + 1}</span>
                                     <span class="text-xs text-gray-300 group-hover:text-white transition-colors truncate">${p.name}</span>
                                 </div>
-                                <span class="text-xs font-bold text-white font-mono shrink-0">${p.appearances}</span>
+                                <div class="flex items-center space-x-1 text-xs font-mono shrink-0">
+                                    <span class="text-white font-bold">${p.appearances}</span>
+                                    <span class="text-[10px] text-gray-500">(${p.starts}/${p.substitutes})</span>
+                                </div>
                             </div>
                         `).join('');
         })()}
