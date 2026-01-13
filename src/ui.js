@@ -1712,9 +1712,8 @@ function showMatchLineupModal(season, matchId, opponent) {
     const records = getMatchRecords(season, matchId);
 
     // Sort: Starters first, then Substitutes
-    // Within groups: GK -> DF -> MF -> FW (if position available? data doesn't have position in match record usually, only in player dict? 
-    // Actually match records are just list. Let's just separate Starters and Subs.
-    const starters = records.filter(r => r.appearance !== '교체');
+    // Strict filter based on column E values
+    const starters = records.filter(r => r.appearance === '선발');
     const subs = records.filter(r => r.appearance === '교체');
 
     const renderPlayerRow = (p) => {

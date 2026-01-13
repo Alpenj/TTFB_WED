@@ -218,7 +218,7 @@ function parseRecordsCSV(csvText) {
             matchId: row[1].trim(),
             position: row[2].trim(),
             name: row[3].trim(),
-            appearanceType: row[4] ? row[4].trim() : '',
+            appearance: row[4] ? row[4].trim() : '',
             goals: parseInt(row[5] ? row[5].trim() : 0) || 0,
             assists: parseInt(row[6] ? row[6].trim() : 0) || 0,
             note: row[7] ? row[7].trim() : '',
