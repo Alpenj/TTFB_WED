@@ -4,7 +4,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>TTFB WED Dashboard v1.0 Update</title>
+    <title>TTFB WED Dashboard v1.2 Update</title>
     <script src="https://cdn.tailwindcss.com"></script>
     <script>
         tailwind.config = {
@@ -41,103 +41,46 @@
             <p class="text-gray-400">데이터 대시보드 정식 릴리즈 안내 (2026.01.13)</p>
         </header>
 
-        <!-- Section 1: New Features -->
+        <!-- Section 1: Records Room Updates -->
         <section class="mb-12 animate-fade-in-up">
             <div class="bg-gray-800 rounded-3xl p-6 md:p-8 border border-gray-700 shadow-lg">
                 <div class="flex items-center mb-6">
-                    <span class="text-2xl mr-3">✨</span>
-                    <h2 class="text-xl font-bold text-white">신규 기능 (New Features)</h2>
+                    <span class="text-2xl mr-3">📊</span>
+                    <h2 class="text-xl font-bold text-white">기록실 기능 강화 (Records Upgrade)</h2>
                 </div>
                 <ul class="space-y-4 text-sm md:text-base text-gray-300">
                     <li class="flex items-start">
                         <span class="text-neonGreen mr-2 font-bold">✓</span>
                         <div>
-                            <strong class="text-white">경기 명단 (Linup) 확인</strong>
-                            <p class="text-gray-400 mt-1">일정 페이지의 각 경기 카드에 <span
-                                    class="text-[10px] px-2 py-0.5 rounded border border-gray-600 text-gray-400">명단</span>
-                                버튼이 추가되었습니다. 클릭 시 해당 경기의 <strong>선발/교체 명단</strong>과 <strong>개인 기록(득점/도움/경고)</strong>을
-                                한눈에 볼 수 있습니다.</p>
+                            <strong class="text-white">무실점(Clean Sheets) 컬럼 추가</strong>
+                            <p class="text-gray-400 mt-1">기록실의 선수 개인 기록 표에 <strong>'무실점'</strong> 항목이 추가되었습니다. 이제 누가 가장
+                                많은 클린시트를 기록했는지 오름차순/내림차순으로 정렬하여 확인해보세요.</p>
                         </div>
                     </li>
                     <li class="flex items-start">
                         <span class="text-neonGreen mr-2 font-bold">✓</span>
                         <div>
-                            <strong class="text-white">인앱 가이드 (In-App Guide)</strong>
-                            <p class="text-gray-400 mt-1">하단 네비게이션바의 <strong>물음표(?)</strong> 버튼을 눌러보세요. 화면 설명과 데이터 관리
-                                방법을 앱 내에서 바로 확인할 수 있습니다.</p>
-                        </div>
-                    </li>
-                    <li class="flex items-start">
-                        <span class="text-neonGreen mr-2 font-bold">✓</span>
-                        <div>
-                            <strong class="text-white">연습경기 분리</strong>
-                            <p class="text-gray-400 mt-1">'전체' 탭에서 연습경기를 제외하고, 상단의 <strong>[연습경기]</strong> 전용 탭에서만 모아볼 수
-                                있도록 정리했습니다.</p>
+                            <strong class="text-white">무실점 상세 기록 개선</strong>
+                            <p class="text-gray-400 mt-1">무실점(Top 5) 카드를 클릭하면, 기존처럼 모든 경기가 나오지 않고 <strong>실점이 '0'인 경기만
+                                    정확히 필터링</strong>되어 표시됩니다.</p>
                         </div>
                     </li>
                 </ul>
-                <div class="mt-4 pt-4 border-t border-gray-700">
-                    <h3 class="text-neonGreen font-bold mb-2 text-sm md:text-base">v1.2 추가 사항</h3>
-                    <ul class="space-y-2 text-sm md:text-base text-gray-300">
-                        <li class="flex items-start">
-                            <span class="text-neonGreen mr-2 font-bold">•</span>
-                            <span><strong>무실점(Clean Sheets) 컬럼 추가</strong>: 기록실 테이블에서 무실점 기록을 확인하고 정렬할 수 있습니다.</span>
-                        </li>
-                    </ul>
-                </div>
             </div>
         </section>
 
-        <!-- Section 2: Improvements -->
+        <!-- Section 2: UI/UX Improvements -->
         <section class="mb-12">
             <div class="bg-gray-800 rounded-3xl p-6 md:p-8 border border-gray-700 shadow-lg">
                 <div class="flex items-center mb-6">
-                    <span class="text-2xl mr-3">🛠️</span>
-                    <h2 class="text-xl font-bold text-white">개선 사항 (Improvements)</h2>
+                    <span class="text-2xl mr-3">🎨</span>
+                    <h2 class="text-xl font-bold text-white">디자인 개선 (UI Refinements)</h2>
                 </div>
                 <div class="space-y-4 text-sm md:text-base text-gray-300">
                     <ul class="space-y-2 list-disc list-inside ml-2 text-gray-400">
-                        <li><strong class="text-gray-200">모바일 스크롤 고정</strong>: 스마트폰에서 상하단 바가 덜컹거리지 않도록 화면을 고정했습니다.</li>
-                        <li><strong class="text-gray-200">데이터 정확도 향상</strong>: 선발/교체 명단이 실제 데이터와 일치하지 않던 문제를 수정했습니다.
-                        </li>
-                        <li><strong class="text-gray-200">UI 디자인 통일</strong>: 기록실(Stats) 페이지의 각 섹션 제목 크기와 여백을 보기 좋게
-                            통일했습니다.</li>
-                        <li><strong class="text-gray-200">경기 당일 표시</strong>: 경기 당일에는 D-Day 대신 "경기 당일" 라벨이 표시됩니다.</li>
-                        <li><strong class="text-gray-200">모바일 레이아웃</strong>: 홈 화면 요약 카드를 모바일에서 보기 편한 2열 구조로 변경했습니다.</li>
+                        <li><strong class="text-gray-200">라벨 통일</strong>: 무실점 카드의 제목을 기존 'Clean Sheets'에서 다른 카드와 동일하게
+                            <strong>'Top 5'</strong>로 변경하여 통일감을 주었습니다.</li>
                     </ul>
-                </div>
-            </div>
-        </section>
-
-        <!-- Section 3: Data Management -->
-        <section class="mb-12">
-            <div class="bg-gray-800 rounded-3xl p-6 md:p-8 border border-gray-600 shadow-lg relative overflow-hidden">
-                <div class="absolute top-0 right-0 -mt-4 -mr-4 w-24 h-24 bg-neonGreen opacity-10 rounded-full blur-xl">
-                </div>
-                <div class="flex items-center mb-6 relative z-10">
-                    <span class="text-2xl mr-3">📝</span>
-                    <h2 class="text-xl font-bold text-white">데이터 관리 가이드 (매니저)</h2>
-                </div>
-                <div class="space-y-4 text-sm md:text-base text-gray-300 relative z-10">
-                    <p>앱 내 <strong class="text-white">가이드(?)</strong> 버튼의 <strong>[데이터 관리]</strong> 탭에서도 동일한 내용을 확인하실 수
-                        있습니다.</p>
-
-                    <div class="bg-gray-900 rounded-xl p-4 border border-gray-700 mt-4">
-                        <h3 class="text-neonGreen font-bold mb-2">1. 경기 영상 버튼 (I열)</h3>
-                        <ul class="space-y-2 text-gray-400 text-sm">
-                            <li><strong class="text-white">파란 버튼</strong>: I열에 유튜브 링크 입력.</li>
-                            <li><strong class="text-white">빨간 버튼</strong>: I열을 비워두면 자동 적용.</li>
-                        </ul>
-                    </div>
-
-                    <div class="bg-gray-900 rounded-xl p-4 border border-gray-700">
-                        <h3 class="text-neonGreen font-bold mb-2">2. 득점-도움 연결 (비고란)</h3>
-                        <ul class="space-y-2 text-gray-400 text-sm">
-                            <li>득점자와 도움 선수의 <strong class="text-white">[기록원장] 시트 [비고]</strong> 란에 같은 태그(예:
-                                <code>G1</code>)를 입력하면 자동으로 연결됩니다.
-                            </li>
-                        </ul>
-                    </div>
                 </div>
             </div>
         </section>
