@@ -37,140 +37,95 @@
         <!-- Header -->
         <header class="mb-12 text-center">
             <h1 class="text-3xl md:text-4xl font-black text-white mb-4">TTFB WED <span
-                    class="text-neonGreen">v1.0</span> Update</h1>
-            <p class="text-gray-400">데이터 대시보드 정식 릴리즈 안내</p>
+                    class="text-neonGreen">v1.1</span> Update</h1>
+            <p class="text-gray-400">데이터 대시보드 정식 릴리즈 안내 (2026.01.13)</p>
         </header>
 
-        <!-- Section 1 -->
+        <!-- Section 1: New Features -->
         <section class="mb-12 animate-fade-in-up">
             <div class="bg-gray-800 rounded-3xl p-6 md:p-8 border border-gray-700 shadow-lg">
                 <div class="flex items-center mb-6">
-                    <span class="text-2xl mr-3">🧭</span>
-                    <h2 class="text-xl font-bold text-white">공통 기능 (Global)</h2>
+                    <span class="text-2xl mr-3">✨</span>
+                    <h2 class="text-xl font-bold text-white">신규 기능 (New Features)</h2>
                 </div>
-                <ul class="space-y-3 text-sm md:text-base text-gray-300">
+                <ul class="space-y-4 text-sm md:text-base text-gray-300">
                     <li class="flex items-start">
                         <span class="text-neonGreen mr-2 font-bold">✓</span>
-                        <span><strong>시즌 필터</strong>: 상단 탭에서 2024 / 2025 / 2026 / Total(통산) 시즌을 자유롭게 넘나들며 데이터를 확인할 수
-                            있습니다.</span>
+                        <div>
+                            <strong class="text-white">경기 명단 (Linup) 확인</strong>
+                            <p class="text-gray-400 mt-1">일정 페이지의 각 경기 카드에 <span
+                                    class="text-[10px] px-2 py-0.5 rounded border border-gray-600 text-gray-400">명단</span>
+                                버튼이 추가되었습니다. 클릭 시 해당 경기의 <strong>선발/교체 명단</strong>과 <strong>개인 기록(득점/도움/경고)</strong>을
+                                한눈에 볼 수 있습니다.</p>
+                        </div>
+                    </li>
+                    <li class="flex items-start">
+                        <span class="text-neonGreen mr-2 font-bold">✓</span>
+                        <div>
+                            <strong class="text-white">인앱 가이드 (In-App Guide)</strong>
+                            <p class="text-gray-400 mt-1">하단 네비게이션바의 <strong>물음표(?)</strong> 버튼을 눌러보세요. 화면 설명과 데이터 관리
+                                방법을 앱 내에서 바로 확인할 수 있습니다.</p>
+                        </div>
+                    </li>
+                    <li class="flex items-start">
+                        <span class="text-neonGreen mr-2 font-bold">✓</span>
+                        <div>
+                            <strong class="text-white">연습경기 분리</strong>
+                            <p class="text-gray-400 mt-1">'전체' 탭에서 연습경기를 제외하고, 상단의 <strong>[연습경기]</strong> 전용 탭에서만 모아볼 수
+                                있도록 정리했습니다.</p>
+                        </div>
                     </li>
                 </ul>
             </div>
         </section>
 
-        <!-- Section 2 -->
+        <!-- Section 2: Improvements -->
         <section class="mb-12">
             <div class="bg-gray-800 rounded-3xl p-6 md:p-8 border border-gray-700 shadow-lg">
                 <div class="flex items-center mb-6">
-                    <span class="text-2xl mr-3">🏠</span>
-                    <h2 class="text-xl font-bold text-white">홈 (Home)</h2>
+                    <span class="text-2xl mr-3">🛠️</span>
+                    <h2 class="text-xl font-bold text-white">개선 사항 (Improvements)</h2>
                 </div>
                 <div class="space-y-4 text-sm md:text-base text-gray-300">
-                    <p>팀의 현재 상황을 한눈에 파악하세요.</p>
                     <ul class="space-y-2 list-disc list-inside ml-2 text-gray-400">
-                        <li><strong class="text-gray-200">요약 카드 개편</strong>: 경기 수(Matches) -> 전적(W-D-L) -> 승률 순으로 배치 변경.
+                        <li><strong class="text-gray-200">모바일 스크롤 고정</strong>: 스마트폰에서 상하단 바가 덜컹거리지 않도록 화면을 고정했습니다.</li>
+                        <li><strong class="text-gray-200">데이터 정확도 향상</strong>: 선발/교체 명단이 실제 데이터와 일치하지 않던 문제를 수정했습니다.
                         </li>
-                        <li><strong class="text-gray-200">다음 경기 & 최근 결과</strong>: '연습경기'는 제외하고 리그/컵 공식 경기 위주로 표시 (전체 보기
-                            시).</li>
-                        <li><strong class="text-gray-200">경기장 지도</strong>: 🏟️ 아이콘 클릭 시 네이버/카카오/TMAP 연동.</li>
-                        <li><strong class="text-gray-200">전적 분석</strong>: 상대 팀별 / 구장별 승률 데이터 (접기/펼치기 가능).</li>
+                        <li><strong class="text-gray-200">UI 디자인 통일</strong>: 기록실(Stats) 페이지의 각 섹션 제목 크기와 여백을 보기 좋게
+                            통일했습니다.</li>
+                        <li><strong class="text-gray-200">경기 당일 표시</strong>: 경기 당일에는 D-Day 대신 "경기 당일" 라벨이 표시됩니다.</li>
+                        <li><strong class="text-gray-200">모바일 레이아웃</strong>: 홈 화면 요약 카드를 모바일에서 보기 편한 2열 구조로 변경했습니다.</li>
                     </ul>
                 </div>
             </div>
         </section>
 
-        <!-- Section 3 -->
-        <section class="mb-12">
-            <div class="bg-gray-800 rounded-3xl p-6 md:p-8 border border-gray-700 shadow-lg">
-                <div class="flex items-center mb-6">
-                    <span class="text-2xl mr-3">📅</span>
-                    <h2 class="text-xl font-bold text-white">경기 일정 (Schedule)</h2>
-                </div>
-                <div class="space-y-4 text-sm md:text-base text-gray-300">
-                    <p>직관적인 리스트로 지난 경기와 예정된 일정을 확인하세요.</p>
-                    <ul class="space-y-2 list-disc list-inside ml-2 text-gray-400">
-                        <li><strong class="text-gray-200">필터링 개선</strong>: '전체' 탭에서는 연습경기를 제외하고 공식 일정만 표시합니다.</li>
-                        <li><strong class="text-gray-200">스코어 표기</strong>: 점수 옆에 <span
-                                class="text-neonGreen">(승)</span>, <span class="text-yellow-400">(무)</span>, <span
-                                class="text-red-400">(패)</span> 라벨 추가.</li>
-                        <li><strong class="text-gray-200">상태 색상</strong>: 예정된 경기는 <span class="text-blue-500">파란색</span>
-                            라인으로 구분.</li>
-                        <li><strong class="text-gray-200">상세 결과</strong>: 승부차기(PK) 결과와 득점/도움 선수 실명 표기.</li>
-                        <li><strong class="text-gray-200">경기 영상</strong>: <span
-                                class="text-blue-400 border border-blue-500 rounded px-1 text-[10px]">영상</span> 버튼 추가
-                            (파란색: 시청 가능, 빨간색: 미등록).</li>
-                    </ul>
-                </div>
-            </div>
-        </section>
-
-        <!-- Section 4 -->
-        <section class="mb-12">
-            <div class="bg-gray-800 rounded-3xl p-6 md:p-8 border border-gray-700 shadow-lg">
-                <div class="flex items-center mb-6">
-                    <span class="text-2xl mr-3">📊</span>
-                    <h2 class="text-xl font-bold text-white">기록실 (Records)</h2>
-                </div>
-                <div class="space-y-4 text-sm md:text-base text-gray-300">
-                    <p>데이터 분석의 핵심 페이지입니다.</p>
-                    <ul class="space-y-2 list-disc list-inside ml-2 text-gray-400">
-                        <li><strong class="text-gray-200">부문별 랭킹</strong>: 득점, 도움, 출전, 경고, 퇴장, 자책골(Own Goal) 순위.</li>
-                        <li><strong class="text-gray-200">개인 히스토리 팝업</strong>: <span class="text-neonGreen"></span> 선수
-                            이름을 클릭하면 언제, 누구를 상대로 기록했는지 팝업으로 상세히 보여줍니다.</li>
-                        <li><strong class="text-gray-200">종합 스탯 테이블</strong>:
-                            <ul class="list-none ml-6 mt-1 space-y-1 text-gray-500">
-                                <li>- 모든 항목 정렬(Sorting) 지원.</li>
-                                <li>- <span class="text-neonGreen">Update!</span> <strong>출전 기록 세분화</strong>: 선발(Starts)
-                                    / 교체(Subs) 분리 표기.</li>
-                            </ul>
-                        </li>
-                    </ul>
-                </div>
-            </div>
-        </section>
-
-        <!-- Section 5: User Guide -->
+        <!-- Section 3: Data Management -->
         <section class="mb-12">
             <div class="bg-gray-800 rounded-3xl p-6 md:p-8 border border-gray-600 shadow-lg relative overflow-hidden">
                 <div class="absolute top-0 right-0 -mt-4 -mr-4 w-24 h-24 bg-neonGreen opacity-10 rounded-full blur-xl">
                 </div>
                 <div class="flex items-center mb-6 relative z-10">
                     <span class="text-2xl mr-3">📝</span>
-                    <h2 class="text-xl font-bold text-white">데이터 관리 가이드 (매니저 필독)</h2>
+                    <h2 class="text-xl font-bold text-white">데이터 관리 가이드 (매니저)</h2>
                 </div>
                 <div class="space-y-4 text-sm md:text-base text-gray-300 relative z-10">
-                    <p>구글 스프레드시트의 <strong>[경기 일정]</strong> 시트를 수정하면 대시보드에 즉시 반영됩니다.</p>
+                    <p>앱 내 <strong class="text-white">가이드(?)</strong> 버튼의 <strong>[데이터 관리]</strong> 탭에서도 동일한 내용을 확인하실 수
+                        있습니다.</p>
 
                     <div class="bg-gray-900 rounded-xl p-4 border border-gray-700 mt-4">
-                        <h3 class="text-neonGreen font-bold mb-2">1. 경기 결과 및 상태 설정 (H열)</h3>
+                        <h3 class="text-neonGreen font-bold mb-2">1. 경기 영상 버튼 (I열)</h3>
                         <ul class="space-y-2 text-gray-400 text-sm">
-                            <li><strong class="text-white">경기 완료</strong>: H열에 스코어를 <code>2:1</code> 형식으로 입력하세요. (승/패 구분
-                                자동)</li>
-                            <li><strong class="text-white">진행 예정</strong>: H열을 <span class="text-red-400">비워두면</span>
-                                자동으로 '진행 예정' 상태가 되며, 파란색 테두리로 표시됩니다.</li>
+                            <li><strong class="text-white">파란 버튼</strong>: I열에 유튜브 링크 입력.</li>
+                            <li><strong class="text-white">빨간 버튼</strong>: I열을 비워두면 자동 적용.</li>
                         </ul>
                     </div>
 
                     <div class="bg-gray-900 rounded-xl p-4 border border-gray-700">
-                        <h3 class="text-neonGreen font-bold mb-2">2. 경기 영상 버튼 설정 (I열)</h3>
+                        <h3 class="text-neonGreen font-bold mb-2">2. 득점-도움 연결 (비고란)</h3>
                         <ul class="space-y-2 text-gray-400 text-sm">
-                            <li><strong class="text-white">영상 없음 (빨간 버튼)</strong>: I열을 비워두면 됩니다.</li>
-                            <li><strong class="text-white">영상 있음 (파란 버튼)</strong>: I열에 유튜브 등 영상 URL을 입력하면 자동으로 파란색 버튼으로
-                                변경됩니다.</li>
-                        </ul>
-                    </div>
-
-                    <div class="bg-gray-900 rounded-xl p-4 border border-gray-700">
-                        <h3 class="text-neonGreen font-bold mb-2">3. 득점/도움 연동 가이드 (비고란)</h3>
-                        <ul class="space-y-2 text-gray-400 text-sm">
-                            <li>득점자와 도움 제공자를 연결하려면, 두 선수의 <strong class="text-white">[비고]</strong> 란에 <span class="text-neonGreen">동일한 태그</span>(예: <code>G1</code>, <code>G2</code>...)를 입력하세요.</li>
-                            <li><strong class="text-white">예시 상황</strong>: A선수가 골을 넣고, B선수가 어시스트를 한 경우
-                                <ul class="list-disc list-inside ml-2 mt-1 text-gray-500">
-                                    <li><strong>A선수 (득점)</strong>: 비고란에 <code>G1</code> 입력</li>
-                                    <li><strong>B선수 (도움)</strong>: 비고란에 <code>G1</code> 입력</li>
-                                    <li>→ 대시보드 표기: <span class="text-gray-300">A선수 <span class="text-[10px] text-gray-500 font-normal">(도움: B선수)</span></span></li>
-                                </ul>
-                            </li>
+                            <li>득점자와 도움 선수의 <strong class="text-white">[기록원장] 시트 [비고]</strong> 란에 같은 태그(예:
+                                <code>G1</code>)를 입력하면 자동으로 연결됩니다.</li>
                         </ul>
                     </div>
                 </div>
