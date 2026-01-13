@@ -164,6 +164,15 @@ export function SetupDashboard() {
                                 (예: 'Round1'과 'round1'은 다른 경기로 인식)
                             </p>
                         </div>
+
+                        <div class="bg-blue-900/20 p-4 rounded-xl border border-blue-500/30">
+                            <h3 class="text-blue-400 font-bold mb-2 text-sm">🔐 데이터 관리 권한 요청</h3>
+                            <p class="text-xs text-gray-400 mb-2">데이터 수정을 희망하시는 경우, 아래 구글 그룹스에 가입 요청을 해주세요.</p>
+                            <a href="https://groups.google.com/g/ttfb_wed/" target="_blank" class="text-xs text-blue-400 underline hover:text-blue-300 break-all">
+                                https://groups.google.com/g/ttfb_wed/
+                            </a>
+                            <p class="text-[10px] text-gray-500 mt-2">확인 후 권한을 부여해 드립니다.</p>
+                        </div>
                     </div>
                 </div>
                 
