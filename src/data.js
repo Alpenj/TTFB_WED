@@ -89,7 +89,7 @@ export function getPlayerEvents(currentSeason, currentMatchType, playerName, eve
                 opponent: match.opponent,
                 count: count,
                 type: eventType,
-                submissionType: r.appearanceType, // For appearances (Start/Sub)
+                submissionType: r.appearance, // For appearances (Start/Sub)
                 goals: r.goals,
                 assists: r.assists,
                 note: r.note
@@ -129,7 +129,7 @@ export function getPlayerMatchHistory(playerName, seasonFilter) {
             date: match.date,
             opponent: match.opponent,
             matchType: match.matchType,
-            appearance: r.appearanceType,
+            appearance: r.appearance,
             goals: r.goals,
             assists: r.assists,
             yellowCards: r.yellowCards,
