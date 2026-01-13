@@ -132,7 +132,7 @@ export function SetupDashboard() {
                     <div id="guide-data" class="hidden space-y-6">
                          <div class="bg-gray-900/50 p-4 rounded-xl border border-gray-700">
                             <h3 class="text-neonGreen font-bold mb-2 text-sm">✅ 경기 결과 입력 (H열)</h3>
-                            <p class="text-xs text-gray-400 mb-2">구글 시트 [Schedule] 탭의 H열을 수정하세요.</p>
+                            <p class="text-xs text-gray-400 mb-2">구글 시트 [경기 일정] 탭의 H열을 수정하세요.</p>
                             <ul class="text-xs text-gray-300 space-y-1">
                                 <li>- <strong>2:1</strong> (스코어만 입력, 승패 자동 판별)</li>
                                 <li>- <strong>빈칸</strong> (진행 예정 상태로 표시됨)</li>
@@ -158,7 +158,7 @@ export function SetupDashboard() {
                          <div class="bg-gray-900/50 p-4 rounded-xl border border-gray-700">
                             <h3 class="text-neonGreen font-bold mb-2 text-sm">⚠️ 경기 ID 일치</h3>
                             <p class="text-xs text-gray-400">
-                                [Schedule] 시트와 [Records] 시트의 
+                                [경기 일정] 시트와 [기록원장] 시트의 
                                 <span class="text-white font-bold">경기 ID</span>(Match ID)는  
                                 <span class="text-red-400 underline">반드시 정확히 일치</span>해야 합니다.<br>
                                 (예: 'Round1'과 'round1'은 다른 경기로 인식)
