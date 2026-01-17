@@ -5,6 +5,13 @@
 > - **Minor**: Feature additions, improvements, or bug fixes.
 > - **Date**: Release date suffix (YYMMDD).
 
+## [v1.2.1_260117] - 2026-01-17
+### Added
+- **Lineup**:
+    - **Position Display**: Added player position badges (e.g., FW, MF) to the lineup list.
+    - **Assist Visibility**: Improved readability of assist information (text brightness and bolding).
+
+
 ## [v1.2_260113] - 2026-01-13
 ### Added
 - **Stats Table**: Added "Clean Sheets" (무실점) column to the Player Stats Table with sorting capability.

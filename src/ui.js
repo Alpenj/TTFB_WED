@@ -1740,6 +1740,12 @@ function showMatchLineupModal(season, matchId, opponent) {
 
     const renderPlayerRow = (p) => {
         let statsIcons = '';
+
+        // Position Badge
+        if (p.position && p.position.trim() !== '') {
+            statsIcons += `<span class="ml-2 text-[10px] text-gray-400 font-mono bg-gray-700/50 px-1.5 py-0.5 rounded border border-gray-600">${p.position}</span>`;
+        }
+
         if (p.goals > 0) statsIcons += `<span class="ml-1 text-neonGreen text-xs">⚽${p.goals > 1 ? p.goals : ''}</span>`;
 
         // Assist Info Generation
@@ -1757,7 +1763,8 @@ function showMatchLineupModal(season, matchId, opponent) {
 
             if (assisters.length > 0) {
                 const uniqueAssisters = [...new Set(assisters)];
-                assistText = `<span class="text-[10px] text-gray-500 font-normal ml-1">(도움: ${uniqueAssisters.join(', ')})</span>`;
+                // Improved visibility: text-gray-300 and slightly larger if needed, or keeping text-[10px] but lighter
+                assistText = `<span class="text-xs text-gray-400 ml-1">(도움: <span class="text-gray-300 font-bold">${uniqueAssisters.join(', ')}</span>)</span>`;
             }
         }
         // Append assist text immediately after goal icon if exists
