@@ -418,8 +418,15 @@ export function getStats(seasonFilter, matchTypeFilter) {
         if (cleanSheetMatches.has(uniqueId)) {
             const player = statsMap[record.name];
             if (player) {
-                const pos = player.position ? player.position.toUpperCase() : '';
-                if (pos === 'GK' || pos === 'DF') {
+                // Check Match Position (not default position)
+                const recordPos = record.position ? record.position.toUpperCase() : '';
+                const isDefender = ['DF', 'CB', 'WB', 'LB', 'RB', 'LWB', 'RWB'].includes(recordPos) || recordPos.includes('DF');
+                const isGoalkeeper = recordPos === 'GK';
+
+                // Check if played (Start or Sub)
+                const played = ['선발', '교체', 'Start', 'Sub', 'start', 'sub', 'O', 'o'].includes(record.appearance);
+
+                if ((isDefender || isGoalkeeper) && played) {
                     player.cleanSheets += 1;
                 }
             }
@@ -454,7 +461,7 @@ export function getStats(seasonFilter, matchTypeFilter) {
             .sort((a, b) => b.appearances - a.appearances || b.starts - a.starts)
             .slice(0, 5),
         topCleanSheets: [...playersArray]
-            .filter(p => p.position === 'GK' || p.position === 'DF')
+            .filter(p => p.cleanSheets > 0) // Show anyone with clean sheets
             .sort((a, b) => b.cleanSheets - a.cleanSheets || b.appearances - a.appearances)
             .slice(0, 5),
         topOwnGoals: [...playersArray]
