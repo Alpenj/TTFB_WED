@@ -260,6 +260,11 @@ export function SetupDashboard() {
                 homeBtn.classList.remove('text-gray-500');
                 homeBtn.classList.add('text-neonGreen');
             }
+
+            // [NEW] Reset Season to All Time
+            currentSeason = 'all';
+            if (seasonSelector) seasonSelector.value = 'all';
+
             renderView('home', currentSeason, currentMatchType);
         });
     }
