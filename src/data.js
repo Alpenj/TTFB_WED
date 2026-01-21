@@ -282,7 +282,26 @@ export function getAvailableMatchTypes() {
     scheduleData.forEach(m => {
         if (m.matchType) types.add(m.matchType);
     });
-    return Array.from(types).sort();
+
+    const order = ['리그', '컵', '플레이오프', '플옵', '연습경기'];
+    return Array.from(types).sort((a, b) => {
+        const indexA = order.indexOf(a);
+        const indexB = order.indexOf(b);
+
+        // If both are in the known order list, compare indices
+        if (indexA !== -1 && indexB !== -1) {
+            return indexA - indexB;
+        }
+
+        // If only A is in the list, A comes first
+        if (indexA !== -1) return -1;
+
+        // If only B is in the list, B comes first
+        if (indexB !== -1) return 1;
+
+        // If neither are in the list, sort alphabetically
+        return a.localeCompare(b);
+    });
 }
 
 export function getStadium(shortName) {
