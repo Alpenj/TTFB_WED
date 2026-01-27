@@ -638,9 +638,9 @@ function renderMatches(container, currentSeason, currentMatchType) {
     const listContainer = document.createElement('div');
     listContainer.className = 'flex flex-col space-y-4 min-h-[400px]';
 
-    // [NEW] League/Cup Standings Table
-    const isLeagueOrCup = ['리그', '컵'].includes(currentMatchType);
-    if (isLeagueOrCup) {
+    // [NEW] League/Cup/Playoff Standings Table
+    const isStandingsType = ['리그', '컵', '플레이오프', '플옵'].includes(currentMatchType);
+    if (isStandingsType) {
         const standings = getStandings(currentSeason, currentMatchType);
 
         if (standings.length > 0) {

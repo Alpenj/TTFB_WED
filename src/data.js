@@ -1,6 +1,6 @@
 
 // CSV URLs provided by the user
-// CSV URLs provided by the user
+
 const PLAYERS_CSV_URL = 'https://docs.google.com/spreadsheets/d/e/2PACX-1vRGGWFn467-3HymL_GgM6kifS1veoPDSgCG47Za6sO94ZJr8n9PzmL-h_aVCo7e59gbPhVbkfHJtEA9/pub?gid=0&single=true&output=csv';
 const SCHEDULE_CSV_URL = 'https://docs.google.com/spreadsheets/d/e/2PACX-1vRGGWFn467-3HymL_GgM6kifS1veoPDSgCG47Za6sO94ZJr8n9PzmL-h_aVCo7e59gbPhVbkfHJtEA9/pub?gid=2105782746&single=true&output=csv';
 const RECORDS_CSV_URL = 'https://docs.google.com/spreadsheets/d/e/2PACX-1vRGGWFn467-3HymL_GgM6kifS1veoPDSgCG47Za6sO94ZJr8n9PzmL-h_aVCo7e59gbPhVbkfHJtEA9/pub?gid=426357573&single=true&output=csv';
