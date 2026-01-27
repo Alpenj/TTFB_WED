@@ -1,5 +1,5 @@
 import Chart from 'chart.js/auto';
-import { getSchedule, getStats, getTeamStats, getStadium, getStadiumStats, getAvailableSeasons, getAvailableMatchTypes, getMatchRecords, getPlayerEvents, getOpponentStats, getPlayerMatchHistory, getLinkedMatchStats } from './data.js';
+import { getSchedule, getStats, getTeamStats, getStadium, getStadiumStats, getAvailableSeasons, getAvailableMatchTypes, getMatchRecords, getPlayerEvents, getOpponentStats, getPlayerMatchHistory, getLinkedMatchStats, getStandings } from './data.js';
 
 window.getPlayerMatchHistory = getPlayerMatchHistory; // Expose for inline onclick handlers
 
@@ -637,6 +637,61 @@ function renderMatches(container, currentSeason, currentMatchType) {
 
     const listContainer = document.createElement('div');
     listContainer.className = 'flex flex-col space-y-4 min-h-[400px]';
+
+    // [NEW] League/Cup Standings Table
+    const isLeagueOrCup = ['리그', '컵'].includes(currentMatchType);
+    if (isLeagueOrCup) {
+        const standings = getStandings(currentSeason, currentMatchType);
+
+        if (standings.length > 0) {
+            const tableContainer = document.createElement('div');
+            tableContainer.className = 'bg-gray-800 rounded-3xl p-6 border border-gray-700 mb-6';
+
+            tableContainer.innerHTML = `
+                <h3 class="text-lg font-bold text-white mb-4 flex items-center">
+                    <span class="mr-2">🏆</span> ${currentMatchType} 순위
+                </h3>
+                <div class="overflow-x-auto">
+                    <table class="w-full text-xs text-center">
+                        <thead>
+                            <tr class="text-gray-400 border-b border-gray-700">
+                                <th class="py-2 w-8">#</th>
+                                <th class="py-2 text-left">팀</th>
+                                <th class="py-2">경기</th>
+                                <th class="py-2">승점</th>
+                                <th class="py-2">승</th>
+                                <th class="py-2">무</th>
+                                <th class="py-2">패</th>
+                                <th class="py-2">득실</th>
+                            </tr>
+                        </thead>
+                        <tbody class="text-gray-300">
+                            ${standings.map((team, index) => `
+                                <tr class="border-b border-gray-700/50 hover:bg-gray-700/30 transition-colors ${team.name === 'TTFB_WED' ? 'text-neonGreen font-bold bg-green-900/10' : ''}">
+                                    <td class="py-2">${index + 1}</td>
+                                    <td class="py-2 text-left truncate max-w-[100px]">${team.name}</td>
+                                    <td class="py-2">${team.p}</td>
+                                    <td class="py-2 font-bold text-white">${team.pts}</td>
+                                    <td class="py-2 text-gray-400">${team.w}</td>
+                                    <td class="py-2 text-gray-400">${team.d}</td>
+                                    <td class="py-2 text-gray-400">${team.l}</td>
+                                    <td class="py-2 text-gray-400">${team.gd > 0 ? '+' + team.gd : team.gd}</td>
+                                </tr>
+                            `).join('')}
+                        </tbody>
+                    </table>
+                </div>
+            `;
+            container.appendChild(tableContainer);
+        } else {
+            // Optional: Show placeholder if URL is not set yet, or just hide to avoid clutter
+            if (currentMatchType === '리그') {
+                container.innerHTML += `<div class="bg-yellow-900/20 border border-yellow-600 text-yellow-500 text-xs p-3 rounded mb-4">
+                    ⚠️ 순위 데이터가 없습니다. 구글 시트를 연결해주세요.
+                 </div>`;
+            }
+        }
+    }
 
     function renderPage(page) {
         // Filter Data - Already filtered by Global Type, but if we need local filter (none now)

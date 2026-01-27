@@ -1,38 +1,61 @@
 
 // CSV URLs provided by the user
+// CSV URLs provided by the user
 const PLAYERS_CSV_URL = 'https://docs.google.com/spreadsheets/d/e/2PACX-1vRGGWFn467-3HymL_GgM6kifS1veoPDSgCG47Za6sO94ZJr8n9PzmL-h_aVCo7e59gbPhVbkfHJtEA9/pub?gid=0&single=true&output=csv';
 const SCHEDULE_CSV_URL = 'https://docs.google.com/spreadsheets/d/e/2PACX-1vRGGWFn467-3HymL_GgM6kifS1veoPDSgCG47Za6sO94ZJr8n9PzmL-h_aVCo7e59gbPhVbkfHJtEA9/pub?gid=2105782746&single=true&output=csv';
 const RECORDS_CSV_URL = 'https://docs.google.com/spreadsheets/d/e/2PACX-1vRGGWFn467-3HymL_GgM6kifS1veoPDSgCG47Za6sO94ZJr8n9PzmL-h_aVCo7e59gbPhVbkfHJtEA9/pub?gid=426357573&single=true&output=csv';
 const STADIUM_CSV_URL = 'https://docs.google.com/spreadsheets/d/e/2PACX-1vRGGWFn467-3HymL_GgM6kifS1veoPDSgCG47Za6sO94ZJr8n9PzmL-h_aVCo7e59gbPhVbkfHJtEA9/pub?gid=1733505023&single=true&output=csv';
+// [NEW] CSV Link for League/Cup Matches (Matches from ALL teams)
+const LEAGUE_MATCHES_CSV_URL = 'https://docs.google.com/spreadsheets/d/e/2PACX-1vRGGWFn467-3HymL_GgM6kifS1veoPDSgCG47Za6sO94ZJr8n9PzmL-h_aVCo7e59gbPhVbkfHJtEA9/pub?gid=1902200783&single=true&output=csv';
 
 let playersData = [];
 let scheduleData = [];
 let recordsData = [];
 let stadiumData = [];
+let leagueMatchesData = [];
 
 export async function fetchData() {
     try {
         const timestamp = new Date().getTime();
-        const responses = await Promise.all([
+
+        // Prepare promises (handle placeholder URL gracefully)
+        const promises = [
             fetch(`${PLAYERS_CSV_URL}&t=${timestamp}`),
             fetch(`${SCHEDULE_CSV_URL}&t=${timestamp}`),
             fetch(`${RECORDS_CSV_URL}&t=${timestamp}`),
             fetch(`${STADIUM_CSV_URL}&t=${timestamp}`)
-        ]);
+        ];
 
-        // Check for HTTP errors
-        responses.forEach(res => {
-            if (!res.ok) throw new Error(`HTTP error! status: ${res.status}`);
+
+        if (LEAGUE_MATCHES_CSV_URL && LEAGUE_MATCHES_CSV_URL.startsWith('http')) {
+            promises.push(fetch(`${LEAGUE_MATCHES_CSV_URL}&t=${timestamp}`));
+        } else {
+            // Mock promise if no URL yet
+            promises.push(Promise.resolve(new Response("")));
+        }
+
+        const responses = await Promise.all(promises);
+
+        // Check for HTTP errors (first 4 are critical)
+        for (let i = 0; i < 4; i++) {
+            if (!responses[i].ok) throw new Error(`HTTP error! status: ${responses[i].status}`);
+        }
+
+        const texts = await Promise.all(responses.map(r => r.text()));
+
+        playersData = parsePlayersCSV(texts[0]);
+        scheduleData = parseScheduleCSV(texts[1]);
+        recordsData = parseRecordsCSV(texts[2]);
+        stadiumData = parseStadiumCSV(texts[3]);
+        leagueMatchesData = parseLeagueMatchesCSV(texts[4]);
+
+        console.log("Data loaded successfully:", {
+            players: playersData.length,
+            schedule: scheduleData.length,
+            records: recordsData.length,
+            stadiums: stadiumData.length,
+            leagueMatches: leagueMatchesData.length
         });
-
-        const [playersText, scheduleText, recordsText, stadiumText] = await Promise.all(responses.map(r => r.text()));
-
-        playersData = parsePlayersCSV(playersText);
-        scheduleData = parseScheduleCSV(scheduleText);
-        recordsData = parseRecordsCSV(recordsText);
-        stadiumData = parseStadiumCSV(stadiumText);
-
-        console.log("Data loaded successfully:", { players: playersData.length, schedule: scheduleData.length, records: recordsData.length, stadiums: stadiumData.length });
     } catch (e) {
         console.error("Error fetching data:", e);
         throw e;
@@ -257,6 +280,72 @@ function parseDate(dateStr) {
         return new Date(parseInt(parts[0]), parseInt(parts[1]) - 1, parseInt(parts[2]));
     }
     return null;
+}
+
+function parseLeagueMatchesCSV(csvText) {
+    const rows = parseCSV(csvText);
+    // Header assumption: Season, Date, Type, HomeTeam, HomeScore, AwayScore, AwayTeam...
+    return rows.slice(1).map(row => {
+        if (row.length < 7) return null;
+        return {
+            season: row[0].trim(),
+            date: row[1].trim(),
+            type: row[2].trim(),
+            homeTeam: row[3].trim(),
+            homeScore: parseInt(row[4].trim()),
+            awayScore: parseInt(row[5].trim()),
+            awayTeam: row[6].trim()
+        };
+    }).filter(m => m && m.homeTeam && !isNaN(m.homeScore)); // Basic validation
+}
+
+export function getStandings(seasonFilter, matchType) {
+    const stats = {};
+    const filter = String(seasonFilter);
+
+    // Filter matches
+    const matches = leagueMatchesData.filter(m => {
+        const seasonMatch = (!seasonFilter || seasonFilter === 'all') ? true : String(m.season) === filter;
+        const typeMatch = m.type === matchType;
+        return seasonMatch && typeMatch;
+    });
+
+    matches.forEach(m => {
+        // Init Teams
+        if (!stats[m.homeTeam]) stats[m.homeTeam] = { name: m.homeTeam, p: 0, w: 0, d: 0, l: 0, gf: 0, ga: 0, gd: 0, pts: 0 };
+        if (!stats[m.awayTeam]) stats[m.awayTeam] = { name: m.awayTeam, p: 0, w: 0, d: 0, l: 0, gf: 0, ga: 0, gd: 0, pts: 0 };
+
+        const home = stats[m.homeTeam];
+        const away = stats[m.awayTeam];
+
+        home.p++;
+        away.p++;
+
+        home.gf += m.homeScore;
+        home.ga += m.awayScore;
+        home.gd = home.gf - home.ga;
+
+        away.gf += m.awayScore;
+        away.ga += m.homeScore;
+        away.gd = away.gf - away.ga;
+
+        if (m.homeScore > m.awayScore) {
+            home.w++; home.pts += 3;
+            away.l++;
+        } else if (m.homeScore < m.awayScore) {
+            away.w++; away.pts += 3;
+            home.l++;
+        } else {
+            home.d++; home.pts += 1;
+            away.d++; away.pts += 1;
+        }
+    });
+
+    return Object.values(stats).sort((a, b) => {
+        if (b.pts !== a.pts) return b.pts - a.pts;
+        if (b.gd !== a.gd) return b.gd - a.gd;
+        return b.gf - a.gf;
+    });
 }
 
 
