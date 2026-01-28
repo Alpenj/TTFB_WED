@@ -129,10 +129,10 @@ export function SetupDashboard() {
                     </div>
                     
                     <div class="pt-4 border-t border-gray-700">
-                        <h3 class="text-white font-bold mb-2 flex items-center"><span class="bg-neonGreen text-black text-xs px-2 py-0.5 rounded mr-2">NEW</span> 순위표 (League Table)</h3>
+                        <h3 class="text-white font-bold mb-2 flex items-center"><span class="bg-neonGreen text-black text-xs px-2 py-0.5 rounded mr-2">NEW</span> 순위표 활용법</h3>
                         <ul class="text-sm text-gray-400 space-y-2 list-disc list-inside">
-                            <li><strong>자동 생성</strong>: 상단 탭에서 '리그' 또는 '컵'을 선택하면 순위표가 나타납니다.</li>
-                            <li><strong>실시간 반영</strong>: 수 야간의 경기 결과와 구글 시트의 타 팀 결과가 합산되어 실시간으로 순위가 매겨집니다.</li>
+                            <li><strong>리그 vs 컵</strong>: 상단 탭에서 '리그'를 누르면 승점 순, '컵/플레이오프'를 누르면 최종 성적(결승>4강) 순으로 정렬됩니다.</li>
+                            <li><strong>실시간 합산</strong>: [경기 일정] 시트의 '수 야간' 경기와 [기록원장]의 타 팀 경기 결과가 자동으로 하나로 합쳐집니다.</li>
                         </ul>
                     </div>
                 </div>
@@ -164,14 +164,18 @@ export function SetupDashboard() {
                             <p class="text-[10px] text-gray-500 mt-2">→ 결과: "김승용 (도움: 박희철)"으로 표시됨</p>
                         </div>
                         
-                         <div class="bg-gray-900/50 p-4 rounded-xl border border-gray-700">
-                            <h3 class="text-neonGreen font-bold mb-2 text-sm">⚠️ 경기 ID 일치</h3>
-                            <p class="text-xs text-gray-400">
-                                [경기 일정] 시트와 [기록원장] 시트의 
-                                <span class="text-white font-bold">경기 ID</span>(Match ID)는  
-                                <span class="text-red-400 underline">반드시 정확히 일치</span>해야 합니다.<br>
-                                (예: 'Round1'과 'round1'은 다른 경기로 인식)
+                         <div class="bg-red-900/20 p-4 rounded-xl border border-red-500/50">
+                            <h3 class="text-red-400 font-bold mb-2 text-sm">🚨 경기 ID 일치 (중복 방지)</h3>
+                            <p class="text-xs text-gray-300 mb-2">
+                                <strong>[경기 일정]</strong> 시트와 <strong>[기록원장]</strong> 시트의 
+                                <span class="text-white font-bold bg-gray-800 px-1 rounded">경기 ID (B열)</span>가 
+                                <span class="text-red-400 underline decoration-wavy">완벽하게 일치</span>해야 경기가 중복되지 않습니다.
                             </p>
+                            <ul class="text-xs text-gray-400 list-disc list-inside space-y-1">
+                                <li>좋은 예: <code class="text-green-400">Cup_4강</code> (양쪽 동일)</li>
+                                <li>나쁜 예: <code class="text-red-400">Cup_4강</code> vs <code class="text-red-400">cup4강</code> (중복 발생!)</li>
+                            </ul>
+                            <p class="text-[10px] text-gray-500 mt-2">※ ID가 같으면 자동으로 하나로 합쳐서 보여줍니다.</p>
                         </div>
 
 
