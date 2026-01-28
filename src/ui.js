@@ -127,6 +127,15 @@ export function SetupDashboard() {
                             </ul>
                         </div>
                     </div>
+                    
+                    <div class="pt-4 border-t border-gray-700">
+                        <h3 class="text-white font-bold mb-2 flex items-center"><span class="bg-neonGreen text-black text-xs px-2 py-0.5 rounded mr-2">NEW</span> 순위표 (League Table)</h3>
+                        <ul class="text-sm text-gray-400 space-y-2 list-disc list-inside">
+                            <li><strong>자동 생성</strong>: 상단 탭에서 '리그' 또는 '컵'을 선택하면 순위표가 나타납니다.</li>
+                            <li><strong>실시간 반영</strong>: 수 야간의 경기 결과와 구글 시트의 타 팀 결과가 합산되어 실시간으로 순위가 매겨집니다.</li>
+                        </ul>
+                    </div>
+                </div>
 
                     <!-- Tab: Data Management -->
                     <div id="guide-data" class="hidden space-y-6">
@@ -164,6 +173,8 @@ export function SetupDashboard() {
                                 (예: 'Round1'과 'round1'은 다른 경기로 인식)
                             </p>
                         </div>
+
+
 
                         <div class="bg-blue-900/20 p-4 rounded-xl border border-blue-500/30">
                             <h3 class="text-blue-400 font-bold mb-2 text-sm">🔐 데이터 관리 권한 요청</h3>
@@ -639,8 +650,24 @@ function renderMatches(container, currentSeason, currentMatchType) {
     listContainer.className = 'flex flex-col space-y-4 min-h-[400px]';
 
     // [NEW] League/Cup/Playoff Standings Table
-    const isStandingsType = ['리그', '컵', '플레이오프', '플옵'].includes(currentMatchType);
-    if (isStandingsType) {
+
+
+    // DEBUG: Aggressive Visible Check
+    const stDebug = getStandings(currentSeason, currentMatchType);
+    console.log('DEBUG STANDINGS:', stDebug);
+
+    const debugBanner = document.createElement('div');
+    debugBanner.className = 'bg-red-600 text-white text-sm font-bold p-4 rounded mb-4 shadow-lg border-2 border-white';
+    debugBanner.innerHTML = `
+        🚧 DEBUG MODE 🚧<br/>
+        Season: ${currentSeason}<br/>
+        Type: ${currentMatchType}<br/>
+        Standings Count: ${stDebug.length}<br/>
+        (If you see this, code is updated!)
+    `;
+    container.appendChild(debugBanner);
+
+    if (false) { // [DISABLED] Duplicate block removed from execution path
         const standings = getStandings(currentSeason, currentMatchType);
 
         if (standings.length > 0) {
@@ -891,6 +918,58 @@ function renderMatches(container, currentSeason, currentMatchType) {
     controls.className = 'pagination-controls flex justify-between items-center mt-6 pt-4 border-t border-gray-800';
 
     container.innerHTML = `<h2 class="text-lg font-bold text-white mb-4">경기 일정</h2>`;
+
+    // [MOVED] League/Cup/Playoff Standings Table (Inserted here to avoid overwrite)
+    const isStandingsType = ['리그', '컵', '플레이오프', '플옵'].includes(currentMatchType);
+    if (isStandingsType) {
+        const standings = getStandings(currentSeason, currentMatchType);
+        if (standings.length > 0) {
+            const tableContainer = document.createElement('div');
+            tableContainer.className = 'bg-gray-800 rounded-3xl p-6 border border-gray-700 mb-6';
+            tableContainer.innerHTML = `
+                <h3 class="text-lg font-bold text-white mb-4 flex items-center">
+                    <span class="mr-2">🏆</span> ${currentMatchType} 순위
+                </h3>
+                <div class="overflow-x-auto">
+                    <table class="w-full text-xs text-center">
+                        <thead>
+                            <tr class="text-gray-400 border-b border-gray-700">
+                                <th class="py-2 w-8">#</th>
+                                <th class="py-2 text-left">팀</th>
+                                <th class="py-2">경기</th>
+                                <th class="py-2">승점</th>
+                                <th class="py-2">승</th>
+                                <th class="py-2">무</th>
+                                <th class="py-2">패</th>
+                                <th class="py-2">득실</th>
+                            </tr>
+                        </thead>
+                        <tbody class="text-gray-300">
+                            ${standings.map((team, index) => `
+                                <tr class="border-b border-gray-700/50 hover:bg-gray-700/30 transition-colors ${team.name === '수 야간' ? 'text-neonGreen font-bold bg-green-900/10' : ''}">
+                                    <td class="py-2">${index + 1}</td>
+                                    <td class="py-2 text-left truncate max-w-[100px]">${team.name}</td>
+                                    <td class="py-2">${team.p}</td>
+                                    <td class="py-2 font-bold text-white">${team.pts}</td>
+                                    <td class="py-2 text-gray-400">${team.w}</td>
+                                    <td class="py-2 text-gray-400">${team.d}</td>
+                                    <td class="py-2 text-gray-400">${team.l}</td>
+                                    <td class="py-2 text-gray-400">${team.gd > 0 ? '+' + team.gd : team.gd}</td>
+                                </tr>
+                            `).join('')}
+                        </tbody>
+                    </table>
+                </div>
+            `;
+            container.appendChild(tableContainer);
+        } else if (currentMatchType === '리그') {
+            const warning = document.createElement('div');
+            warning.className = "bg-yellow-900/20 border border-yellow-600 text-yellow-500 text-xs p-3 rounded mb-4";
+            warning.innerText = "⚠️ 순위 데이터가 없습니다.";
+            container.appendChild(warning);
+        }
+    }
+
     // Filter Container removed
     container.appendChild(listContainer);
     container.appendChild(controls);

@@ -36,8 +36,8 @@ export async function fetchData() {
 
         const responses = await Promise.all(promises);
 
-        // Check for HTTP errors (first 4 are critical)
-        for (let i = 0; i < 4; i++) {
+        // Check for HTTP errors
+        for (let i = 0; i < responses.length; i++) {
             if (!responses[i].ok) throw new Error(`HTTP error! status: ${responses[i].status}`);
         }
 
@@ -282,21 +282,97 @@ function parseDate(dateStr) {
     return null;
 }
 
+const TEAM_CODE_MAP = {
+    'T.TUE': '화요일',
+    'T.MWE': '수 오전',
+    'T.WED': '수 야간',
+    'T.THU': '목요일',
+    'T.MFR': '금 오전',
+    'T.FRI': '금 야간',
+    'T.SAT': '토요일',
+    'T.SUN': '일요일',
+    '수요일': '수 야간',
+    '금요일': '금 야간',
+    '금 이긴': '금 야간', // Potential typo/legacy seen in screenshot? "금 이긴" -> Rank 4 in screenshot looks like "금 이긴" (Gold Won? typo?). Screenshot says "금 아간" or "금 야간". Wait.
+    // Screenshot Row 4 says "금 아간" or "금 이긴"? It's blurry but looks like "금 이긴" or "금 00". 
+    // Ah, screenshot says "4. 금 이긴". "금 이긴"? Maybe "금 야간" with typo?
+    // Wait, the user said "금 야간 금요일 왜 다로 나오는지?".
+    // So "금 야간" and "금요일" are separate.
+    // I will map '금요일' -> '금 야간'.
+};
+
+function normalizeTeamName(rawName) {
+    if (!rawName) return '';
+    const trimmed = rawName.trim();
+    let name = TEAM_CODE_MAP[trimmed] || trimmed.replace(/([월화수목금토일])(오전|야간)/, '$1 $2');
+
+    // [FIX] Normalize potential data typos
+    if (name === '일요일일') name = '일요일';
+
+    return name;
+}
+
 function parseLeagueMatchesCSV(csvText) {
     const rows = parseCSV(csvText);
-    // Header assumption: Season, Date, Type, HomeTeam, HomeScore, AwayScore, AwayTeam...
+    // Header found: 시즌,ID,구분,날짜,시간,구장,홈,어웨이,결과
+    // Indices: 0:Season, 2:Type, 6:Home, 7:Away, 8:Result
     return rows.slice(1).map(row => {
-        if (row.length < 7) return null;
+        if (row.length < 9) return null;
+
+        const result = row[8].trim();
+        const fullResult = row[8].trim(); // Original was 'result', changed to 'fullResult'
+        let homeScore = 0;
+        let awayScore = 0;
+        let validResult = false;
+
+        // Parse "2:0" or "2 : 0"
+        if (fullResult.includes(':')) { // Original was 'result', changed to 'fullResult'
+            // Check for PK score: "2:2 (5:4)" or "2:2(5:4)"
+            let mainParts = fullResult.split('(')[0].split(':');
+            let h = parseInt(mainParts[0].trim());
+            let a = parseInt(mainParts[1].trim());
+
+            if (!isNaN(h) && !isNaN(a)) {
+                homeScore = h;
+                awayScore = a;
+                validResult = true;
+
+                // PK Logic
+                if (fullResult.includes('(')) {
+                    const pkContent = fullResult.split('(')[1].replace(')', '');
+                    if (pkContent.includes(':')) {
+                        const pkParts = pkContent.split(':');
+                        const pkH = parseInt(pkParts[0].trim());
+                        const pkA = parseInt(pkParts[1].trim());
+
+                        // If regular time draw, adjust W/L based on PK using a flag
+                        // We will store pkWinner for the standings calculator
+                        if (!isNaN(pkH) && !isNaN(pkA)) {
+                            if (pkH > pkA) row.pkWinner = 'home';
+                            else if (pkA > pkH) row.pkWinner = 'away';
+                        }
+                    }
+                }
+            }
+        }
+
+        if (!validResult) return null;
+
+        const homeTeam = normalizeTeamName(row[6]);
+        const awayTeam = normalizeTeamName(row[7]);
+
         return {
-            season: row[0].trim(),
-            date: row[1].trim(),
+            id: row[1].trim(), // Added ID
+            season: row[0].trim().replace('시즌', ''),
             type: row[2].trim(),
-            homeTeam: row[3].trim(),
-            homeScore: parseInt(row[4].trim()),
-            awayScore: parseInt(row[5].trim()),
-            awayTeam: row[6].trim()
+            homeTeam: homeTeam,
+            awayTeam: awayTeam,
+            homeScore: homeScore,
+            awayScore: awayScore,
+            date: row[3].trim(),
+            pkWinner: row.pkWinner
         };
-    }).filter(m => m && m.homeTeam && !isNaN(m.homeScore)); // Basic validation
+    }).filter(m => m && m.homeTeam);
 }
 
 export function getStandings(seasonFilter, matchType) {
@@ -304,11 +380,70 @@ export function getStandings(seasonFilter, matchType) {
     const filter = String(seasonFilter);
 
     // Filter matches
-    const matches = leagueMatchesData.filter(m => {
+    let matches = leagueMatchesData.filter(m => {
         const seasonMatch = (!seasonFilter || seasonFilter === 'all') ? true : String(m.season) === filter;
         const typeMatch = m.type === matchType;
         return seasonMatch && typeMatch;
     });
+
+    // [NEW] Merge User's Schedule (TTFB_WED) into Standings
+    // Strategy:
+    // 1. Primary Source: League Matches (TFL/TFC Sheet)
+    // 2. Secondary Source: User's Schedule (Schedule Sheet) - ONLY for '수 야간'
+    // 3. Deduplication: If a match exists in (1), ignore (2).
+
+    const wedMatches = scheduleData.filter(m => {
+        const seasonMatch = (!seasonFilter || seasonFilter === 'all') ? true : String(m.season) === filter;
+        const typeMatch = m.matchType === matchType;
+        // Must have a valid score result to count for standings
+        const hasResult = m.result && /\d+:\d+/.test(m.result);
+        return seasonMatch && typeMatch && hasResult;
+    }).map(m => {
+        // Parse Score (Assume "MyScore : OppScore")
+        const scoreMatch = m.result.match(/(\d+)\s*:\s*(\d+)/);
+        if (!scoreMatch) return null;
+
+        const myScore = parseInt(scoreMatch[1]);
+        const oppScore = parseInt(scoreMatch[2]);
+
+        const opponentName = normalizeTeamName(m.opponent);
+
+        return {
+            id: m.matchId, // From Schedule
+            season: m.season,
+            type: m.matchType,
+            homeTeam: '수 야간', // Always User's Team
+            awayTeam: opponentName,
+            homeScore: myScore,
+            awayScore: oppScore,
+            date: m.date
+        };
+    }).filter(m => m !== null);
+
+    // [DEDUPLICATION] Filter out Wed Matches that are already in League Matches
+    const uniqueWedMatches = wedMatches.filter(wm => {
+        // Check if this match already exists in 'matches'
+        const isDuplicate = matches.some(existing => {
+            // 1. Check ID Match (Strongest Check)
+            if (existing.id && wm.id && existing.id === wm.id) return true;
+
+            // 2. Fallback: Check Date & Teams
+            // Normalize dates to handle potentially different formats (YYYY.MM.DD vs YYYY-MM-DD or whitespace)
+            const d1 = existing.date.replace(/[\.\-\/]/g, '').trim();
+            const d2 = wm.date.replace(/[\.\-\/]/g, '').trim();
+            const sameDate = d1 === d2;
+
+            // Check if existing match involves '수 야간' and the same opponent
+            // Note: existing.homeTeam/awayTeam are already normalized
+            const hasWed = existing.homeTeam === '수 야간' || existing.awayTeam === '수 야간';
+            const hasOpponent = existing.homeTeam === wm.awayTeam || existing.awayTeam === wm.awayTeam;
+
+            return sameDate && hasWed && hasOpponent;
+        });
+        return !isDuplicate;
+    });
+
+    matches = [...matches, ...uniqueWedMatches];
 
     matches.forEach(m => {
         // Init Teams
@@ -329,6 +464,22 @@ export function getStandings(seasonFilter, matchType) {
         away.ga += m.homeScore;
         away.gd = away.gf - away.ga;
 
+        // Update Round Weight
+        let weight = 0;
+        if (m.id) {
+            // Must check Semi-Final ('준결승') BEFORE Final ('결승') because '준결승' contains '결승'
+            if (m.id.includes('준결승') || m.id.includes('4강')) weight = 50;
+            else if (!m.id.includes('준') && m.id.includes('결승')) weight = 100;
+            else if (m.id.includes('8강')) weight = 25;
+            else if (m.id.includes('16강')) weight = 10;
+        }
+        // Initialize maxRoundWeight if not present
+        if (home.maxRoundWeight === undefined) home.maxRoundWeight = 0;
+        if (away.maxRoundWeight === undefined) away.maxRoundWeight = 0;
+
+        if (weight > home.maxRoundWeight) home.maxRoundWeight = weight;
+        if (weight > away.maxRoundWeight) away.maxRoundWeight = weight;
+
         if (m.homeScore > m.awayScore) {
             home.w++; home.pts += 3;
             away.l++;
@@ -336,12 +487,29 @@ export function getStandings(seasonFilter, matchType) {
             away.w++; away.pts += 3;
             home.l++;
         } else {
-            home.d++; home.pts += 1;
-            away.d++; away.pts += 1;
+            // DRAW in regular time
+            // Check PK Winner
+            if (m.pkWinner === 'home') {
+                home.w++; home.pts += 3;
+                away.l++;
+            } else if (m.pkWinner === 'away') {
+                away.w++; away.pts += 3;
+                home.l++;
+            } else {
+                home.d++; home.pts += 1;
+                away.d++; away.pts += 1;
+            }
         }
     });
 
     return Object.values(stats).sort((a, b) => {
+        // Tournament Sorting: Higher Round first (Only for Cup/Playoff)
+        const isTournament = matchType.includes('컵') || matchType.includes('플레이오프') || matchType.includes('플옵');
+
+        if (isTournament) {
+            if (b.maxRoundWeight !== a.maxRoundWeight) return b.maxRoundWeight - a.maxRoundWeight;
+        }
+
         if (b.pts !== a.pts) return b.pts - a.pts;
         if (b.gd !== a.gd) return b.gd - a.gd;
         return b.gf - a.gf;
