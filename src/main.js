@@ -19,3 +19,5 @@ async function init() {
 }
 
 init();
+
+// [DEPLOY TRIGGER] Force update: 2026-01-28 16:00
