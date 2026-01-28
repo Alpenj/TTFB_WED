@@ -920,7 +920,8 @@ function renderMatches(container, currentSeason, currentMatchType) {
     container.innerHTML = `<h2 class="text-lg font-bold text-white mb-4">경기 일정</h2>`;
 
     // [MOVED] League/Cup/Playoff Standings Table (Inserted here to avoid overwrite)
-    const isStandingsType = ['리그', '컵', '플레이오프', '플옵'].includes(currentMatchType);
+    // Only show Standings if a specific season is selected (Hide for "All Time")
+    const isStandingsType = ['리그', '컵', '플레이오프', '플옵'].includes(currentMatchType) && currentSeason !== 'all';
     if (isStandingsType) {
         const standings = getStandings(currentSeason, currentMatchType);
         if (standings.length > 0) {

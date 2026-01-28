@@ -424,8 +424,13 @@ export function getStandings(seasonFilter, matchType) {
     const uniqueWedMatches = wedMatches.filter(wm => {
         // Check if this match already exists in 'matches'
         const isDuplicate = matches.some(existing => {
-            // 1. Check ID Match (Strongest Check)
-            if (existing.id && wm.id && existing.id === wm.id) return true;
+            // 1. Check ID Match (Strongest Check, but requires Team verification too)
+            // Just matching ID is dangerous if IDs are '1R' (Round Numbers) which are not unique globally.
+            // So we must confirm the existing match involves '수 야간' (or matches the specific opponent).
+            if (existing.id && wm.id && existing.id === wm.id) {
+                const involvesWed = existing.homeTeam === '수 야간' || existing.awayTeam === '수 야간';
+                if (involvesWed) return true;
+            }
 
             // 2. Fallback: Check Date & Teams
             // Normalize dates to handle potentially different formats (YYYY.MM.DD vs YYYY-MM-DD or whitespace)
