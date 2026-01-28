@@ -129,7 +129,7 @@ export function SetupDashboard() {
                     </div>
                     
                     <div class="pt-4 border-t border-gray-700">
-                        <h3 class="text-white font-bold mb-2 flex items-center"><span class="bg-neonGreen text-black text-xs px-2 py-0.5 rounded mr-2">NEW</span> 순위표 활용법</h3>
+                        <h3 class="text-white font-bold mb-2 flex items-center">순위표 활용법</h3>
                         <ul class="text-sm text-gray-400 space-y-2 list-disc list-inside">
                             <li><strong>리그 vs 컵</strong>: 상단 탭에서 '리그'를 누르면 승점 순, '컵/플레이오프'를 누르면 최종 성적(결승>4강) 순으로 정렬됩니다.</li>
                             <li><strong>실시간 합산</strong>: [경기 일정] 시트의 '수 야간' 경기와 [기록원장]의 타 팀 경기 결과가 자동으로 하나로 합쳐집니다.</li>
