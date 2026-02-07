@@ -3,6 +3,17 @@ import { getSchedule, getStats, getTeamStats, getStadium, getStadiumStats, getAv
 
 window.getPlayerMatchHistory = getPlayerMatchHistory; // Expose for inline onclick handlers
 
+// [SECURITY] XSS Prevention
+function escapeHtml(text) {
+    if (!text) return text;
+    return String(text)
+        .replace(/&/g, "&amp;")
+        .replace(/</g, "&lt;")
+        .replace(/>/g, "&gt;")
+        .replace(/"/g, "&quot;")
+        .replace(/'/g, "&#039;");
+}
+
 export function SetupDashboard() {
     const app = document.querySelector('#app');
 
@@ -17,7 +28,7 @@ export function SetupDashboard() {
         <header class="p-4 flex items-center justify-center bg-black/50 backdrop-blur-md z-10 border-b border-gray-800 shrink-0">
             <h1 id="app-title" class="text-xl font-bold text-white cursor-pointer hover:opacity-80 transition-opacity">TTFB_WED</h1>
         </header>
-        
+
         <!-- Match Type Tabs & Season Filter -->
         <div class="z-[5] bg-black/50 backdrop-blur-md border-b border-gray-800 shrink-0 flex items-center justify-between px-4 h-14">
             <!-- Tabs (Added flex-1 and min-w-0 to prevent overflow issues) -->
@@ -27,8 +38,8 @@ export function SetupDashboard() {
                     <span class="absolute bottom-0 left-0 w-full h-0.5 bg-neonGreen rounded-t-full transition-all"></span>
                 </button>
                 ${matchTypes.map(t => `
-                    <button data-type="${t}" class="type-tab-btn relative px-1 py-3 text-sm font-medium text-gray-500 hover:text-gray-300 transition-colors whitespace-nowrap shrink-0">
-                        ${t}
+                    <button data-type="${escapeHtml(t)}" class="type-tab-btn relative px-1 py-3 text-sm font-medium text-gray-500 hover:text-gray-300 transition-colors whitespace-nowrap shrink-0">
+                        ${escapeHtml(t)}
                         <span class="absolute bottom-0 left-0 w-full h-0.5 bg-neonGreen rounded-t-full opacity-0 transition-all"></span>
                     </button>
                 `).join('')}
@@ -38,7 +49,7 @@ export function SetupDashboard() {
             <div class="flex items-center border-l border-gray-700 pl-4 shrink-0">
                  <select id="season-selector" class="bg-gray-900 text-white text-xs rounded-lg px-3 py-1.5 border border-gray-700 outline-none focus:border-neonGreen focus:ring-1 focus:ring-neonGreen transition-all cursor-pointer">
                     <option value="all">통산 기록</option>
-                    ${seasons.map(s => `<option value="${s}">${s} 시즌</option>`).join('')}
+                    ${seasons.map(s => `<option value="${escapeHtml(s)}">${escapeHtml(s)} 시즌</option>`).join('')}
                  </select>
             </div>
         </div>
@@ -46,6 +57,7 @@ export function SetupDashboard() {
         <main id="content" class="flex-1 overflow-y-auto p-4 space-y-6 scrollbar-hide">
             <!-- Dynamic Content -->
         </main>
+
 
         <nav class="w-full bg-black/80 backdrop-blur-lg border-t border-gray-800 p-2 shrink-0 z-20">
             <ul class="flex justify-around items-center">
@@ -413,19 +425,20 @@ function renderHome(container, currentSeason, currentMatchType) {
                     <h2 class="text-lg font-bold text-white">최근 경기 결과</h2>
                     <span class="text-xs text-gray-400 flex items-center">
                         <span class="w-2 h-2 rounded-full ${isWin ? 'bg-neonGreen' : (isDraw ? 'bg-yellow-400' : 'bg-red-500')} mr-2"></span>
-                        ${lastMatch.result}
+                        ${escapeHtml(lastMatch.result)}
                     </span>
                 </div>
                 <div class="flex items-center justify-between">
                    <div class="flex flex-col">
-                        <span class="text-gray-400 text-xs mb-1">${lastMatch.date}</span>
-                        <span class="text-xl font-bold text-white">vs ${lastMatch.opponent}</span>
+                        <span class="text-gray-400 text-xs mb-1">${escapeHtml(lastMatch.date)}</span>
+                        <span class="text-xl font-bold text-white">vs ${escapeHtml(lastMatch.opponent)}</span>
                    </div>
-                   <div class="text-2xl font-black ${resultColor}">${lastMatch.result}</div>
+                   <div class="text-2xl font-black ${resultColor}">${escapeHtml(lastMatch.result)}</div>
                 </div>
             </div>
         `;
     } else {
+
         recentResultMarkup = `
             <div class="bg-gray-800 rounded-3xl p-6 border border-gray-700 flex items-center justify-center h-24">
                 <span class="text-gray-500 text-sm">최근 경기 기록 없음</span>
@@ -472,10 +485,10 @@ function renderHome(container, currentSeason, currentMatchType) {
 
             ${upcomingMatch ? `
             <div class="relative z-10">
-                <div class="text-2xl font-bold text-white mb-2">vs ${upcomingMatch.opponent || '미정'}</div>
+                <div class="text-2xl font-bold text-white mb-2">vs ${escapeHtml(upcomingMatch.opponent || '미정')}</div>
                 <div class="flex items-center text-sm text-gray-300 space-x-2">
-                    <span>${upcomingMatch.date}</span>
-                     ${upcomingMatch.stadium ? `<span class="text-gray-500">|</span> <button onclick="event.stopPropagation(); window.showMapModal('${upcomingMatch.stadium}')" class="hover:text-neonGreen underline decoration-neonGreen/50 transition-colors">🏟️ ${upcomingMatch.stadium}</button>` : ''}
+                    <span>${escapeHtml(upcomingMatch.date)}</span>
+                     ${upcomingMatch.stadium ? `<span class="text-gray-500">|</span> <button onclick="event.stopPropagation(); window.showMapModal('${escapeHtml(upcomingMatch.stadium)}')" class="hover:text-neonGreen underline decoration-neonGreen/50 transition-colors">🏟️ ${escapeHtml(upcomingMatch.stadium)}</button>` : ''}
                 </div>
             </div>
              ` : `
