@@ -1,0 +1,98 @@
+<!DOCTYPE html>
+<html lang="ko">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>TTFB WED Dashboard v1.2 Update</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+    <script>
+        tailwind.config = {
+            theme: {
+                extend: {
+                    colors: {
+                        gray: {
+                            750: '#2d3748',
+                            800: '#1f2937',
+                            900: '#111827',
+                        },
+                        neonGreen: '#39ff14',
+                    }
+                }
+            }
+        }
+    </script>
+    <style>
+        @import url('https://fonts.googleapis.com/css2?family=Noto+Sans+KR:wght@300;400;500;700&display=swap');
+
+        body {
+            font-family: 'Noto Sans KR', sans-serif;
+        }
+    </style>
+</head>
+
+<body class="bg-gray-900 text-gray-200 min-h-screen p-6 md:p-12">
+
+    <div class="max-w-3xl mx-auto">
+        <!-- Header -->
+        <header class="mb-12 text-center">
+            <h1 class="text-3xl md:text-4xl font-black text-white mb-4">TTFB WED <span
+                    class="text-neonGreen">v1.2.1</span> Update</h1>
+            <p class="text-gray-400">데이터 대시보드 업데이트 (2026.01.17)</p>
+        </header>
+
+        <!-- Section 1: Lineup Improvements -->
+        <section class="mb-12 animate-fade-in-up">
+            <div class="bg-gray-800 rounded-3xl p-6 md:p-8 border border-gray-700 shadow-lg">
+                <div class="flex items-center mb-6">
+                    <span class="text-2xl mr-3">📋</span>
+                    <h2 class="text-xl font-bold text-white">명단 표시 개선 (Lineup Improvements)</h2>
+                </div>
+                <ul class="space-y-4 text-sm md:text-base text-gray-300">
+                    <li class="flex items-start">
+                        <span class="text-neonGreen mr-2 font-bold">✓</span>
+                        <div>
+                            <strong class="text-white">포지션 표시 (Position Badges)</strong>
+                            <p class="text-gray-400 mt-1">출전 명단에서 각 선수의 <strong>포지션(FW, MF, DF, GK)</strong>을 확인할 수
+                                있습니다.</p>
+                        </div>
+                    </li>
+                    <li class="flex items-start">
+                        <span class="text-neonGreen mr-2 font-bold">✓</span>
+                        <div>
+                            <strong class="text-white">도움 기록 가시성 개선 (Assist Visibility)</strong>
+                            <p class="text-gray-400 mt-1">득점자 옆에 표시되는 도움 기록(Assister)이 <strong>더 밝고 선명하게</strong> 표시되어
+                                쉽게 확인할 수 있습니다.</p>
+                        </div>
+                    </li>
+                </ul>
+            </div>
+        </section>
+
+        <!-- Section 2: Records Room Updates (v1.2) -->
+        <section class="mb-12">
+            <div class="bg-gray-800 rounded-3xl p-6 md:p-8 border border-gray-700 shadow-lg">
+                <div class="flex items-center mb-6">
+                    <span class="text-2xl mr-3">📊</span>
+                    <h2 class="text-xl font-bold text-white">기록실 기능 강화 (Records Upgrade - v1.2)</h2>
+                </div>
+                <ul class="space-y-4 text-sm md:text-base text-gray-300">
+                    <li class="flex items-start">
+                        <span class="text-neonGreen mr-2 font-bold">✓</span>
+                        <div>
+                            <strong class="text-white">무실점(Clean Sheets) 컬럼 추가</strong>
+                            <p class="text-gray-400 mt-1">기록실의 선수 개인 기록 표에 <strong>'무실점'</strong> 항목이 추가되었습니다.</p>
+                        </div>
+                    </li>
+                </ul>
+            </div>
+        </section>
+
+        <footer class="text-center text-gray-600 text-xs mt-16 pb-8">
+            &copy; 2026 TTFB WED Data Team. All rights reserved.
+        </footer>
+    </div>
+
+</body>
+
+</html>
