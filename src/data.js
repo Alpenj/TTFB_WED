@@ -16,19 +16,17 @@ let leagueMatchesData = [];
 
 export async function fetchData() {
     try {
-        const timestamp = new Date().getTime();
-
-        // Prepare promises (handle placeholder URL gracefully)
+        // Use stable URLs so browser cache can be reused.
         const promises = [
-            fetch(`${PLAYERS_CSV_URL}&t=${timestamp}`),
-            fetch(`${SCHEDULE_CSV_URL}&t=${timestamp}`),
-            fetch(`${RECORDS_CSV_URL}&t=${timestamp}`),
-            fetch(`${STADIUM_CSV_URL}&t=${timestamp}`)
+            fetch(PLAYERS_CSV_URL),
+            fetch(SCHEDULE_CSV_URL),
+            fetch(RECORDS_CSV_URL),
+            fetch(STADIUM_CSV_URL)
         ];
 
 
         if (LEAGUE_MATCHES_CSV_URL && LEAGUE_MATCHES_CSV_URL.startsWith('http')) {
-            promises.push(fetch(`${LEAGUE_MATCHES_CSV_URL}&t=${timestamp}`));
+            promises.push(fetch(LEAGUE_MATCHES_CSV_URL));
         } else {
             // Mock promise if no URL yet
             promises.push(Promise.resolve(new Response("")));

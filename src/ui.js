@@ -1,4 +1,3 @@
-import Chart from 'chart.js/auto';
 import { getSchedule, getStats, getTeamStats, getStadium, getStadiumStats, getAvailableSeasons, getAvailableMatchTypes, getMatchRecords, getPlayerEvents, getOpponentStats, getPlayerMatchHistory, getLinkedMatchStats, getStandings } from './data.js';
 
 window.getPlayerMatchHistory = getPlayerMatchHistory; // Expose for inline onclick handlers
@@ -12,6 +11,51 @@ function escapeHtml(text) {
         .replace(/>/g, "&gt;")
         .replace(/"/g, "&quot;")
         .replace(/'/g, "&#039;");
+}
+
+function scheduleNonCriticalRender(callback) {
+    if (typeof window !== 'undefined' && 'requestIdleCallback' in window) {
+        window.requestIdleCallback(() => callback(), { timeout: 1200 });
+    } else {
+        setTimeout(callback, 200);
+    }
+}
+
+export function renderBootShell() {
+    const app = document.querySelector('#app');
+    if (!app) return;
+
+    app.innerHTML = `
+        <header class="p-4 flex items-center justify-center bg-black/50 backdrop-blur-md z-10 border-b border-gray-800 shrink-0">
+            <h1 class="text-xl font-bold text-white">TTFB_WED</h1>
+        </header>
+        <div class="z-[5] bg-black/50 backdrop-blur-md border-b border-gray-800 shrink-0 flex items-center justify-between px-4 h-14">
+            <div class="flex items-center space-x-3 flex-1 min-w-0 mr-4">
+                <span class="h-4 w-10 rounded bg-gray-700 animate-pulse"></span>
+                <span class="h-4 w-12 rounded bg-gray-700 animate-pulse"></span>
+                <span class="h-4 w-14 rounded bg-gray-700 animate-pulse"></span>
+            </div>
+            <span class="h-8 w-20 rounded-lg bg-gray-700 animate-pulse"></span>
+        </div>
+        <main class="flex-1 overflow-y-auto p-4 space-y-4 scrollbar-hide">
+            <div class="h-28 rounded-3xl border border-gray-700 bg-gray-800/80 animate-pulse"></div>
+            <div class="h-40 rounded-3xl border border-gray-700 bg-gray-800/80 animate-pulse"></div>
+            <div class="grid grid-cols-1 md:grid-cols-3 gap-4">
+                <div class="h-28 rounded-3xl border border-gray-700 bg-gray-800/80 animate-pulse"></div>
+                <div class="h-28 rounded-3xl border border-gray-700 bg-gray-800/80 animate-pulse"></div>
+                <div class="h-28 rounded-3xl border border-gray-700 bg-gray-800/80 animate-pulse"></div>
+            </div>
+        </main>
+        <nav class="w-full bg-black/80 backdrop-blur-lg border-t border-gray-800 p-2 shrink-0 z-20">
+            <ul class="flex justify-around items-center">
+                <li><span class="h-9 w-12 rounded-lg bg-gray-700/80 animate-pulse block"></span></li>
+                <li><span class="h-9 w-12 rounded-lg bg-gray-700/80 animate-pulse block"></span></li>
+                <li><span class="h-9 w-12 rounded-lg bg-gray-700/80 animate-pulse block"></span></li>
+                <li><span class="h-9 w-12 rounded-lg bg-gray-700/80 animate-pulse block"></span></li>
+                <li><span class="h-9 w-12 rounded-lg bg-gray-700/80 animate-pulse block"></span></li>
+            </ul>
+        </nav>
+    `;
 }
 
 export function SetupDashboard() {
@@ -352,17 +396,19 @@ function renderView(view, currentSeason, currentMatchType) {
     const content = document.querySelector('#content');
     content.innerHTML = ''; // Clear content
     content.className = 'flex-1 overflow-y-auto p-4 pb-20 space-y-6 opacity-0 transition-opacity duration-300';
+    const renderToken = `${view}-${Date.now()}`;
+    content.dataset.renderToken = renderToken;
 
     setTimeout(() => {
         content.classList.remove('opacity-0');
     }, 50);
 
-    if (view === 'home') renderHome(content, currentSeason, currentMatchType);
+    if (view === 'home') renderHome(content, currentSeason, currentMatchType, renderToken);
     else if (view === 'matches') renderMatches(content, currentSeason, currentMatchType);
     else if (view === 'stats') renderStats(content, currentSeason, currentMatchType);
 }
 
-function renderHome(container, currentSeason, currentMatchType) {
+function renderHome(container, currentSeason, currentMatchType, renderToken) {
     const schedule = [...getSchedule(currentSeason)];
     const stats = getStats(currentSeason, currentMatchType);
     const teamStats = getTeamStats(currentSeason, currentMatchType);
@@ -616,18 +662,32 @@ function renderHome(container, currentSeason, currentMatchType) {
         }
     });
 
-    // 4. Opponent Stats (Collapsible) - Unified
-    const oppEl = createOpponentStatsElement(currentSeason, currentMatchType);
-    if (oppEl) container.appendChild(oppEl);
+    // Defer non-critical lower sections to speed up first paint on mobile.
+    const deferredSection = document.createElement('div');
+    deferredSection.className = 'space-y-6';
+    deferredSection.innerHTML = `
+        <div class="h-40 rounded-3xl border border-gray-700 bg-gray-800/70 animate-pulse"></div>
+        <div class="h-40 rounded-3xl border border-gray-700 bg-gray-800/70 animate-pulse"></div>
+        <div class="h-56 rounded-3xl border border-gray-700 bg-gray-800/70 animate-pulse"></div>
+    `;
+    container.appendChild(deferredSection);
 
-    // 5. Stadium Stats (Collapsible) - Unified
-    const stadiumEl = createStadiumStatsElement(currentSeason, currentMatchType);
-    if (stadiumEl) container.appendChild(stadiumEl);
+    scheduleNonCriticalRender(() => {
+        if (!container.isConnected) return;
+        if (container.dataset.renderToken !== renderToken) return;
 
-    // Add Player Stats Table (Collapsed by default)
-    const tableEl = createPlayerStatsTable(stats.players, currentSeason);
-    tableEl.classList.add('mt-6');
-    container.appendChild(tableEl);
+        deferredSection.innerHTML = '';
+
+        const oppEl = createOpponentStatsElement(currentSeason, currentMatchType);
+        if (oppEl) deferredSection.appendChild(oppEl);
+
+        const stadiumEl = createStadiumStatsElement(currentSeason, currentMatchType);
+        if (stadiumEl) deferredSection.appendChild(stadiumEl);
+
+        const tableEl = createPlayerStatsTable(stats.players, currentSeason);
+        tableEl.classList.add('mt-6');
+        deferredSection.appendChild(tableEl);
+    });
 }
 
 function renderMatches(container, currentSeason, currentMatchType) {
@@ -1222,10 +1282,14 @@ function renderStats(container, currentSeason, currentMatchType) {
 
 
 
-    // Initialize Charts
-    setTimeout(() => {
-        // Goals Chart
+    // Load Chart.js only if chart canvases exist in this view.
+    setTimeout(async () => {
         const ctxGoals = document.getElementById('goalsChart');
+        const ctxAssists = document.getElementById('assistsChart');
+        if (!ctxGoals && !ctxAssists) return;
+
+        const { default: Chart } = await import('chart.js/auto');
+
         if (ctxGoals) {
             const validScorers = stats.topScorers.filter(p => p.goals > 0).slice(0, 5);
             new Chart(ctxGoals, {
@@ -1269,8 +1333,6 @@ function renderStats(container, currentSeason, currentMatchType) {
             });
         }
 
-        // Assists Chart
-        const ctxAssists = document.getElementById('assistsChart');
         if (ctxAssists) {
             const validAssisters = stats.topAssists.filter(p => p.assists > 0).slice(0, 5);
             new Chart(ctxAssists, {
