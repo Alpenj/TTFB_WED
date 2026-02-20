@@ -112,6 +112,7 @@ export function getPlayerEvents(currentSeason, currentMatchType, playerName, eve
         }
 
         if (count > 0) {
+            const appearance = r.appearance ? r.appearance.trim() : '';
             events.push({
                 season: r.season,
                 matchId: r.matchId,
@@ -120,7 +121,8 @@ export function getPlayerEvents(currentSeason, currentMatchType, playerName, eve
                 opponent: match.opponent,
                 count: count,
                 type: eventType,
-                submissionType: r.appearance, // For appearances (Start/Sub)
+                appearance, // Used by history modal (선발/교체)
+                submissionType: appearance, // Backward compatibility
                 goals: r.goals,
                 assists: r.assists,
                 note: r.note
