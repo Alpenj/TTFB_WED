@@ -1,4 +1,4 @@
-import { getSchedule, getStats, getTeamStats, getStadium, getStadiumStats, getAvailableSeasons, getAvailableMatchTypes, getMatchRecords, getPlayerEvents, getOpponentStats, getPlayerMatchHistory, getLinkedMatchStats, getStandings } from './data.js';
+import { getSchedule, getStats, getTeamStats, getStadium, getStadiumStats, getAvailableSeasons, getAvailableMatchTypes, getMatchRecords, getPlayerEvents, getOpponentStats, getPlayerMatchHistory, getLinkedMatchStats, getStandings, parseNoteSequenceTags } from './data.js';
 
 window.getPlayerMatchHistory = getPlayerMatchHistory; // Expose for inline onclick handlers
 
@@ -1486,17 +1486,18 @@ function showHistoryModal(playerName, eventType, events) {
         let linkedInfo = '';
         if (e.note && (e.goals > 0 || e.assists > 0)) {
             // Extract group tags like G1, G2, A1, A2
-            const tags = e.note.match(/[GA]\d+/gi);
-            if (tags) {
+            const tags = e.noteTags || parseNoteSequenceTags(e.note);
+            if (tags.length > 0) {
                 // Find all records for this match
                 const matchRecords = getMatchRecords(e.season, e.matchId);
+                const getRecordTags = (record) => record.noteTags || parseNoteSequenceTags(record.note);
 
                 tags.forEach(tag => {
                     // Find partner
                     const partners = matchRecords.filter(r =>
                         r.name !== playerName &&
                         r.note &&
-                        r.note.toUpperCase().includes(tag.toUpperCase())
+                        getRecordTags(r).includes(tag)
                     );
 
                     partners.forEach(p => {
@@ -1946,8 +1947,9 @@ function showMatchLineupModal(season, matchId, opponent) {
     const tagMap = {};
     records.forEach(r => {
         if (r.note) {
-            r.note.split(',').forEach(tag => {
-                const cleanTag = tag.trim();
+            const recordTags = r.noteTags || parseNoteSequenceTags(r.note);
+            recordTags.forEach(tag => {
+                const cleanTag = tag.trim().toUpperCase();
                 // Store who is associated with this tag. 
                 if (cleanTag) {
                     if (!tagMap[cleanTag]) tagMap[cleanTag] = [];
@@ -1970,7 +1972,7 @@ function showMatchLineupModal(season, matchId, opponent) {
         // Assist Info Generation
         let assistText = '';
         if (p.goals > 0 && p.note) {
-            const tags = p.note.split(',').map(t => t.trim());
+            const tags = p.noteTags || parseNoteSequenceTags(p.note);
             const assisters = [];
             tags.forEach(tag => {
                 if (tagMap[tag]) {

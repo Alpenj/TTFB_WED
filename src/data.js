@@ -13,6 +13,13 @@ let scheduleData = [];
 let recordsData = [];
 let stadiumData = [];
 let leagueMatchesData = [];
+let matchRecordsCache = new Map();
+let linkedMatchStatsCache = new Map();
+
+function resetDerivedCaches() {
+    matchRecordsCache = new Map();
+    linkedMatchStatsCache = new Map();
+}
 
 export async function fetchData() {
     try {
@@ -46,6 +53,7 @@ export async function fetchData() {
         recordsData = parseRecordsCSV(texts[2]);
         stadiumData = parseStadiumCSV(texts[3]);
         leagueMatchesData = parseLeagueMatchesCSV(texts[4]);
+        resetDerivedCaches();
 
         console.log("Data loaded successfully:", {
             players: playersData.length,
@@ -63,6 +71,27 @@ export async function fetchData() {
 function parseCSV(text) {
     if (!text) return [];
     return text.trim().split('\n').map(line => line.split(','));
+}
+
+function buildMatchCacheKey(season, matchId) {
+    return `${season}-${matchId}`;
+}
+
+export function parseNoteSequenceTags(note) {
+    if (!note) return [];
+    const matches = note.toUpperCase().match(/\b(?:[A-Z]\d+|\d+|[A-Z])\b/g);
+    return matches ? matches.map(tag => tag.trim()).filter(Boolean) : [];
+}
+
+function getTagSequenceOrder(tag) {
+    if (!tag) return Number.POSITIVE_INFINITY;
+
+    const numberMatch = tag.match(/\d+/);
+    if (numberMatch) return parseInt(numberMatch[0], 10);
+
+    if (/^[A-Z]$/.test(tag)) return tag.charCodeAt(0) - 64; // A=1, B=2...
+
+    return Number.POSITIVE_INFINITY;
 }
 
 export function getPlayerEvents(currentSeason, currentMatchType, playerName, eventType) {
@@ -125,7 +154,8 @@ export function getPlayerEvents(currentSeason, currentMatchType, playerName, eve
                 submissionType: appearance, // Backward compatibility
                 goals: r.goals,
                 assists: r.assists,
-                note: r.note
+                note: r.note,
+                noteTags: r.noteTags || parseNoteSequenceTags(r.note)
             });
         }
     });
@@ -246,6 +276,7 @@ function parseRecordsCSV(csvText) {
     const rows = parseCSV(csvText);
     return rows.slice(1).map(row => {
         if (row.length < 4) return null;
+        const note = row[7] ? row[7].trim() : '';
         return {
             season: row[0].trim().replace('시즌', ''),
             matchId: row[1].trim(),
@@ -254,7 +285,8 @@ function parseRecordsCSV(csvText) {
             appearance: row[4] ? row[4].trim() : '',
             goals: parseInt(row[5] ? row[5].trim() : 0) || 0,
             assists: parseInt(row[6] ? row[6].trim() : 0) || 0,
-            note: row[7] ? row[7].trim() : '',
+            note,
+            noteTags: parseNoteSequenceTags(note),
             yellowCards: parseInt(row[8] ? row[8].trim() : 0) || 0,
             redCards: parseInt(row[9] ? row[9].trim() : 0) || 0
         };
@@ -950,23 +982,32 @@ function updateWinLossStats(s, res) {
     else if (isLoss) s.losses++;
 }
 
-// [NEW] Helper for linking goals/assists based on G#/A# tags
+// Helper for linking goals/assists based on sequence tags in notes (e.g. G1, 1, A, B)
 export function getLinkedMatchStats(season, matchId) {
+    const matchKey = buildMatchCacheKey(season, matchId);
+    const cachedEvents = linkedMatchStatsCache.get(matchKey);
+    if (cachedEvents) return cachedEvents;
+
     const events = [];
-    const matchRecords = recordsData.filter(r => r.season === season && r.matchId === matchId);
+    const matchRecords = getMatchRecords(season, matchId)
+        .map((r, index) => ({
+            ...r,
+            _recordOrder: index,
+            _noteTags: r.noteTags || parseNoteSequenceTags(r.note)
+        }));
+
     const goalRecords = matchRecords.filter(r => r.goals > 0);
 
     goalRecords.forEach(r => {
         for (let i = 0; i < r.goals; i++) {
-            const gTags = (r.note || '').match(/G\d+/gi) || [];
-            let currentTag = gTags[i];
+            const currentTag = r._noteTags[i] || null;
             let assisterName = null;
 
             if (currentTag) {
                 const partner = matchRecords.find(p =>
                     p.name !== r.name &&
-                    p.note &&
-                    p.note.toUpperCase().includes(currentTag.toUpperCase())
+                    p._noteTags.includes(currentTag) &&
+                    p.assists > 0
                 );
                 if (partner) assisterName = partner.name;
             }
@@ -974,16 +1015,39 @@ export function getLinkedMatchStats(season, matchId) {
             events.push({
                 scorer: r.name,
                 assister: assisterName,
-                tag: currentTag
+                tag: currentTag,
+                _sequenceOrder: getTagSequenceOrder(currentTag),
+                _recordOrder: r._recordOrder,
+                _goalOrder: i
             });
         }
     });
 
-    return events;
+    events.sort((a, b) => {
+        const aHasSequence = Number.isFinite(a._sequenceOrder);
+        const bHasSequence = Number.isFinite(b._sequenceOrder);
+
+        if (aHasSequence && bHasSequence && a._sequenceOrder !== b._sequenceOrder) {
+            return a._sequenceOrder - b._sequenceOrder;
+        }
+        if (aHasSequence !== bHasSequence) return aHasSequence ? -1 : 1;
+        if (a._recordOrder !== b._recordOrder) return a._recordOrder - b._recordOrder;
+        return a._goalOrder - b._goalOrder;
+    });
+
+    const sortedEvents = events.map(({ scorer, assister, tag }) => ({ scorer, assister, tag }));
+    linkedMatchStatsCache.set(matchKey, sortedEvents);
+    return sortedEvents;
 }
 
 
 export function getMatchRecords(season, matchId) {
-    return recordsData.filter(r => r.season === season && r.matchId === matchId);
+    const matchKey = buildMatchCacheKey(season, matchId);
+    const cachedRecords = matchRecordsCache.get(matchKey);
+    if (cachedRecords) return cachedRecords;
+
+    const matchRecords = recordsData.filter(r => r.season === season && r.matchId === matchId);
+    matchRecordsCache.set(matchKey, matchRecords);
+    return matchRecords;
 }
 
